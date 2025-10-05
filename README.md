@@ -62,6 +62,7 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 <summary><b>Gerçek production ortamı için nelere ihtiyaç var?</b></summary>
 
 **Güvenlik**:
+
 - ❌ HTTPS/TLS sertifikaları yok
 - ❌ Secret management (Vault, Sealed Secrets) yok
 - ❌ Network policies yok
@@ -69,18 +70,21 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 - ❌ Pod Security Standards yok
 
 **High Availability**:
+
 - ❌ Tek control-plane (HA için en az 3 tane gerekli)
 - ❌ Persistent storage (PV/PVC) stratejisi yok
 - ❌ Backup/restore mekanizması yok
 - ❌ Disaster recovery planı yok
 
 **Monitoring & Observability**:
+
 - ❌ Prometheus/Grafana monitoring yok
 - ❌ Centralized logging (ELK, Loki) yok
 - ❌ Distributed tracing (Jaeger, Tempo) yok
 - ❌ Alerting mekanizması yok
 
 **Infrastructure**:
+
 - ❌ Kind yerine gerçek cluster gerekli (EKS, GKE, AKS, on-prem)
 - ❌ Cloud load balancer entegrasyonu yok
 - ❌ Auto-scaling (HPA, VPA, Cluster Autoscaler) yok
@@ -88,6 +92,7 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 - ❌ Quality of Service (QoS) yapılandırması yok
 
 **CI/CD & Deployment**:
+
 - ❌ Automated testing pipeline yok
 - ❌ Container registry (Docker Hub, ECR, GCR) entegrasyonu yok
 - ❌ GitOps (ArgoCD, Flux) yok
@@ -415,7 +420,7 @@ datetime-k8s/
 ├── fix-webhooks.sh                    # 🔧 Webhook temizleme
 ├── patch-ingress-controller.sh        # 🔧 Ingress patch
 ├── setup-project.sh                   # 📁 Dizin yapısı oluşturma
-├── CONTRIBUTING.en.md                 # 📖 Nasıl katkıda bulunurum?
+├── CONTRIBUTING.md                    # 📖 Nasıl katkıda bulunurum?
 └── README.md                          # 📖 Ana dokümantasyon
 ```
 
