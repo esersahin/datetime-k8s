@@ -82,7 +82,7 @@ datetime-k8s/
 ├── fix-webhooks.sh                    # 🔧 Webhook temizleme
 ├── patch-ingress-controller.sh        # 🔧 Ingress patch
 ├── setup-project.sh                   # 📁 Dizin yapısı oluşturma
-├── CONTRIBUTING.en.md                 # 📖 Nasıl katkıda bulunurum?
+├── CONTRIBUTING.md                    # 📖 Nasıl katkıda bulunurum?
 └── README.md                          # 📖 Ana dokümantasyon
 ```
 

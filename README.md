@@ -1005,7 +1005,7 @@ nginx.ingress.kubernetes.io/cors-allow-origin: "*"
 cat /etc/hosts | grep local
 ```
 
-Ayrıntılı sorun giderme için, [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md) bölümüne bakın.
+Ayrıntılı sorun giderme için, [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) bölümüne bakın.
 
 ## 📝 Notlar
 

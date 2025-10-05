@@ -271,7 +271,7 @@ datetime-k8s/
 ```
 ├── README.md                   # Genel rehber
 ├── CHANGES_SUMMARY.md          # Değişikliklerin özeti
-├── PROJECT_SUMMARY.en.md       # Bileşenlerin ve önemli noktaların özeti
+├── PROJECT_SUMMARY.md          # Bileşenlerin ve önemli noktaların özeti
 ├── QUICK_START.md              # Bu dosya
 ├── TROUBLESHOOTING.md          # 🆘 Sorun giderme
 ├── WORKER_NODES.md             # Multi-node detaylar
