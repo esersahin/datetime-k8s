@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datetime-web
+  labels:
+    app: datetime-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: datetime-web
+  template:
+    metadata:
+      labels:
+        app: datetime-web
+    spec:
+      containers:
+        - name: web
+          image: datetime-web:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: datetime-web-service
+  labels:
+    app: datetime-web
+  annotations:
+    description: "Web Service - Routes traffic to worker nodes"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  # IMPORTANT: selector MUST match pod labels
+  selector:
+    app: datetime-web
+  # Session affinity - aynı client aynı pod'a yönlendirilir (opsiyonel)
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 300

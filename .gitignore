@@ -1,0 +1,21 @@
+bin/
+obj/
+
+# Kubernetes
+*.kubeconfig
+
+# Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

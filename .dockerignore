@@ -1,0 +1,39 @@
+# Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Kubernetes
+*.kubeconfig
+k8s/
+
+# Documentation
+*.md
+
+# Scripts
+*.sh
+
+# CI/CD
+.github/
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Kubernetes
+*.kubeconfig

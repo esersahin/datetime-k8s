@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: datetime-ingress
+  annotations:
+    # CORS ayarları
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    # Multi-node için önemli: Service-based routing
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    # Load balancing stratejisi
+    # Seçenekler: round_robin (varsayılan), least_conn, ip_hash
+    # round_robin: İstekler sırayla dağıtılır
+    # ip_hash: Aynı client IP her zaman aynı pod'a gider
+    # least_conn: En az bağlantısı olan pod'a gider
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
+    # Alternatif: nginx.ingress.kubernetes.io/load-balance: "round_robin"
+spec:
+  ingressClassName: nginx
+  rules:
+    # API Ingress - worker node'lardaki pod'lara yönlendirir
+    - host: api.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datetime-api-service
+                port:
+                  number: 80
+    # Web Ingress - worker node'lardaki pod'lara yönlendirir
+    - host: web.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datetime-web-service
+                port:
+                  number: 80
