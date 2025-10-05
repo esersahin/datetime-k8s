@@ -9,102 +9,102 @@
 
 ---
 
-# Troubleshooting Guide - DateTime Kubernetes Uygulaması
+# Troubleshooting Guide - DateTime Kubernetes Application
 
-Bu dokümanda karşılaşılan tüm sorunlar, nedenleri ve çözümleri adım adım açıklanmaktadır.
+This document explains all encountered issues, their causes, and step-by-step solutions.
 
-## 📋 İçindekiler
+## 📋 Table of Contents
 
-1. [Endpoint Sorunları](#1-endpoint-sorunları)
-2. [Ingress Controller Node Yerleşimi](#2-ingress-controller-node-yerleşimi)
-3. [Admission Webhook Sorunları](#3-admission-webhook-sorunları)
-4. [Image Pull Sorunları](#4-image-pull-sorunları)
-5. [Erişim Sorunları](#5-erişim-sorunları)
+1. [Endpoint Issues](#1-endpoint-issues)
+2. [Ingress Controller Node Placement](#2-ingress-controller-node-placement)
+3. [Admission Webhook Issues](#3-admission-webhook-issues)
+4. [Image Pull Issues](#4-image-pull-issues)
+5. [Access Issues](#5-access-issues)
 
 ---
 
-## 1. Endpoint Sorunları
+## 1. Endpoint Issues
 
-### 🔴 Sorun
+### 🔴 Problem
 
 ```
 Service "default/datetime-api-service" does not have any active Endpoint.
 Service "default/datetime-web-service" does not have any active Endpoint.
 ```
 
-**Belirti**: Ingress Controller loglarında endpoint uyarıları görünüyor.
+**Symptom**: Endpoint warnings appear in Ingress Controller logs.
 
-### 🔍 Analiz
+### 🔍 Analysis
 
 ```bash
-# Endpoint'leri kontrol et
+# Check endpoints
 kubectl get endpoints
 
-# Çıktı:
+# Output:
 NAME                   ENDPOINTS   AGE
 datetime-api-service   <none>      5m
 datetime-web-service   <none>      5m
 ```
 
-**Neden**: Service'lerdeki `selector` ve `ports` sıralaması yanlış. YAML'da `selector` ports'tan önce gelmeliydi.
+**Cause**: Wrong order of `selector` and `ports` in Services. In YAML, `selector` should come before ports.
 
-### ✅ Çözüm
+### ✅ Solution
 
-**api-deployment.yaml ve web-deployment.yaml** dosyalarında Service tanımını düzelttik:
+Fixed Service definition in **api-deployment.yaml and web-deployment.yaml**:
 
 ```yaml
-# YANLIŞ ❌
+# WRONG ❌
 spec:
   type: ClusterIP
-  selector:           # Önce selector
+  selector:           # selector first
     app: datetime-api
-  ports:              # Sonra ports
+  ports:              # then ports
   - port: 80
     targetPort: 5000
 
-# DOĞRU ✅
+# CORRECT ✅
 spec:
   type: ClusterIP
-  ports:              # Önce ports
+  ports:              # ports first
   - port: 80
     targetPort: 5000
-  selector:           # Sonra selector
+  selector:           # then selector
     app: datetime-api
 ```
 
-**Uygulama**:
+**Application**:
 
 ```bash
 kubectl apply -f k8s/api-deployment.yaml
 kubectl apply -f k8s/web-deployment.yaml
 
-# Doğrulama
+# Verification
 kubectl get endpoints
 # ENDPOINTS: 10.244.1.4:5000,10.244.2.2:5000 ✅
 ```
 
-**Sonuç**: ✅ Endpoint'ler oluştu, Service'ler pod'ları buluyor.
+**Result**: ✅ Endpoints created, Services are finding pods.
 
 ---
 
-## 2. Ingress Controller Node Yerleşimi
+## 2. Ingress Controller Node Placement
 
-### 🔴 Sorun
+### 🔴 Problem
 
-Ingress Controller **worker node'da** çalışıyor ama **control-plane'de** çalışması gerekiyor.
+Ingress Controller is running on **worker node** but it should run on **control-plane**.
 
 ```bash
 kubectl get pods -n ingress-nginx -o wide
 # NODE: kind-worker2 ❌
 ```
 
-**Belirti**: localhost:80/443 üzerinden erişim çalışmıyor.
+**Symptom**: Access via localhost:80/443 is not working.
 
-### 🔍 Analiz
+### 🔍 Analysis
 
-#### Neden Control-Plane'de Çalışmalı?
+#### Why Should It Run on Control-Plane?
 
-Kind yapılandırmasında `extraPortMappings` sadece control-plane node'unda:
+In Kind configuration, `extraPortMappings` are only on control-plane node:
 
 ```yaml
 # kind-config.yaml
@@ -112,42 +112,42 @@ nodes:
   - role: control-plane
     extraPortMappings:
       - containerPort: 80
-        hostPort: 80 # ← Sadece control-plane'de!
+        hostPort: 80 # ← Only on control-plane!
       - containerPort: 443
         hostPort: 443
 ```
 
-Worker node'larda bu mapping yok, bu yüzden localhost'tan erişim çalışmıyor.
+Worker nodes don't have this mapping, so localhost access doesn't work.
 
-#### Neden Worker'a Düştü?
+#### Why Did It Land on Worker?
 
-Kind'ın NGINX Ingress manifest'inde:
+In Kind's NGINX Ingress manifest:
 
-- ✅ `hostNetwork: true` var
-- ❌ `nodeSelector: ingress-ready: "true"` YOK!
-- ❌ `tolerations` YOK!
+- ✅ `hostNetwork: true` exists
+- ❌ `nodeSelector: ingress-ready: "true"` MISSING!
+- ❌ `tolerations` MISSING!
 
-**Kubernetes Scheduler Davranışı**:
+**Kubernetes Scheduler Behavior**:
 
 ```
-Predicate (Filtreleme):
+Predicate (Filtering):
 ├─ Control-plane: ✓ (os=linux)
 ├─ Worker1: ✓ (os=linux)
 └─ Worker2: ✓ (os=linux)
 
-Priority (Eşit):
-├─ Control-plane: 100 puan
-├─ Worker1: 100 puan
-└─ Worker2: 100 puan
+Priority (Equal):
+├─ Control-plane: 100 points
+├─ Worker1: 100 points
+└─ Worker2: 100 points
 
-Seçim: Random! → Worker2 seçildi 🎲
+Selection: Random! → Worker2 selected 🎲
 ```
 
-### ✅ Çözüm
+### ✅ Solution
 
-#### Seçenek 1: Özel Deployment YAML (ÖNERİLEN ⭐)
+#### Option 1: Custom Deployment YAML (RECOMMENDED ⭐)
 
-`k8s/ingress-nginx-deployment.yaml` dosyası oluşturduk:
+Created `k8s/ingress-nginx-deployment.yaml` file:
 
 ```yaml
 spec:
@@ -156,7 +156,7 @@ spec:
       hostNetwork: true
       nodeSelector:
         kubernetes.io/os: linux
-        ingress-ready: "true" # ← Control-plane'de bu label var!
+        ingress-ready: "true" # ← Control-plane has this label!
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
@@ -166,20 +166,20 @@ spec:
           effect: NoSchedule
 ```
 
-**Kullanım**:
+**Usage**:
 
 ```bash
 kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 ```
 
-#### Seçenek 2: Patch (Alternatif)
+#### Option 2: Patch (Alternative)
 
 ```bash
-# Makefile ile
+# Using Makefile
 make fix-ingress
 
-# Veya manuel
+# Or manual
 kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '
 {
   "spec": {
@@ -194,22 +194,22 @@ kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '
 }'
 ```
 
-**Doğrulama**:
+**Verification**:
 
 ```bash
 kubectl get pods -n ingress-nginx -o wide
 # NODE: kind-control-plane ✅
 ```
 
-**Sonuç**: ✅ Ingress Controller control-plane'de çalışıyor.
+**Result**: ✅ Ingress Controller running on control-plane.
 
 ---
 
-## 3. Admission Webhook Sorunları
+## 3. Admission Webhook Issues
 
-### 🔴 Sorun
+### 🔴 Problem
 
-Pod başlamıyor:
+Pod not starting:
 
 ```bash
 kubectl describe pod -n ingress-nginx ingress-nginx-controller-xxx
@@ -218,66 +218,66 @@ Events:
   Warning  FailedMount  secret "ingress-nginx-admission" not found
 ```
 
-**Belirti**: Pod `Pending` durumunda, webhook sertifikası eksik.
+**Symptom**: Pod in `Pending` state, webhook certificate missing.
 
-### 🔍 Analiz
+### 🔍 Analysis
 
-NGINX Ingress Controller varsayılan olarak **ValidatingWebhook** kullanır:
+NGINX Ingress Controller uses **ValidatingWebhook** by default:
 
-- Webhook için TLS sertifikası gerekir
-- Sertifika bir Job tarafından oluşturulur
-- Kind'da bu Job bazen çalışmıyor
+- Webhook requires TLS certificate
+- Certificate is created by a Job
+- This Job sometimes doesn't run in Kind
 
-**Kind'da Webhook Gereksiz**:
+**Webhook Not Needed in Kind**:
 
-- Local development ortamı
-- Ingress validation gerekmez
-- Sadece production'da önemli
+- Local development environment
+- Ingress validation not required
+- Only important in production
 
-### ✅ Çözüm
+### ✅ Solution
 
-#### Seçenek 1: Webhook'sız Deployment (ÖNERİLEN ⭐)
+#### Option 1: Webhook-less Deployment (RECOMMENDED ⭐)
 
-`k8s/ingress-nginx-deployment.yaml` güncelledik:
+Updated `k8s/ingress-nginx-deployment.yaml`:
 
 ```yaml
-# Webhook argümanlarını kaldırdık
+# Removed webhook arguments
 args:
   - /nginx-ingress-controller
   - --election-id=ingress-nginx-leader
   - --controller-class=k8s.io/ingress-nginx
-  # Webhook devre dışı
+  # Webhook disabled
   # - --validating-webhook=:8443
   # - --validating-webhook-certificate=/usr/local/certificates/cert
   # - --validating-webhook-key=/usr/local/certificates/key
 
-# Volume'u kaldırdık
+# Removed volume
 # volumes:
 #   - name: webhook-cert
 #     secret:
 #       secretName: ingress-nginx-admission
 
-# Port'u kaldırdık
+# Removed port
 ports:
   - name: http
     containerPort: 80
   - name: https
     containerPort: 443
-  # - name: webhook        # ← Kaldırıldı
+  # - name: webhook        # ← Removed
   #   containerPort: 8443
 ```
 
-**Uygulama**:
+**Application**:
 
 ```bash
 kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 ```
 
-#### Seçenek 2: Manuel Secret Oluşturma
+#### Option 2: Manual Secret Creation
 
 ```bash
-# Self-signed sertifika oluştur
+# Create self-signed certificate
 kubectl create secret tls ingress-nginx-admission \
   --cert=<(openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj "/CN=ingress-nginx") \
   --key=<(openssl genrsa 2048) \
@@ -286,35 +286,35 @@ kubectl create secret tls ingress-nginx-admission \
 kubectl delete pod -n ingress-nginx -l app.kubernetes.io/component=controller
 ```
 
-#### Seçenek 3: Webhook'ları Sil
+#### Option 3: Delete Webhooks
 
 ```bash
 kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission
 ```
 
-**Doğrulama**:
+**Verification**:
 
 ```bash
 kubectl get pods -n ingress-nginx
 # STATUS: Running ✅
 ```
 
-**Sonuç**: ✅ Webhook'suz Ingress Controller çalışıyor.
+**Result**: ✅ Ingress Controller running without webhooks.
 
 ---
 
-## 4. Image Pull Sorunları
+## 4. Image Pull Issues
 
-### 🔴 Sorun
+### 🔴 Problem
 
 ```bash
 kubectl get pods -n ingress-nginx
 # STATUS: ImagePullBackOff ❌
 ```
 
-**Belirti**: Container image çekilemiyor.
+**Symptom**: Container image cannot be pulled.
 
-### 🔍 Analiz
+### 🔍 Analysis
 
 ```bash
 kubectl describe pod -n ingress-nginx ingress-nginx-controller-xxx
@@ -324,13 +324,13 @@ Events:
   Error: manifest unknown
 ```
 
-**Neden**:
+**Cause**:
 
-- SHA256 digest ARM64 platformunda mevcut değil
-- M1/M2/M3 Mac (ARM64) kullanıyorsunuz
-- Image multi-platform ama digest tek platform için
+- SHA256 digest not available on ARM64 platform
+- You're using M1/M2/M3 Mac (ARM64)
+- Image is multi-platform but digest is for single platform
 
-**Platform Kontrolü**:
+**Platform Check**:
 
 ```bash
 uname -m
@@ -338,19 +338,19 @@ uname -m
 # x86_64 → Intel Mac
 ```
 
-### ✅ Çözüm
+### ✅ Solution
 
-SHA256 digest'i kaldırdık, Docker otomatik platform seçimi yapsın:
+Removed SHA256 digest, let Docker auto-select platform:
 
 ```yaml
-# YANLIŞ ❌ (SHA digest ile)
+# WRONG ❌ (with SHA digest)
 image: registry.k8s.io/ingress-nginx/controller:v1.13.3@sha256:c54d7a8ac1c8a04e71091d8a5e6b31f9df9b0a35c7cba73bc87c653ad8ba4b13
 
-# DOĞRU ✅ (Platform-agnostic)
+# CORRECT ✅ (Platform-agnostic)
 image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 ```
 
-**k8s/ingress-nginx-deployment.yaml** güncelledik:
+Updated **k8s/ingress-nginx-deployment.yaml**:
 
 ```yaml
 containers:
@@ -359,17 +359,17 @@ containers:
     imagePullPolicy: IfNotPresent
 ```
 
-**Uygulama**:
+**Application**:
 
 ```bash
 kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
-# Image pull'u izle
+# Watch image pull
 kubectl get pods -n ingress-nginx -w
 ```
 
-**Doğrulama**:
+**Verification**:
 
 ```bash
 kubectl get pods -n ingress-nginx
@@ -377,73 +377,73 @@ kubectl get pods -n ingress-nginx
 
 kubectl describe pod -n ingress-nginx ingress-nginx-controller-xxx | grep "Image:"
 # Image: registry.k8s.io/ingress-nginx/controller:v1.13.3
-# Image ID: sha256:... (ARM64 için doğru image)
+# Image ID: sha256:... (correct image for ARM64)
 ```
 
-**Sonuç**: ✅ ARM64 image başarıyla çekildi ve pod çalışıyor.
+**Result**: ✅ ARM64 image successfully pulled and pod running.
 
 ---
 
-## 5. Erişim Sorunları
+## 5. Access Issues
 
-### 🔴 Sorun
+### 🔴 Problem
 
 ```bash
 curl http://api.local/api/datetime
 # curl: (7) Failed to connect to api.local port 80: Connection refused
 ```
 
-**Belirti**: Endpoint'ler var, Ingress Controller çalışıyor ama erişim yok.
+**Symptom**: Endpoints exist, Ingress Controller running but no access.
 
-### 🔍 Analiz
+### 🔍 Analysis
 
-**Olası Nedenler**:
+**Possible Causes**:
 
-1. `/etc/hosts` güncel değil
-2. Ingress Controller worker node'da
+1. `/etc/hosts` not updated
+2. Ingress Controller on worker node
 3. hostNetwork false
 
-**Kontrol**:
+**Check**:
 
 ```bash
-# 1. /etc/hosts kontrolü
+# 1. /etc/hosts check
 cat /etc/hosts | grep api.local
-# Yoksa sorun bu!
+# If not there, that's the problem!
 
 # 2. Ingress Controller node
 kubectl get pods -n ingress-nginx -o wide
-# NODE: kind-worker2 ise sorun bu!
+# NODE: kind-worker2 means that's the problem!
 
 # 3. hostNetwork
 kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o yaml | grep hostNetwork
-# false veya yok ise sorun bu!
+# false or missing means that's the problem!
 ```
 
-### ✅ Çözüm
+### ✅ Solution
 
-#### 1. /etc/hosts Güncelle
+#### 1. Update /etc/hosts
 
 ```bash
-# Ekle
+# Add
 echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
 
-# Kontrol
+# Check
 grep "api.local\|web.local" /etc/hosts
 
-# Veya Makefile ile
+# Or using Makefile
 make update-hosts
 ```
 
-#### 2. Ingress Controller Control-Plane'e Taşı
+#### 2. Move Ingress Controller to Control-Plane
 
-Yukarıdaki [Bölüm 2](#2-ingress-controller-node-yerleşimi)'ye bakın.
+See [Section 2](#2-ingress-controller-node-placement) above.
 
-#### 3. hostNetwork Düzelt
+#### 3. Fix hostNetwork
 
 ```bash
 make fix-ingress
 
-# Veya manuel
+# Or manual
 kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '
 {
   "spec": {
@@ -456,93 +456,92 @@ kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '
 }'
 ```
 
-**Doğrulama**:
+**Verification**:
 
 ```bash
 # Test
 curl http://api.local/api/datetime
 
-# Beklenen:
+# Expected:
 {
   "date": "05.10.2025",
   "time": "15:30:45",
-  "dayOfWeek": "Pazar",
+  "dayOfWeek": "Sunday",
   "timestamp": "2025-10-05T15:30:45+03:00"
 }
 ```
 
-**Sonuç**: ✅ API ve Web uygulamasına erişim çalışıyor.
+**Result**: ✅ API and Web application access working.
 
 ---
 
-## 📊 Sorun Giderme Akış Şeması
+## 📊 Troubleshooting Flowchart
 
 ```
 ┌─────────────────────────────────────┐
-│  Uygulamaya erişilemiyor?           │
+│  Cannot access application?         │
 └─────────────────┬───────────────────┘
                   │
                   ▼
          ┌─────────────────────┐
-         │ Endpoint'ler var mı?│
+         │ Are Endpoints there?│
          └────┬──────────┬─────┘
               │          │
-           HAYIR       EVET
+           NO          YES
               │          │
               ▼          ▼
     ┌──────────────┐  ┌──────────────────────┐
-    │ Service YAML │  │ Ingress Controller   │
-    │ düzelt       │  │ çalışıyor mu?        │
+    │ Fix Service  │  │ Is Ingress Controller│
+    │ YAML         │  │ running?             │
     │ (selector)   │  └────┬──────────┬──────┘
     └──────────────┘       │          │
-                        HAYIR       EVET
+                        NO          YES
                            │          │
                            ▼          ▼
                 ┌────────────────┐  ┌──────────────────┐
-                │ Pod STATUS?    │  │ Control-plane'de │
-                │ - Pending      │  │ mi?              │
-                │ - ImagePull... │  └────┬──────┬──────┘
-                └────┬───────┬───┘      │      │
-                     │       │       HAYIR   EVET
-                     ▼       ▼          │      │
-            ┌─────────┐ ┌─────────┐     ▼      ▼
-            │Webhook  │ │Image    │  ┌────┐ ┌────────┐
-            │Secret   │ │SHA256   │  │Fix │ │/etc/   │
-            │oluştur  │ │kaldır   │  │    │ │hosts?  │
-            └─────────┘ └─────────┘  └────┘ └────────┘
-                                        │       │
-                                        ▼       ▼
-                                    ✅ ÇÖZÜLDÜ
+                │ Pod STATUS?    │  │ On control-plane?│
+                │ - Pending      │  └────┬──────┬──────┘
+                │ - ImagePull... │      │      │
+                └────┬───────┬───┘   NO     YES
+                     │       │        │      │
+                     ▼       ▼        ▼      ▼
+            ┌─────────┐ ┌─────────┐ ┌────┐ ┌────────┐
+            │Webhook  │ │Image    │ │Fix │ │/etc/   │
+            │Secret   │ │SHA256   │ │    │ │hosts?  │
+            │create   │ │remove   │ └────┘ └────────┘
+            └─────────┘ └─────────┘   │       │
+                                       ▼       ▼
+                                   ✅ SOLVED
 ```
 
 ---
 
-## 🎯 Hızlı Çözüm Rehberi
+## 🎯 Quick Fix Guide
 
-### Yeni Kurulum (Önerilen)
+### Fresh Installation (Recommended)
 
 ```bash
-# 1. Temizlik
+# 1. Cleanup
 make clean-all
 
-# 2. Özel Ingress YAML ile deploy
+# 2. Deploy with custom Ingress YAML
 make deploy
 
-# 3. Doğrula
+# 3. Verify
 make verify
 
 # 4. Test
 curl http://api.local/api/datetime
 ```
 
-### Mevcut Cluster Sorunları
+### Existing Cluster Issues
 
 ```bash
-# 1. Endpoint yoksa
+# 1. If no endpoints
 kubectl apply -f k8s/api-deployment.yaml
 kubectl apply -f k8s/web-deployment.yaml
 
-# 2. Ingress sorunluysa
+# 2. If Ingress issues
 kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
@@ -555,26 +554,26 @@ curl http://api.local/api/datetime
 
 ---
 
-## 📋 Checklist: Deployment Doğrulama
+## 📋 Checklist: Deployment Verification
 
-Tüm sorunlar çözüldükten sonra:
+After all issues are resolved:
 
-- [ ] **Node Sayısı**: `kubectl get nodes` → 3 node (1 control + 2 worker)
-- [ ] **Endpoint'ler**: `kubectl get endpoints` → Her service 2 endpoint
+- [ ] **Node Count**: `kubectl get nodes` → 3 nodes (1 control + 2 worker)
+- [ ] **Endpoints**: `kubectl get endpoints` → Each service has 2 endpoints
 - [ ] **Ingress Controller**: `kubectl get pods -n ingress-nginx -o wide` → kind-control-plane
-- [ ] **Pod Durumu**: `kubectl get pods` → Hepsi Running
+- [ ] **Pod Status**: `kubectl get pods` → All Running
 - [ ] **hostNetwork**: `kubectl get pod -n ingress-nginx -o yaml | grep hostNetwork` → true
 - [ ] **/etc/hosts**: `grep api.local /etc/hosts` → 127.0.0.1 api.local web.local
 - [ ] **API Test**: `curl http://api.local/api/datetime` → JSON response
 - [ ] **Web Test**: `curl http://web.local` → HTML response
-- [ ] **Verify**: `make verify` → Tüm testler başarılı
+- [ ] **Verify**: `make verify` → All tests passing
 
 ---
 
-## 🛠️ Kullanışlı Debug Komutları
+## 🛠️ Useful Debug Commands
 
 ```bash
-# Genel Durum
+# General Status
 make status
 make show-nodes
 make verify
@@ -591,54 +590,54 @@ kubectl describe service datetime-api-service
 # Ingress
 kubectl describe ingress datetime-ingress
 
-# Pod'lar
+# Pods
 kubectl get pods -o wide
 kubectl logs <pod-name> -f
 
-# Network Test (Cluster içinden)
+# Network Test (from inside cluster)
 kubectl run test --image=curlimages/curl -it --rm -- curl http://datetime-api-service/api/datetime
 ```
 
 ---
 
-## 📚 İlgili Dokümanlar
+## 📚 Related Documentation
 
-- **[README](README.md)**: Genel kullanım ve kurulum
-- **[WORKER_NODES](WORKER_NODES.md)**: Multi-node cluster rehberi
-- **[INGRESS_ROUTING](INGRESS_ROUTING.md)**: Ingress routing detayları
-- **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)**: Ingress Controller düzeltme yöntemleri
-- **[INGRESS_SETUP](INGRESS_SETUP.md)**: Ingress kurulum rehberi
-- **[LOAD_BALANCING](LOAD_BALANCING.md)**: Load balancing stratejileri
-
----
-
-## 🎓 Öğrenilen Dersler
-
-### 1. YAML Sıralaması Önemli
-
-Service tanımında `ports` ve `selector` sıralaması Kubernetes'te önemlidir.
-
-### 2. Kind'da Scheduler Rastgele Seçim Yapabilir
-
-`nodeSelector` olmadan pod'lar rastgele node'lara düşebilir.
-
-### 3. Platform-Specific Image Digest'ler Sorun Çıkarır
-
-ARM64/AMD64 için farklı digest'ler var, multi-platform için digest kullanmayın.
-
-### 4. Webhook'lar Local Development'ta Gereksiz
-
-Kind'da admission webhook'ları devre dışı bırakabilirsiniz.
-
-### 5. hostNetwork + extraPortMappings = localhost Erişim
-
-Kind'da localhost erişimi için bu ikisi birlikte gerekli.
+- **[README](README.en.md)**: General usage and installation
+- **[WORKER_NODES](WORKER_NODES.en.md)**: Multi-node cluster guide
+- **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**: Ingress routing details
+- **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)**: Ingress Controller fix methods
+- **[INGRESS_SETUP](INGRESS_SETUP.en.md)**: Ingress setup guide
+- **[LOAD_BALANCING](LOAD_BALANCING.en.md)**: Load balancing strategies
 
 ---
 
-## ✅ Final Yapılandırma
+## 🎓 Lessons Learned
 
-### k8s/ingress-nginx-deployment.yaml (Özet)
+### 1. YAML Order Matters
+
+In Service definition, the order of `ports` and `selector` matters in Kubernetes.
+
+### 2. Kind Scheduler Can Make Random Selections
+
+Without `nodeSelector`, pods can land on random nodes.
+
+### 3. Platform-Specific Image Digests Cause Issues
+
+ARM64/AMD64 have different digests, don't use digest for multi-platform.
+
+### 4. Webhooks Not Needed in Local Development
+
+You can disable admission webhooks in Kind.
+
+### 5. hostNetwork + extraPortMappings = localhost Access
+
+Both are required together for localhost access in Kind.
+
+---
+
+## ✅ Final Configuration
+
+### k8s/ingress-nginx-deployment.yaml (Summary)
 
 ```yaml
 spec:
@@ -647,12 +646,12 @@ spec:
       # ✅ Host network
       hostNetwork: true
 
-      # ✅ Control-plane'de çalış
+      # ✅ Run on control-plane
       nodeSelector:
         kubernetes.io/os: linux
         ingress-ready: "true"
 
-      # ✅ Control-plane taint'ini tolere et
+      # ✅ Tolerate control-plane taint
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
@@ -662,11 +661,11 @@ spec:
           # ✅ Platform-agnostic image
           image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 
-          # ✅ Webhook'suz args
+          # ✅ Args without webhook
           args:
             - /nginx-ingress-controller
             - --ingress-class=nginx
-            # Webhook devre dışı
+            # Webhook disabled
 
           # ✅ Host ports
           ports:
@@ -678,4 +677,4 @@ spec:
 
 ---
 
-**Sonuç**: Tüm sorunlar çözüldü, sistem çalışıyor! 🎉
+**Result**: All issues resolved, system working! 🎉

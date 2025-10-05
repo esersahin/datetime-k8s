@@ -1,3 +1,14 @@
+<div align="center">
+
+### 🌐 Read in Other Languages
+
+| 🇬🇧 [English](INGRESS_CONTROLLER_FIX.en.md) | 🇹🇷 [Türkçe](INGRESS_CONTROLLER_FIX.md) |
+|:---:|:---:|
+
+</div>
+
+---
+
 ﻿# Ingress Controller Control-Plane'e Taşıma Rehberi
 
 Bu dokümanda Ingress Controller'ın neden worker node'a düştüğü ve nasıl control-plane'e taşınacağı açıklanmaktadır.

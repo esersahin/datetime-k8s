@@ -1,4 +1,15 @@
-﻿# Ingress Controller Kurulum Rehberi
+<div align="center">
+
+### 🌐 Read in Other Languages
+
+| 🇬🇧 [English](INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](INGRESS_SETUP.md) |
+| :-------------------------------: | :---------------------------: |
+
+</div>
+
+---
+
+# Ingress Controller Kurulum Rehberi
 
 ## 🎯 Önerilen Yöntem: Özel YAML
 
@@ -149,9 +160,9 @@ curl http://api.local/api/datetime
 
 ## 📚 Detaylı Bilgi
 
-- **INGRESS_CONTROLLER_FIX.md**: Tüm çözümler ve detaylı açıklama
-- **INGRESS_ROUTING.md**: Routing mekanizması
-- **README.md**: Genel dokümantasyon
+- **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)**: Tüm çözümler ve detaylı açıklama
+- **[INGRESS_ROUTING](INGRESS_ROUTING.md)**: Routing mekanizması
+- **[README](README.md)**: Genel dokümantasyon
 
 ---
 

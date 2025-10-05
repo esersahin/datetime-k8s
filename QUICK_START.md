@@ -1,4 +1,15 @@
-﻿# Quick Start Guide
+<div align="center">
+
+### 🌐 Diğer Dillerde Oku / Read in Other Languages
+
+| 🇹🇷 [Türkçe](QUICK_START.md) | 🇬🇧 [English](QUICK_START.en.md) |
+| :-------------------------: | :-----------------------------: |
+
+</div>
+
+---
+
+# Quick Start Guide
 
 Bu rehber DateTime Kubernetes uygulamasını 5 dakikada çalıştırmanızı sağlar.
 
@@ -77,16 +88,16 @@ kubectl get endpoints
 
 ### Yaygın Sorunlar
 
-| Sorun                | Hızlı Çözüm                                                      |
-| -------------------- | ---------------------------------------------------------------- |
-| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`         |
-| **Endpoint yok**     | `kubectl apply -f k8s/`                                          |
-| **Erişim yok**       | `echo "127.0.0.1 api.local web.local" \| sudo tee -a /etc/hosts` |
-| **Pod Pending**      | `kubectl describe pod <pod-name>` → TROUBLESHOOTING.md'ye bakın  |
+| Sorun                | Hızlı Çözüm                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                           |
+| **Endpoint yok**     | `kubectl apply -f k8s/`                                                            |
+| **Erişim yok**       | `echo "127.0.0.1 api.local web.local" \| sudo tee -a /etc/hosts`                   |
+| **Pod Pending**      | `kubectl describe pod <pod-name>` → [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bakın |
 
 ### Detaylı Sorun Giderme
 
-**TROUBLESHOOTING.md** dosyasına bakın! 🆘
+**[TROUBLESHOOTING](TROUBLESHOOTING.md)** dosyasına bakın! 🆘
 
 ---
 
@@ -231,8 +242,9 @@ datetime-k8s/
 ├── k8s/
 │   ├── api-deployment.yaml
 │   ├── web-deployment.yaml
+│   ├── kind-config.yaml
 │   ├── ingress.yaml
-│   └── ingress-nginx-deployment.yaml  # ⭐ ÖNEMLİ!
+│   └── ingress-nginx-deployment.yaml   # ⭐ ÖNEMLİ!
 ├── Makefile                            # ⭐ ÖNEMLİ!
 ├── kind-config.yaml
 └── deploy.sh
@@ -241,7 +253,7 @@ datetime-k8s/
 ### Dokümantasyon Dosyaları
 
 ```
-├── README.md                    # Genel rehber
+├── README.md                   # Genel rehber
 ├── QUICK_START.md              # Bu dosya
 ├── TROUBLESHOOTING.md          # 🆘 Sorun giderme
 ├── WORKER_NODES.md             # Multi-node detaylar
@@ -476,10 +488,10 @@ Başarılı deployment için:
 
 ### Dokümantasyon
 
-- **README.md** → Genel bilgi
-- **WORKER_NODES.md** → Multi-node detaylar
-- **INGRESS_ROUTING.md** → Network akışı
-- **LOAD_BALANCING.md** → Load balancing
+- **[README](README.md)** → Genel bilgi
+- **[WORKER_NODES](WORKER_NODES.md)** → Multi-node detaylar
+- **[INGRESS_ROUTING](INGRESS_ROUTING.md)** → Network akışı
+- **[LOAD_BALANCING](LOAD_BALANCING.md)** → Load balancing
 
 ### Komutlar
 

@@ -1,4 +1,15 @@
-﻿# DateTime Kubernetes Projesi - Özet
+<div align="center">
+
+### 🌐 Read in Other Languages
+
+| 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
+| :---------------------------------: | :-----------------------------: |
+
+</div>
+
+---
+
+# DateTime Kubernetes Projesi - Özet
 
 Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özetlenmiştir.
 
@@ -31,7 +42,7 @@ datetime-k8s/
 │   └── Dockerfile.web                  # Web Docker image
 ├── k8s/                                # Kubernetes Manifests
 │   ├── api-deployment.yaml             # API Deployment + Service
-│   ├── web-deployment.yaml             # Web Deployment + Service 
+│   ├── web-deployment.yaml             # Web Deployment + Service
 │   ├── kind-config.yaml                # ⚙️ Kind cluster config (multi-node)
 │   ├── ingress.yaml                    # Ingress (api.local, web.local)
 │   └── ingress-nginx-deployment.yaml   # ⭐ Özel Ingress (ARM64 + control-plane fix)
@@ -85,15 +96,15 @@ make clean-all       # Temizle
 
 ## 📚 Dokümantasyon Rehberi
 
-| Dosya                         | Ne Zaman Okunmalı        | İçerik                   |
-| ----------------------------- | ------------------------ | ------------------------ |
-| **QUICK_START.md**            | İlk başlangıç            | 5 dakikada kurulum       |
-| **README.md**                 | Genel bakış              | Tüm özellikler, komutlar |
-| **TROUBLESHOOTING.md**        | Sorun olduğunda          | Tüm hatalar ve çözümleri |
-| **WORKER_NODES.md**           | Multi-node öğrenmek için | Node yapılandırması      |
-| **INGRESS_ROUTING.md**        | Network anlamak için     | Trafik akışı             |
-| **LOAD_BALANCING.md**         | LB özelleştirme          | Round-robin, IP hash     |
-| **INGRESS_CONTROLLER_FIX.md** | Ingress sorunları        | Tüm düzeltme yöntemleri  |
+| Dosya                                                   | Ne Zaman Okunmalı        | İçerik                   |
+| ------------------------------------------------------- | ------------------------ | ------------------------ |
+| **[QUICK_START](QUICK_START.md)**                       | İlk başlangıç            | 5 dakikada kurulum       |
+| **[README](README.md)**                                 | Genel bakış              | Tüm özellikler, komutlar |
+| **[TROUBLESHOOTING](TROUBLESHOOTING.md)**               | Sorun olduğunda          | Tüm hatalar ve çözümleri |
+| **[WORKER_NODES](WORKER_NODES.md)**                     | Multi-node öğrenmek için | Node yapılandırması      |
+| **[INGRESS_ROUTING](INGRESS_ROUTING.md)**               | Network anlamak için     | Trafik akışı             |
+| **[LOAD_BALANCING](LOAD_BALANCING.md)**                 | LB özelleştirme          | Round-robin, IP hash     |
+| **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)** | Ingress sorunları        | Tüm düzeltme yöntemleri  |
 
 ## 🔑 Kritik Dosyalar
 
@@ -379,16 +390,16 @@ Projeyi geliştirmek için:
 ### Sorun Giderme
 
 1. `make verify` çalıştır
-2. TROUBLESHOOTING.md'ye bak
+2. [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bak
 3. `kubectl describe pod <pod-name>`
 4. `kubectl logs <pod-name>`
 
 ### Dokümantasyon
 
-- Başlangıç: QUICK_START.md
-- Sorun: TROUBLESHOOTING.md
-- Network: INGRESS_ROUTING.md
-- Multi-node: WORKER_NODES.md
+- Başlangıç: [QUICK_START](QUICK_START.md)
+- Sorun: [TROUBLESHOOTING](TROUBLESHOOTING.md)
+- Network: [INGRESS_ROUTING](INGRESS_ROUTING.md)
+- Multi-node: [WORKER_NODES](WORKER_NODES.md)
 
 ### Komutlar
 

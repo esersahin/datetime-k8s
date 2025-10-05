@@ -9,69 +9,69 @@
 
 ---
 
-﻿# Load Balancing Yapılandırması
+# Load Balancing Configuration
 
-Bu dokümanda ingress.yaml'da kullanabileceğiniz farklı load balancing stratejileri açıklanmaktadır.
+This document explains different load balancing strategies you can use in ingress.yaml.
 
-## 🔀 Load Balancing Stratejileri
+## 🔀 Load Balancing Strategies
 
-### 1. Round Robin (Varsayılan)
+### 1. Round Robin (Default)
 
-**Ne yapar**: İstekleri sırayla pod'lara dağıtır.
+**What it does**: Distributes requests to pods in order.
 
 ```yaml
 # ingress.yaml
 metadata:
   annotations:
-    # Varsayılan davranış - annotation gerekmez
-    # Veya açıkça belirtmek için:
+    # Default behavior - annotation not required
+    # Or to explicitly specify:
     nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
-**Kullanım Senaryosu**:
+**Use Case**:
 
-- Tüm pod'lar eşit kapasitede
-- Stateless uygulamalar
-- Session yok veya external session store kullanılıyor
+- All pods have equal capacity
+- Stateless applications
+- No sessions or external session store used
 
-**Örnek Akış**:
+**Example Flow**:
 
 ```
-İstek 1 → Pod A
-İstek 2 → Pod B
-İstek 3 → Pod A
-İstek 4 → Pod B
+Request 1 → Pod A
+Request 2 → Pod B
+Request 3 → Pod A
+Request 4 → Pod B
 ```
 
-### 2. IP Hash (Sticky Sessions - Client IP Bazlı)
+### 2. IP Hash (Sticky Sessions - Client IP Based)
 
-**Ne yapar**: Aynı client IP her zaman aynı pod'a yönlendirilir.
+**What it does**: Same client IP always routed to same pod.
 
 ```yaml
 # ingress.yaml
 metadata:
   annotations:
-    # Client IP bazlı hash
+    # Client IP based hash
     nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
 ```
 
-**Kullanım Senaryosu**:
+**Use Case**:
 
-- Session verisi pod'da saklanıyor
-- WebSocket bağlantıları
-- Kullanıcı bazlı cache
-- Stateful uygulamalar
+- Session data stored in pod
+- WebSocket connections
+- User-based cache
+- Stateful applications
 
-**Örnek Akış**:
+**Example Flow**:
 
 ```
-Client 1.2.3.4 → Her zaman Pod A
-Client 5.6.7.8 → Her zaman Pod B
+Client 1.2.3.4 → Always Pod A
+Client 5.6.7.8 → Always Pod B
 ```
 
 ### 3. Least Connections
 
-**Ne yapar**: En az aktif bağlantısı olan pod'a yönlendirir.
+**What it does**: Routes to pod with least active connections.
 
 ```yaml
 # ingress.yaml
@@ -80,49 +80,49 @@ metadata:
     nginx.ingress.kubernetes.io/load-balance: "least_conn"
 ```
 
-**Kullanım Senaryosu**:
+**Use Case**:
 
-- Uzun süreli bağlantılar (WebSocket, SSE)
-- Değişken işlem süreleri
-- Dinamik yük dağılımı
+- Long-duration connections (WebSocket, SSE)
+- Variable processing times
+- Dynamic load distribution
 
-**Örnek Akış**:
+**Example Flow**:
 
 ```
-Pod A: 5 aktif bağlantı
-Pod B: 2 aktif bağlantı
-→ Yeni istek Pod B'ye gider
+Pod A: 5 active connections
+Pod B: 2 active connections
+→ New request goes to Pod B
 ```
 
-### 4. Custom Hash (Özel Alan Bazlı)
+### 4. Custom Hash (Custom Field Based)
 
-**Ne yapar**: İstekteki belirli bir alana göre hash yapar.
+**What it does**: Hashes based on specific field in request.
 
 ```yaml
 # ingress.yaml
 metadata:
   annotations:
-    # Cookie bazlı
+    # Cookie based
     nginx.ingress.kubernetes.io/upstream-hash-by: "$cookie_user_id"
 
-    # Veya header bazlı
+    # Or header based
     nginx.ingress.kubernetes.io/upstream-hash-by: "$http_x_user_id"
 
-    # Veya URI bazlı
+    # Or URI based
     nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
 ```
 
-**Kullanım Senaryosu**:
+**Use Case**:
 
-- Cookie bazlı session
-- User ID bazlı routing
-- API key bazlı routing
+- Cookie-based sessions
+- User ID based routing
+- API key based routing
 
 ---
 
-## 🎯 Mevcut Projemiz İçin Öneriler
+## 🎯 Recommendations for Our Project
 
-### Şu Anki Yapılandırma
+### Current Configuration
 
 ```yaml
 # ingress.yaml
@@ -131,30 +131,30 @@ metadata:
     nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
 ```
 
-Bu, **IP Hash** stratejisi kullanıyor.
+This uses **IP Hash** strategy.
 
-### Senaryo 1: Stateless API (Önerilen)
+### Scenario 1: Stateless API (Recommended)
 
-Eğer API'niz tamamen stateless ise (session yok):
+If your API is completely stateless (no sessions):
 
 ```yaml
 # ingress.yaml - Round Robin
 metadata:
   annotations:
-    # Bu satırı kaldırın veya round_robin yapın
+    # Remove this line or set to round_robin
     # nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
     nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
-**Avantajlar**:
+**Advantages**:
 
-- ✅ Daha iyi yük dağılımı
-- ✅ Bir pod kapanırsa otomatik dağıtım
-- ✅ Basit ve öngörülebilir
+- ✅ Better load distribution
+- ✅ Automatic distribution if pod goes down
+- ✅ Simple and predictable
 
-### Senaryo 2: Session Bazlı Uygulama
+### Scenario 2: Session-Based Application
 
-Eğer kullanıcı session'ı var:
+If you have user sessions:
 
 ```yaml
 # ingress.yaml - IP Hash + Service Session Affinity
@@ -163,7 +163,7 @@ metadata:
     nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
 ```
 
-VE Service'te:
+AND in Service:
 
 ```yaml
 # api-deployment.yaml & web-deployment.yaml
@@ -174,62 +174,62 @@ spec:
       timeoutSeconds: 300
 ```
 
-**Avantajlar**:
+**Advantages**:
 
-- ✅ Session tutarlılığı
-- ✅ Cache hit oranı yüksek
-- ✅ Kullanıcı deneyimi tutarlı
+- ✅ Session consistency
+- ✅ High cache hit rate
+- ✅ Consistent user experience
 
-### Senaryo 3: WebSocket Kullanımı
+### Scenario 3: WebSocket Usage
 
-Eğer WebSocket bağlantıları var:
+If you have WebSocket connections:
 
 ```yaml
 # ingress.yaml - Least Connections
 metadata:
   annotations:
     nginx.ingress.kubernetes.io/load-balance: "least_conn"
-    # WebSocket için
+    # For WebSocket
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 ```
 
 ---
 
-## 🔄 Yapılandırma Değiştirme
+## 🔄 Changing Configuration
 
-### Yöntem 1: YAML Dosyasını Düzenle
+### Method 1: Edit YAML File
 
 ```bash
-# ingress.yaml'ı düzenle
+# Edit ingress.yaml
 nano k8s/ingress.yaml
 
-# Değişikliği uygula
+# Apply change
 kubectl apply -f k8s/ingress.yaml
 
-# Ingress'i kontrol et
+# Check Ingress
 kubectl describe ingress datetime-ingress
 ```
 
-### Yöntem 2: kubectl patch
+### Method 2: kubectl patch
 
 ```bash
-# Round robin'e geç
+# Switch to round robin
 kubectl patch ingress datetime-ingress -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/load-balance":"round_robin"}}}'
 
-# IP hash'e geç
+# Switch to IP hash
 kubectl patch ingress datetime-ingress -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/upstream-hash-by":"$binary_remote_addr"}}}'
 
-# Least connections'a geç
+# Switch to least connections
 kubectl patch ingress datetime-ingress -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/load-balance":"least_conn"}}}'
 ```
 
-### Yöntem 3: Makefile Target'ı Ekle
+### Method 3: Add Makefile Targets
 
-Makefile'a yeni target'lar ekleyebiliriz:
+We can add new targets to Makefile:
 
 ```makefile
-# Makefile'a ekle
+# Add to Makefile
 set-lb-roundrobin: ## Load balancing: Round Robin
 	@echo "$(YELLOW)Setting load balance to round_robin...$(NC)"
 	@kubectl patch ingress datetime-ingress -p '{"metadata":{"annotations":{"nginx.ingress.kubernetes.io/load-balance":"round_robin"}}}'
@@ -250,7 +250,7 @@ show-lb: ## Show current load balancing config
 	@kubectl get ingress datetime-ingress -o jsonpath='{.metadata.annotations}' | jq
 ```
 
-**Kullanım**:
+**Usage**:
 
 ```bash
 make set-lb-roundrobin
@@ -261,73 +261,73 @@ make show-lb
 
 ---
 
-## 🧪 Test Etme
+## 🧪 Testing
 
 ### Test 1: Round Robin
 
 ```bash
-# Round robin ayarla
-make set-lb-roundrobin  # veya kubectl patch
+# Set round robin
+make set-lb-roundrobin  # or kubectl patch
 
-# 10 istek gönder
+# Send 10 requests
 for i in {1..10}; do
   curl -s http://api.local/api/datetime | jq -r '.time'
 done
 
-# Pod loglarını kontrol et - her iki pod da log görmeli
+# Check pod logs - both pods should show logs
 kubectl logs -l app=datetime-api --tail=5
 ```
 
 ### Test 2: IP Hash (Sticky)
 
 ```bash
-# IP hash ayarla
+# Set IP hash
 make set-lb-iphash
 
-# Aynı client'tan 10 istek
+# 10 requests from same client
 for i in {1..10}; do
   curl -s http://api.local/api/datetime | jq -r '.time'
 done
 
-# Sadece 1 pod log görmeli (aynı IP → aynı pod)
+# Only 1 pod should show logs (same IP → same pod)
 kubectl logs -l app=datetime-api --tail=5
 ```
 
-### Test 3: Farklı IP'lerden Test
+### Test 3: Test from Different IPs
 
 ```bash
-# IP hash ayarla
+# Set IP hash
 make set-lb-iphash
 
-# Farklı source IP'lerden (Docker container'lar)
+# From different source IPs (Docker containers)
 for i in {1..5}; do
   docker run --rm --network kind curlimages/curl:latest \
     curl -s http://api.local/api/datetime
 done
 
-# Her container farklı IP, farklı pod'lara gidebilir
+# Each container has different IP, can go to different pods
 ```
 
 ---
 
-## 📊 Karşılaştırma
+## 📊 Comparison
 
-| Strateji        | Avantaj         | Dezavantaj       | Kullanım      |
-| --------------- | --------------- | ---------------- | ------------- |
-| **Round Robin** | Eşit dağılım    | Session tutmaz   | Stateless API |
-| **IP Hash**     | Session tutarlı | Dengesiz dağılım | Stateful app  |
-| **Least Conn**  | Dinamik yük     | Kompleks         | WebSocket     |
-| **Custom Hash** | Esnek           | Karmaşık         | Özel ihtiyaç  |
+| Strategy        | Advantage           | Disadvantage         | Use Case      |
+| --------------- | ------------------- | -------------------- | ------------- |
+| **Round Robin** | Equal distribution  | No session retention | Stateless API |
+| **IP Hash**     | Session consistency | Uneven distribution  | Stateful app  |
+| **Least Conn**  | Dynamic load        | Complex              | WebSocket     |
+| **Custom Hash** | Flexible            | Complex              | Special needs |
 
 ---
 
-## 🎯 Projemiz İçin Öneri
+## 🎯 Recommendation for Our Project
 
-### DateTime API & Web Uygulaması
+### DateTime API & Web Application
 
-**Durum**: Tamamen stateless (session yok, sadece datetime döndürüyor)
+**Status**: Completely stateless (no sessions, just returns datetime)
 
-**Önerilen Yapılandırma**:
+**Recommended Configuration**:
 
 ```yaml
 # ingress.yaml
@@ -336,45 +336,45 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    # Round robin (varsayılan) - en iyi yük dağılımı
+    # Round robin (default) - best load distribution
     nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
 ```yaml
-# Service'lerde session affinity KALDIRILSIN
+# REMOVE session affinity from Services
 # api-deployment.yaml & web-deployment.yaml
 spec:
-  # Bu satırları kaldırın:
+  # Remove these lines:
   # sessionAffinity: ClientIP
   # sessionAffinityConfig: ...
 ```
 
-**Neden**:
+**Why**:
 
-- ✅ Her pod eşit yük alır
-- ✅ Bir pod restart olsa sorun çıkmaz
-- ✅ Scale etmek kolay
-- ✅ Basit ve öngörülebilir
+- ✅ Each pod gets equal load
+- ✅ No issues if a pod restarts
+- ✅ Easy to scale
+- ✅ Simple and predictable
 
 ---
 
-## 📝 Özet
+## 📝 Summary
 
-**Şu anki yapılandırma**: IP Hash (sticky sessions)  
-**DateTime projesi için ideal**: Round Robin (stateless)
+**Current configuration**: IP Hash (sticky sessions)
+**Ideal for DateTime project**: Round Robin (stateless)
 
-**Değiştirmek için**:
+**To change**:
 
 ```bash
-# ingress.yaml'ı düzenle
+# Edit ingress.yaml
 nano k8s/ingress.yaml
 
-# nginx.ingress.kubernetes.io/upstream-hash-by satırını kaldır
-# Veya round_robin ekle
+# Remove nginx.ingress.kubernetes.io/upstream-hash-by line
+# Or add round_robin
 
-# Uygula
+# Apply
 kubectl apply -f k8s/ingress.yaml
 
-# Veya Makefile ile
+# Or using Makefile
 make set-lb-roundrobin
 ```

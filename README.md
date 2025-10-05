@@ -4,6 +4,17 @@
 ![NGINX](https://img.shields.io/badge/NGINX-009639?style=for-the-badge&logo=nginx&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
+<div align="center">
+
+### 🌐 Diğer Dillerde Oku / Read in Other Languages
+
+| 🇹🇷 [Türkçe](README.md) | 🇬🇧 [English](README.en.md) |
+| :--------------------: | :------------------------: |
+
+</div>
+
+---
+
 # DateTime Kubernetes Application
 
 .NET 9 Minimal API ve Nginx üzerinde çalışan web uygulaması için tam Kubernetes deployment çözümü.
@@ -26,16 +37,19 @@
 ### Web Application
 
 ![Web Application](screenshots/web-app.png)
+
 _DateTime web uygulaması - Türkçe tarih ve saat gösterimi_
 
 ### API Response
 
 ![API Response](screenshots/api-response.png)
+
 _REST API JSON sonucu_
 
 ### Docker Desktop - Kubernetes
 
 ![Docker Desktop](screenshots/docker-desktop.png)
+
 _Docker Desktop üzerinde çalışan Kind cluster_
 
 ### Terminal - Deployment Success
@@ -350,21 +364,19 @@ datetime-k8s/
 └── README.md # Dokümantasyon
 ```
 
-````
-
 ### 📜 Script Açıklamaları
 
-| Script | İşlevi | Kullanım Sıklığı |
-|--------|--------|------------------|
-| **deploy.sh** | Sıfırdan full deployment | Bir kez (başlangıç) |
-| **verify-deployment.sh** | Durum kontrolü ve test | Her zaman (test için) |
-| **fix-ingress.sh** | hostNetwork sorunu için | Gerektiğinde |
-| **fix-webhooks.sh** | Webhook sorunu için | Gerektiğinde |
+| Script                   | İşlevi                   | Kullanım Sıklığı      |
+| ------------------------ | ------------------------ | --------------------- |
+| **deploy.sh**            | Sıfırdan full deployment | Bir kez (başlangıç)   |
+| **verify-deployment.sh** | Durum kontrolü ve test   | Her zaman (test için) |
+| **fix-ingress.sh**       | hostNetwork sorunu için  | Gerektiğinde          |
+| **fix-webhooks.sh**      | Webhook sorunu için      | Gerektiğinde          |
 
 ### 📄 Yapılandırma Dosyası
 
-| Dosya | İşlevi | Otomatik Oluşturulur mu? |
-|-------|--------|-------------------------|
+| Dosya                | İşlevi                                                    | Otomatik Oluşturulur mu?                               |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
 | **kind-config.yaml** | Kind cluster yapılandırması (1 control-plane + 2 workers) | ✅ Evet (`make create-cluster` veya `make deploy` ile) |
 
 **Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için `WORKER_NODES.md` dosyasına bakın.
@@ -372,6 +384,7 @@ datetime-k8s/
 ### 🎯 Hızlı Referans
 
 **Makefile Komutları** (make help ile tüm liste):
+
 - Deployment: `make deploy`, `make redeploy`, `make clean-all`
 - Monitoring: `make status`, `make show-nodes`, `make logs-api`, `make verify`
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
@@ -379,6 +392,7 @@ datetime-k8s/
 - Build: `make build-all`, `make quick-update`
 
 **Shell Scripts**:
+
 - Full Deploy: `./deploy.sh`
 - Verify: `./verify-deployment.sh`
 - Fix: `./fix-ingress.sh`, `./fix-webhooks.sh`
@@ -416,7 +430,7 @@ sudo mv kubectl /usr/local/bin/
 # 3. Projeyi klonlayın veya dosyaları oluşturun
 mkdir -p datetime-k8s/{api,web,k8s}
 cd datetime-k8s
-````
+```
 
 ## 📜 Script Kullanım Sırası ve Açıklamaları
 
@@ -1140,3 +1154,33 @@ make redeploy
 kind delete cluster
 ./deploy.sh
 ```
+
+## 📚 Dokümantasyon
+
+- Hızlı Başlangıç: [QUICK_START.md](QUICK_START.md)
+- Sorun Giderme: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- Ağ: [INGRESS_ROUTING.md](INGRESS_ROUTING.md)
+- Multi-node: [WORKER_NODES.md](WORKER_NODES.md)
+
+## 🤝 Katkı
+
+Katkılarınızı bekliyoruz! Lütfen detaylar için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın.
+
+## 📄 Lisans
+
+Bu proje MIT Lisansı ile lisanslanmıştır - detaylar için [LICENSE](LICENSE) dosyasına bakın.
+
+## 🙏 Teşekkürler
+
+- Kubernetes topluluğu
+- Kind projesi
+- NGINX Ingress Controller ekibi
+
+---
+
+**Proje Durumu**: ✅ Üretime hazır
+**Platform**: Kubernetes (Kind)
+**Test Durumu**: ✅ Tüm testler başarılı
+**Dokümantasyon**: ✅ Kapsamlı
+
+**Mutlu Kodlamalar! 🚀**

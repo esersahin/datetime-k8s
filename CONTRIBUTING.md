@@ -1,3 +1,14 @@
+<div align="center">
+
+### 🌐 Diğer Dillerde Oku / Read in Other Languages
+
+| 🇹🇷 [Türkçe](CONTRIBUTING.md) | 🇬🇧 [English](CONTRIBUTING.en.md) |
+|:---:|:---:|
+
+</div>
+
+---
+
 # DateTime Kubernetes Projesine Katkı
 
 İlginiz için teşekkürler! Katkıda bulunmak için:

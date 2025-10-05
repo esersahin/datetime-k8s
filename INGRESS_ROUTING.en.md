@@ -9,15 +9,15 @@
 
 ---
 
-# Ingress Routing: Control-Plane'den Worker Node'lara
+# Ingress Routing: Control-Plane to Worker Nodes
 
-Bu dokümanda Ingress Controller'ın control-plane'de çalışırken worker node'lardaki pod'lara nasıl trafik yönlendirdiği açıklanmaktadır.
+This document explains how the Ingress Controller routes traffic to pods on worker nodes while running on the control-plane.
 
-## 🔄 Trafik Akışı
+## 🔄 Traffic Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    İstekler (HTTP/HTTPS)                    │
+│                    Requests (HTTP/HTTPS)                    │
 │              http://api.local, http://web.local             │
 └────────────────────────┬────────────────────────────────────┘
                          │
@@ -63,15 +63,15 @@ Bu dokümanda Ingress Controller'ın control-plane'de çalışırken worker node
 └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
 ```
 
-## 🎯 Nasıl Çalışır?
+## 🎯 How It Works?
 
-### 1. Ingress Controller (Control-Plane'de)
+### 1. Ingress Controller (On Control-Plane)
 
-Ingress Controller control-plane'de çalışır çünkü:
+Ingress Controller runs on control-plane because:
 
-- ✅ `hostNetwork: true` ile host'un 80/443 portlarını dinler
-- ✅ `extraPortMappings` ile Docker host'a bağlıdır
-- ✅ `ingress-ready=true` label'ı control-plane'de
+- ✅ Listens on host's 80/443 ports with `hostNetwork: true`
+- ✅ Connected to Docker host via `extraPortMappings`
+- ✅ `ingress-ready=true` label is on control-plane
 
 ```yaml
 # kind-config.yaml
@@ -84,26 +84,26 @@ nodes:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
     extraPortMappings:
-      - containerPort: 80 # Ingress Controller buradan dinler
-        hostPort: 80 # Host'a bağlanır
+      - containerPort: 80 # Ingress Controller listens here
+        hostPort: 80 # Connected to host
 ```
 
 ### 2. Service Discovery (Kubernetes DNS)
 
-Service'ler pod'ları **label selector** ile bulur:
+Services find pods using **label selector**:
 
 ```yaml
 # datetime-api-service
 spec:
   selector:
-    app: datetime-api # Bu label'a sahip TÜM pod'ları bulur
+    app: datetime-api # Finds ALL pods with this label
 ```
 
-Service, **hangi node'da olursa olsun** bu label'a sahip tüm pod'ları otomatik bulur.
+Service automatically finds all pods with this label **regardless of which node they're on**.
 
 ### 3. Ingress Rules
 
-Ingress, Service isimlerine göre yönlendirme yapar:
+Ingress routes based on Service names:
 
 ```yaml
 # ingress.yaml
@@ -114,196 +114,196 @@ rules:
         - path: /
           backend:
             service:
-              name: datetime-api-service # Service'e yönlendir
+              name: datetime-api-service # Route to Service
 ```
 
 ### 4. Load Balancing
 
-Service, trafiği pod'lara **otomatik** dağıtır:
+Service **automatically** distributes traffic to pods:
 
-- Round-robin (varsayılan)
+- Round-robin (default)
 - Session affinity (sticky sessions)
-- Health check'e göre
+- Based on health checks
 
-## 🔍 Teknik Detaylar
+## 🔍 Technical Details
 
 ### Kubernetes Service Mesh
 
-Kubernetes'te her node'da **kube-proxy** çalışır:
+**kube-proxy** runs on every node in Kubernetes:
 
 ```
 Control-Plane Node:
 ├── Ingress Controller (Pod)
-│   └── Trafiği Service'e yönlendirir
+│   └── Routes traffic to Service
 └── kube-proxy
-    └── Service'i worker node'lardaki pod IP'lerine çevirir
+    └── Translates Service to pod IPs on worker nodes
 
 Worker Node 1:
 ├── datetime-api Pod (10.244.1.2)
 ├── datetime-web Pod (10.244.1.3)
 └── kube-proxy
-    └── Network rules yönetir
+    └── Manages network rules
 
 Worker Node 2:
 ├── datetime-api Pod (10.244.2.2)
 ├── datetime-web Pod (10.244.2.3)
 └── kube-proxy
-    └── Network rules yönetir
+    └── Manages network rules
 ```
 
 ### ClusterIP Service
 
 ```yaml
-type: ClusterIP # Cluster içinden erişilebilir
+type: ClusterIP # Accessible from within cluster
 ```
 
-Service, bir **virtual IP** alır:
+Service gets a **virtual IP**:
 
 - `datetime-api-service`: 10.96.xxx.xxx:80
-- Bu IP, tüm pod IP'lerinin önünde
-- kube-proxy bu IP'yi pod IP'lerine yönlendirir
+- This IP is in front of all pod IPs
+- kube-proxy routes this IP to pod IPs
 
 ### Network Flow
 
 ```
-1. İstek gelir: http://api.local/api/datetime
+1. Request arrives: http://api.local/api/datetime
 
 2. Ingress Controller (control-plane):
-   - Host header kontrol: api.local ✓
-   - Service bulunur: datetime-api-service
-   - Service IP'ye forward: 10.96.xxx.xxx:80
+   - Check host header: api.local ✓
+   - Find Service: datetime-api-service
+   - Forward to Service IP: 10.96.xxx.xxx:80
 
-3. kube-proxy (her node'da):
-   - Service IP'yi yakalır: 10.96.xxx.xxx:80
-   - Backend pod'ları listeler:
+3. kube-proxy (on every node):
+   - Intercepts Service IP: 10.96.xxx.xxx:80
+   - Lists backend pods:
      * 10.244.1.2:5000 (worker1)
      * 10.244.2.2:5000 (worker2)
-   - Round-robin: 10.244.1.2:5000 seçilir
+   - Round-robin: 10.244.1.2:5000 selected
 
 4. Network routing:
-   - Packet worker1'e gönderilir
-   - API pod cevap verir
-   - Cevap Ingress'e geri döner
-   - Client'a gönderilir
+   - Packet sent to worker1
+   - API pod responds
+   - Response returns to Ingress
+   - Sent to client
 ```
 
-## ✅ Güncellenmiş YAML Dosyaları
+## ✅ Updated YAML Files
 
-### ingress.yaml Değişiklikleri
+### ingress.yaml Changes
 
 ```yaml
 annotations:
-  # Eklendi: Backend protocol
+  # Added: Backend protocol
   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 
-  # Eklendi: Load balancing stratejisi
+  # Added: Load balancing strategy
   nginx.ingress.kubernetes.io/load-balance: "round_robin"
 
-  # Kaldırıldı: rewrite-target (gereksiz)
+  # Removed: rewrite-target (unnecessary)
   # nginx.ingress.kubernetes.io/rewrite-target: /
 ```
 
-### Service Değişiklikleri
+### Service Changes
 
 ```yaml
-# Eklendi: Session affinity
+# Added: Session affinity
 sessionAffinity: ClientIP
 sessionAffinityConfig:
   clientIP:
-    timeoutSeconds: 300 # 5 dakika aynı pod'a yönlendirir
+    timeoutSeconds: 300 # Routes to same pod for 5 minutes
 ```
 
-**Avantajı**: Aynı client aynı pod'a yönlendirilir (sticky session).
+**Advantage**: Same client is routed to same pod (sticky session).
 
-## 🧪 Test ve Doğrulama
+## 🧪 Test and Verification
 
-### 1. Ingress Controller Lokasyonu
+### 1. Ingress Controller Location
 
 ```bash
-# Ingress Controller nerede çalışıyor?
+# Where is Ingress Controller running?
 kubectl get pods -n ingress-nginx -o wide
 
-# Beklenen:
+# Expected:
 # NAME                                     NODE
 # ingress-nginx-controller-xxx            kind-control-plane
 ```
 
-### 2. Uygulama Pod'ları Lokasyonu
+### 2. Application Pod Locations
 
 ```bash
-# Uygulama pod'ları nerede?
+# Where are application pods?
 kubectl get pods -o wide
 
-# Beklenen:
+# Expected:
 # NAME                           NODE
-# datetime-api-xxx              kind-worker veya kind-worker2
-# datetime-web-xxx              kind-worker veya kind-worker2
+# datetime-api-xxx              kind-worker or kind-worker2
+# datetime-web-xxx              kind-worker or kind-worker2
 ```
 
-### 3. Service Endpoint'leri
+### 3. Service Endpoints
 
 ```bash
-# Service hangi pod'lara yönlendiriyor?
+# Which pods is Service routing to?
 kubectl get endpoints datetime-api-service
 kubectl get endpoints datetime-web-service
 
-# Çıktı:
+# Output:
 # NAME                    ENDPOINTS
 # datetime-api-service    10.244.1.2:5000,10.244.2.2:5000
 # datetime-web-service    10.244.1.3:80,10.244.2.3:80
 ```
 
-### 4. Trafik Testi
+### 4. Traffic Test
 
 ```bash
-# API'ye istek at
+# Send requests to API
 for i in {1..10}; do
   curl -s http://api.local/api/datetime | jq .time
 done
 
-# Her istekte farklı pod cevap verebilir (round-robin)
+# Different pods may respond each time (round-robin)
 ```
 
-### 5. Pod Loglarında İzleme
+### 5. Monitor in Pod Logs
 
 ```bash
-# Terminalden 1: API Pod 1 logları
+# Terminal 1: API Pod 1 logs
 kubectl logs -f datetime-api-xxx-pod1
 
-# Terminal 2: API Pod 2 logları
+# Terminal 2: API Pod 2 logs
 kubectl logs -f datetime-api-xxx-pod2
 
-# Terminal 3: İstek gönder
+# Terminal 3: Send request
 curl http://api.local/api/datetime
 
-# Hangi terminal'de log görürseniz, o pod cevap verdi
+# Whichever terminal shows log, that pod responded
 ```
 
 ### 6. Network Debugging
 
 ```bash
-# Service DNS çözümleme
+# Service DNS resolution
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup datetime-api-service
 
-# Service'e direkt erişim (cluster içinden)
+# Direct access to Service (from inside cluster)
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
   curl http://datetime-api-service/api/datetime
 ```
 
-## 📊 Load Balancing Stratejileri
+## 📊 Load Balancing Strategies
 
-### Round Robin (Varsayılan)
+### Round Robin (Default)
 
 ```yaml
 nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
-İstekler sırayla pod'lara dağıtılır:
+Requests distributed to pods in order:
 
-- İstek 1 → Pod 1
-- İstek 2 → Pod 2
-- İstek 3 → Pod 1
-- İstek 4 → Pod 2
+- Request 1 → Pod 1
+- Request 2 → Pod 2
+- Request 3 → Pod 1
+- Request 4 → Pod 2
 
 ### IP Hash
 
@@ -311,7 +311,7 @@ nginx.ingress.kubernetes.io/load-balance: "round_robin"
 nginx.ingress.kubernetes.io/load-balance: "ip_hash"
 ```
 
-Aynı client IP her zaman aynı pod'a yönlendirilir.
+Same client IP always routed to same pod.
 
 ### Session Affinity
 
@@ -320,66 +320,66 @@ Aynı client IP her zaman aynı pod'a yönlendirilir.
 sessionAffinity: ClientIP
 ```
 
-Client IP bazlı sticky session (5 dakika).
+Client IP based sticky session (5 minutes).
 
-## 🔧 Sorun Giderme
+## 🔧 Troubleshooting
 
-### Sorun 1: "503 Service Temporarily Unavailable"
+### Issue 1: "503 Service Temporarily Unavailable"
 
 ```bash
-# Pod'lar hazır mı?
+# Are pods ready?
 kubectl get pods
 
-# Service endpoint'leri var mı?
+# Do Service endpoints exist?
 kubectl get endpoints datetime-api-service
 
-# Çözüm: Pod'ların Ready olmasını bekleyin
+# Solution: Wait for pods to be Ready
 kubectl wait --for=condition=ready pod -l app=datetime-api
 ```
 
-### Sorun 2: Ingress Worker Node'da Çalışıyor
+### Issue 2: Ingress Running on Worker Node
 
 ```bash
-# Kontrol et
+# Check
 kubectl get pods -n ingress-nginx -o wide
 
-# Eğer worker'daysa, kind-config.yaml yanlış
-# ingress-ready=true sadece control-plane'de olmalı
+# If on worker, kind-config.yaml is wrong
+# ingress-ready=true should only be on control-plane
 
-# Çözüm: Cluster'ı yeniden oluştur
+# Solution: Recreate cluster
 make clean-cluster
 make deploy
 ```
 
-### Sorun 3: Trafik Sadece Bir Pod'a Gidiyor
+### Issue 3: Traffic Only Going to One Pod
 
 ```bash
-# Load balancing algoritmasını kontrol et
+# Check load balancing algorithm
 kubectl describe ingress datetime-ingress
 
-# Session affinity kapalı mı?
+# Is session affinity off?
 kubectl get service datetime-api-service -o yaml | grep sessionAffinity
 
-# Çözüm: Session affinity'yi kaldır veya timeout'u düşür
+# Solution: Remove session affinity or lower timeout
 ```
 
-## 📝 Özet
+## 📝 Summary
 
-| Bileşen                | Lokasyon                  | Görevi                        |
-| ---------------------- | ------------------------- | ----------------------------- |
-| **Ingress Controller** | control-plane             | HTTP isteklerini yakalar      |
-| **Service**            | Virtual IP (cluster-wide) | Pod'ları bulur ve yönlendirir |
-| **Pod'lar**            | worker1, worker2          | Uygulamayı çalıştırır         |
-| **kube-proxy**         | Her node                  | Network rules yönetir         |
+| Component              | Location                  | Role                     |
+| ---------------------- | ------------------------- | ------------------------ |
+| **Ingress Controller** | control-plane             | Captures HTTP requests   |
+| **Service**            | Virtual IP (cluster-wide) | Finds and routes to pods |
+| **Pods**               | worker1, worker2          | Runs the application     |
+| **kube-proxy**         | Every node                | Manages network rules    |
 
-### Neden Bu Yapı İdeal?
+### Why This Structure Is Ideal?
 
-✅ **Separation of Concerns**: Control-plane yönetim, worker'lar uygulama  
-✅ **Scalability**: Worker node ekle/çıkar, Ingress etkilenmez  
-✅ **High Availability**: Bir worker çökerse, diğeri devam eder  
-✅ **Load Balancing**: Otomatik trafik dağılımı  
-✅ **Production-like**: Gerçek cluster'lara benzer yapı
+✅ **Separation of Concerns**: Control-plane for management, workers for application
+✅ **Scalability**: Add/remove worker nodes, Ingress unaffected
+✅ **High Availability**: If one worker crashes, other continues
+✅ **Load Balancing**: Automatic traffic distribution
+✅ **Production-like**: Similar to real clusters
 
 ---
 
-**Sonuç**: Ingress Controller control-plane'de çalışmasına rağmen Service ve kube-proxy sayesinde worker node'lardaki pod'lara sorunsuz trafik yönlendiriyor. Bu Kubernetes'in tasarımı gereği tamamen normal ve doğru bir yapıdır.
+**Conclusion**: Although Ingress Controller runs on control-plane, it seamlessly routes traffic to pods on worker nodes thanks to Service and kube-proxy. This is completely normal and correct by Kubernetes design.

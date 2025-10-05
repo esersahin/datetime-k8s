@@ -1,16 +1,27 @@
+<div align="center">
+
+### 🌐 Read in Other Languages
+
+| 🇬🇧 [English](WORKER_NODES.en.md) | 🇹🇷 [Türkçe](WORKER_NODES.md) |
+|:---:|:---:|
+
+</div>
+
+---
+
 ﻿# Kubernetes Cluster'a Worker Node Ekleme Rehberi
 
 Bu dokümanda Kind cluster'ınıza 2 worker node ekleyerek multi-node bir cluster oluşturmayı öğreneceksiniz.
 
 ## 📋 İçindekiler
 
-1. [Mevcut Durum](#mevcut-durum)
-2. [Hedef Durum](#hedef-durum)
-3. [kind-config.yaml Değişiklikleri](#kind-configyaml-değişiklikleri)
-4. [Makefile Değişiklikleri](#makefile-değişiklikleri)
-5. [deploy.sh Değişiklikleri](#deploysh-değişiklikleri)
-6. [Deployment Sonrası Kontroller](#deployment-sonrası-kontroller)
-7. [Pod Scheduling ve Node Affinity](#pod-scheduling-ve-node-affinity)
+1. [Mevcut Durum](#-mevcut-durum)
+2. [Hedef Durum](#-hedef-durum)
+3. [kind-config.yaml Değişiklikleri](#-kind-configyaml-değişiklikleri)
+4. [Makefile Değişiklikleri](#-makefile-değişiklikleri)
+5. [deploy.sh Değişiklikleri](#-deploysh-değişiklikleri)
+6. [Deployment Sonrası Kontroller](#-deployment-sonrası-kontroller)
+7. [Pod Scheduling ve Node Affinity](#-pod-scheduling-ve-node-affinity)
 
 ---
 
