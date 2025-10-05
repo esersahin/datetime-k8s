@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_SETUP.md) |
+| 🇬🇧 [English](INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](INGRESS_SETUP.md) |
 | :-------------------------------: | :---------------------------: |
 
 </div>
@@ -10,6 +10,19 @@
 ---
 
 # Ingress Controller Setup Guide
+
+## 📋 Table of Contents
+
+1. [Recommended Method: Custom YAML](#-recommended-method-custom-yaml)
+2. [Usage](#-usage)
+3. [Verification](#-verification)
+4. [Troubleshooting](#-troubleshooting)
+5. [File Features](#-file-features)
+6. [Why This Method?](#-why-this-method)
+7. [Quick Test](#-quick-test)
+8. [Detailed Information](#-detailed-information)
+
+---
 
 ## 🎯 Recommended Method: Custom YAML
 

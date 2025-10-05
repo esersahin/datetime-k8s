@@ -2,7 +2,7 @@
 
 ### 🌐 Diğer Dillerde Oku / Read in Other Languages
 
-| 🇹🇷 [Türkçe](docs/QUICK_START.md) | 🇬🇧 [English](docs/QUICK_START.en.md) |
+| 🇹🇷 [Türkçe](QUICK_START.md) | 🇬🇧 [English](QUICK_START.en.md) |
 | :------------------------------: | :----------------------------------: |
 
 </div>
@@ -10,6 +10,23 @@
 ---
 
 # Quick Start Guide
+
+## 📋 İçindekiler
+
+1. [Hızlı Kurulum](#-hızlı-kurulum)
+2. [Sorun mu Var?](#-sorun-mu-var)
+3. [Komut Referansı](#-komut-referansı)
+4. [Beklenen Sonuç](#-beklenen-sonuç)
+5. [Önemli Dosyalar](#-önemli-dosyalar)
+6. [Önemli Notlar](#-önemli-notlar)
+7. [Sık Karşılaşılan Hatalar](#-sık-karşılaşılan-hatalar)
+8. [Workflow Örnekleri](#-workflow-örnekleri)
+9. [Makefile Komut Özeti](#-makefile-komut-özeti)
+10. [Checklist](#-checklist)
+11. [Yardım](#-yardım)
+12. [Başarı!](#-başarı)
+
+---
 
 Bu rehber DateTime Kubernetes uygulamasını 5 dakikada çalıştırmanızı sağlar.
 

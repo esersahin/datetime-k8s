@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/INGRESS_ROUTING.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_ROUTING.md) |
+| 🇬🇧 [English](INGRESS_ROUTING.en.md) | 🇹🇷 [Türkçe](INGRESS_ROUTING.md) |
 | :---------------------------------: | :-----------------------------: |
 
 </div>
@@ -10,6 +10,19 @@
 ---
 
 # Ingress Routing: Control-Plane'den Worker Node'lara
+
+## 📋 İçindekiler
+
+1. [Trafik Akışı](#-trafik-akışı)
+2. [Nasıl Çalışır?](#-nasıl-çalışır)
+3. [Teknik Detaylar](#-teknik-detaylar)
+4. [Güncellenmiş YAML Dosyaları](#-güncellenmiş-yaml-dosyaları)
+5. [Test ve Doğrulama](#-test-ve-doğrulama)
+6. [Load Balancing Stratejileri](#-load-balancing-stratejileri)
+7. [Sorun Giderme](#-sorun-giderme)
+8. [Özet](#-özet)
+
+---
 
 Bu dokümanda Ingress Controller'ın control-plane'de çalışırken worker node'lardaki pod'lara nasıl trafik yönlendirdiği açıklanmaktadır.
 

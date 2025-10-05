@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/CHANGES_SUMMARY.md) |
+| 🇬🇧 [English](CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](CHANGES_SUMMARY.md) |
 | :---------------------------------: | :-----------------------------: |
 
 </div>
@@ -10,6 +10,22 @@
 ---
 
 # Değişiklikler Özeti
+
+## 📋 İçindekiler
+
+1. [Ana Değişiklik: Multi-Node Kubernetes Cluster](#-ana-değişiklik-multi-node-kubernetes-cluster)
+2. [Değiştirilen Dosyalar](#-değiştirilen-dosyalar)
+3. [Temel İyileştirmeler](#-temel-i̇yileştirmeler)
+4. [Dosya Sayısı Değişiklikleri](#-dosya-sayısı-değişiklikleri)
+5. [Ana Faydalar](#-ana-faydalar)
+6. [Deployment Akışı Karşılaştırması](#-deployment-akışı-karşılaştırması)
+7. [Geçiş Kılavuzu](#-geçiş-kılavuzu)
+8. [Teknik Detaylar](#-teknik-detaylar)
+9. [Doğrulama Kontrol Listesi](#-doğrulama-kontrol-listesi)
+10. [İlgili Dokümantasyon](#-i̇lgili-dokümantasyon)
+11. [Sonuç](#-sonuç)
+
+---
 
 Bu dokümanda yapılan tüm değişikliklerin hızlı bir özeti bulunmaktadır.
 

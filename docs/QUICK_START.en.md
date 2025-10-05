@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/QUICK_START.en.md) | 🇹🇷 [Türkçe](docs/QUICK_START.md) |
+| 🇬🇧 [English](QUICK_START.en.md) | 🇹🇷 [Türkçe](QUICK_START.md) |
 | :----------------------------------: | :------------------------------: |
 
 </div>
@@ -10,6 +10,23 @@
 ---
 
 # Quick Start Guide
+
+## 📋 Table of Contents
+
+1. [Quick Setup](#-quick-setup)
+2. [Having Issues?](#-having-issues)
+3. [Command Reference](#-command-reference)
+4. [Expected Results](#-expected-results)
+5. [Important Files](#-important-files)
+6. [Important Notes](#-important-notes)
+7. [Common Errors](#-common-errors)
+8. [Workflow Examples](#-workflow-examples)
+9. [Makefile Command Summary](#-makefile-command-summary)
+10. [Checklist](#-checklist)
+11. [Help](#-help)
+12. [Success!](#-success)
+
+---
 
 This guide will get you running the DateTime Kubernetes application in 5 minutes.
 

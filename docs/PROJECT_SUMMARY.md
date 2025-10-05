@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/PROJECT_SUMMARY.md) |
+| 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
 | :--------------------------------------: | :----------------------------------: |
 
 </div>
@@ -10,6 +10,25 @@
 ---
 
 # DateTime Kubernetes Projesi - Özet
+
+## 📋 İçindekiler
+
+1. [Proje Hakkında](#-proje-hakkında)
+2. [Proje Yapısı](#-proje-yapısı)
+3. [Hızlı Kullanım](#-hızlı-kullanım)
+4. [Dokümantasyon Rehberi](#-dokümantasyon-rehberi)
+5. [Kritik Dosyalar](#-kritik-dosyalar)
+6. [Yaşanan Sorunlar ve Çözümleri](#-yaşanan-sorunlar-ve-çözümleri)
+7. [Önemli Öğrenimler](#-önemli-öğrenimler)
+8. [Makefile Komut Kategorileri](#-makefile-komut-kategorileri)
+9. [Deployment Akışı](#-deployment-akışı)
+10. [Başarı Kriterleri](#-başarı-kriterleri)
+11. [Gelişmiş Kullanım](#-gelişmiş-kullanım)
+12. [Proje İstatistikleri](#-proje-i̇statistikleri)
+13. [Sonraki Adımlar](#-sonraki-adımlar)
+14. [Yardım ve Destek](#-yardım-ve-destek)
+
+---
 
 Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özetlenmiştir.
 

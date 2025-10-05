@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](docs/TROUBLESHOOTING.md) |
+| 🇬🇧 [English](TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](TROUBLESHOOTING.md) |
 | :--------------------------------------: | :----------------------------------: |
 
 </div>

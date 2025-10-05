@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/CHANGES_SUMMARY.md) |
+| 🇬🇧 [English](CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](CHANGES_SUMMARY.md) |
 | :--------------------------------------: | :----------------------------------: |
 
 </div>
@@ -10,6 +10,22 @@
 ---
 
 # Summary of Changes
+
+## 📋 Table of Contents
+
+1. [Main Change: Multi-Node Kubernetes Cluster](#-main-change-multi-node-kubernetes-cluster)
+2. [Modified Files](#-modified-files)
+3. [Key Improvements](#-key-improvements)
+4. [File Count Changes](#-file-count-changes)
+5. [Main Benefits](#-main-benefits)
+6. [Deployment Flow Comparison](#-deployment-flow-comparison)
+7. [Migration Guide](#-migration-guide)
+8. [Technical Details](#-technical-details)
+9. [Verification Checklist](#-verification-checklist)
+10. [Related Documentation](#-related-documentation)
+11. [Result](#-result)
+
+---
 
 This document contains a quick summary of all changes made.
 

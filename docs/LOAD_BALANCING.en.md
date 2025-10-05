@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/LOAD_BALANCING.en.md) | 🇹🇷 [Türkçe](docs/LOAD_BALANCING.md) |
+| 🇬🇧 [English](LOAD_BALANCING.en.md) | 🇹🇷 [Türkçe](LOAD_BALANCING.md) |
 |:---:|:---:|
 
 </div>
@@ -10,6 +10,18 @@
 ---
 
 # Load Balancing Configuration
+
+## 📋 Table of Contents
+
+1. [Load Balancing Strategies](#-load-balancing-strategies)
+2. [Recommendations for Our Project](#-recommendations-for-our-project)
+3. [Changing Configuration](#-changing-configuration)
+4. [Testing](#-testing)
+5. [Comparison](#-comparison)
+6. [Recommendation for Our Project](#-recommendation-for-our-project)
+7. [Summary](#-summary)
+
+---
 
 This document explains different load balancing strategies you can use in ingress.yaml.
 

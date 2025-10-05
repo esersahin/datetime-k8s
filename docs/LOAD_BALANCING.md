@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/LOAD_BALANCING.en.md) | 🇹🇷 [Türkçe](docs/LOAD_BALANCING.md) |
+| 🇬🇧 [English](LOAD_BALANCING.en.md) | 🇹🇷 [Türkçe](LOAD_BALANCING.md) |
 |:---:|:---:|
 
 </div>
@@ -10,6 +10,18 @@
 ---
 
 ﻿# Load Balancing Yapılandırması
+
+## 📋 İçindekiler
+
+1. [Load Balancing Stratejileri](#-load-balancing-stratejileri)
+2. [Mevcut Projemiz İçin Öneriler](#-mevcut-projemiz-için-öneriler)
+3. [Yapılandırma Değiştirme](#-yapılandırma-değiştirme)
+4. [Test Etme](#-test-etme)
+5. [Karşılaştırma](#-karşılaştırma)
+6. [Projemiz İçin Öneri](#-projemiz-için-öneri)
+7. [Özet](#-özet)
+
+---
 
 Bu dokümanda ingress.yaml'da kullanabileceğiniz farklı load balancing stratejileri açıklanmaktadır.
 

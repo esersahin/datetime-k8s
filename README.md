@@ -19,6 +19,31 @@
 
 .NET 9 Minimal API ve Nginx üzerinde çalışan web uygulaması için tam Kubernetes deployment çözümü.
 
+## 📋 İçindekiler
+
+1. [Bu Proje Ne İçin?](#-bu-proje-ne-için)
+2. [Özellikler](#-özellikler)
+3. [Screenshots](#-screenshots)
+4. [Deployment Çıktısı](#-deployment-çıktısı)
+5. [TL;DR (Çok Hızlı Başlangıç)](#-tldr-çok-hızlı-başlangıç)
+6. [Proje Yapısı](#-proje-yapısı)
+7. [Hızlı Başlangıç](#-hızlı-başlangıç)
+8. [Script Kullanım Sırası ve Açıklamaları](#-script-kullanım-sırası-ve-açıklamaları)
+9. [Deployment](#-deployment)
+10. [Erişim](#-erişim)
+11. [Test Komutları](#-test-komutları)
+12. [Scaling](#-scaling)
+13. [Temizleme](#-temizleme)
+14. [Sorun Giderme](#-sorun-giderme)
+15. [Notlar](#-notlar)
+16. [Kullanım Kılavuzu](#-kullanım-kılavuzu)
+17. [Dokümantasyon](#-dokümantasyon)
+18. [Katkı](#-katkı)
+19. [Lisans](#-lisans)
+20. [Teşekkürler](#-teşekkürler)
+
+---
+
 ## 🎯 Bu Proje Ne İçin?
 
 Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki amaçlar için tasarlanmıştır:
@@ -422,7 +447,7 @@ datetime-k8s/
 | -------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
 | **kind-config.yaml** | Kind cluster yapılandırması (1 control-plane + 2 workers) | ✅ Evet (`make create-cluster` veya `make deploy` ile) |
 
-**Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için [WORKER_NODES](WORKER_NODES.md). dosyasına bakın.
+**Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için [WORKER_NODES](docs/WORKER_NODES.md) dosyasına bakın.
 
 ### 🎯 Hızlı Referans
 

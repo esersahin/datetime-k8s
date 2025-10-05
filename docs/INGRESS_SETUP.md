@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_SETUP.md) |
+| 🇬🇧 [English](INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](INGRESS_SETUP.md) |
 | :-------------------------------: | :---------------------------: |
 
 </div>
@@ -10,6 +10,19 @@
 ---
 
 # Ingress Controller Kurulum Rehberi
+
+## 📋 İçindekiler
+
+1. [Önerilen Yöntem: Özel YAML](#-önerilen-yöntem-özel-yaml)
+2. [Kullanım](#-kullanım)
+3. [Doğrulama](#-doğrulama)
+4. [Sorun Giderme](#-sorun-giderme)
+5. [Dosya Özellikleri](#-dosya-özellikleri)
+6. [Neden Bu Yöntem?](#-neden-bu-yöntem)
+7. [Hızlı Test](#-hızlı-test)
+8. [Detaylı Bilgi](#-detaylı-bilgi)
+
+---
 
 ## 🎯 Önerilen Yöntem: Özel YAML
 

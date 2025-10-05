@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/PROJECT_SUMMARY.md) |
+| 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
 | :--------------------------------------: | :----------------------------------: |
 
 </div>
@@ -10,6 +10,25 @@
 ---
 
 # DateTime Kubernetes Project - Summary
+
+## 📋 Table of Contents
+
+1. [About the Project](#-about-the-project)
+2. [Project Structure](#-project-structure)
+3. [Quick Usage](#-quick-usage)
+4. [Documentation Guide](#-documentation-guide)
+5. [Critical Files](#-critical-files)
+6. [Issues Encountered and Solutions](#-issues-encountered-and-solutions)
+7. [Important Learnings](#-important-learnings)
+8. [Makefile Command Categories](#-makefile-command-categories)
+9. [Deployment Flow](#-deployment-flow)
+10. [Success Criteria](#-success-criteria)
+11. [Advanced Usage](#-advanced-usage)
+12. [Project Statistics](#-project-statistics)
+13. [Next Steps](#-next-steps)
+14. [Help and Support](#-help-and-support)
+
+---
 
 This document summarizes all components, files, and important points of the project.
 

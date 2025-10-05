@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/WORKER_NODES.en.md) | 🇹🇷 [Türkçe](docs/WORKER_NODES.md) |
+| 🇬🇧 [English](WORKER_NODES.en.md) | 🇹🇷 [Türkçe](WORKER_NODES.md) |
 |:---:|:---:|
 
 </div>

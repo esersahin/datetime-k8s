@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](docs/INGRESS_CONTROLLER_FIX.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_CONTROLLER_FIX.md) |
+| 🇬🇧 [English](INGRESS_CONTROLLER_FIX.en.md) | 🇹🇷 [Türkçe](INGRESS_CONTROLLER_FIX.md) |
 |:---:|:---:|
 
 </div>
@@ -10,6 +10,18 @@
 ---
 
 # Ingress Controller Move to Control-Plane Guide
+
+## 📋 Table of Contents
+
+1. [Problem](#-problem)
+2. [Solutions](#-solutions)
+3. [Verification](#-verification)
+4. [Changes](#-changes)
+5. [Why Is This Necessary?](#-why-is-this-necessary)
+6. [Recommended Approach](#-recommended-approach)
+7. [Summary](#-summary)
+
+---
 
 This document explains why Ingress Controller sometimes lands on worker nodes and how to move it to control-plane.
 

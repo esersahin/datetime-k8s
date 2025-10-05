@@ -19,6 +19,32 @@
 
 Complete Kubernetes deployment solution for .NET 9 Minimal API and Nginx web application.
 
+## 📋 Table of Contents
+
+1. [What is This Project For?](#-what-is-this-project-for)
+2. [Features](#-features)
+3. [Screenshots](#-screenshots)
+4. [Deployment Output](#-deployment-output)
+5. [TL;DR (Quick Start)](#-tldr-quick-start)
+6. [Project Structure](#-project-structure)
+7. [Quick Start](#-quick-start)
+8. [Script Usage Order and Descriptions](#-script-usage-order-and-descriptions)
+9. [Deployment](#-deployment)
+10. [Access](#-access)
+11. [Monitoring and Debug](#-monitoring-and-debug)
+12. [Test Commands](#-test-commands)
+13. [Scaling](#-scaling)
+14. [Cleanup](#-cleanup)
+15. [Troubleshooting](#-troubleshooting)
+16. [Notes](#-notes)
+17. [Usage Guide](#-usage-guide)
+18. [Documentation](#-documentation)
+19. [Contributing](#-contributing)
+20. [License](#-license)
+21. [Acknowledgments](#-acknowledgments)
+
+---
+
 ## 🎯 What is This Project For?
 
 This project is **not production-ready**. It is designed for the following purposes:
@@ -318,7 +344,7 @@ datetime-k8s/
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
 | **kind-config.yaml** | Kind cluster configuration (1 control-plane + 2 workers) | ✅ Yes (with `make create-cluster` or `make deploy`) |
 
-**Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](WORKER_NODES.en.md).
+**Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](docs/WORKER_NODES.en.md).
 
 ### 🎯 Quick Reference
 
@@ -885,7 +911,7 @@ For detailed troubleshooting, see [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 - **Multi-Node Cluster**: Uses 1 control-plane + 2 worker nodes configuration by default
   - Control-plane: Kubernetes management components and Ingress Controller
   - Worker nodes: Application pods (datetime-api, datetime-web)
-  - For details: [WORKER_NODES](WORKER_NODES.en.md)
+  - For details: [WORKER_NODES](docs/WORKER_NODES.en.md)
 - **Mac Optimization**: `make deploy` or `deploy.sh` automatically fixes Mac/Kind issues:
   - Sets hostNetwork to true
   - Cleans up problematic admission webhooks
