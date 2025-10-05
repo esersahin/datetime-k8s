@@ -2,6 +2,9 @@
 
 set -e
 
+# Başlangıç zamanını kaydet
+START_TIME=$(date +%s)
+
 echo "🚀 DateTime Kubernetes Deployment Script"
 echo "========================================"
 
@@ -9,6 +12,7 @@ echo "========================================"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Fonksiyonlar
@@ -196,11 +200,19 @@ else
     print_success "Host kayıtları zaten mevcut"
 fi
 
-# 8. Durum bilgisi
+# 8. Süre hesaplama
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+MINUTES=$((DURATION / 60))
+SECONDS=$((DURATION % 60))
+
+# 9. Durum bilgisi
 echo ""
 echo "========================================"
 print_success "Deployment tamamlandı! 🎉"
 echo "========================================"
+echo ""
+echo -e "${YELLOW}⏱️  Toplam Süre: ${MINUTES} dakika ${SECONDS} saniye${NC}"
 echo ""
 echo "📊 Durum Bilgisi:"
 echo ""

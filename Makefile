@@ -217,25 +217,34 @@ update-hosts: ## /etc/hosts dosyasını günceller
 		echo "$(GREEN)✓ /etc/hosts zaten güncel$(NC)"; \
 	fi
 
-deploy: create-cluster install-ingress fix-ingress fix-webhooks load-images deploy-k8s update-hosts ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
-	@echo ""
-	@echo "$(GREEN)======================================$(NC)"
-	@echo "$(GREEN)🎉 Deployment tamamlandı! 🎉$(NC)"
-	@echo "$(GREEN)======================================$(NC)"
-	@echo ""
-	@echo "$(BLUE)📊 Durum Bilgisi:$(NC)"
-	@kubectl get pods -o wide
-	@echo ""
-	@kubectl get services
-	@echo ""
-	@kubectl get ingress
-	@echo ""
-	@echo "$(GREEN)======================================$(NC)"
-	@echo "$(BLUE)🌐 Uygulamaya Erişim:$(NC)"
-	@echo "$(GREEN)======================================$(NC)"
-	@echo "  Web Uygulaması: http://web.local"
-	@echo "  API: http://api.local/api/datetime"
-	@echo ""
+deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
+	@echo "$(BLUE)⏱️  Deployment başlatılıyor...$(NC)"
+	@START_TIME=$$(date +%s); \
+	$(MAKE) create-cluster install-ingress fix-ingress fix-webhooks load-images deploy-k8s update-hosts; \
+	END_TIME=$$(date +%s); \
+	DURATION=$$((END_TIME - START_TIME)); \
+	MINUTES=$$((DURATION / 60)); \
+	SECONDS=$$((DURATION % 60)); \
+	echo ""; \
+	echo "$(GREEN)======================================$(NC)"; \
+	echo "$(GREEN)🎉 Deployment tamamlandı! 🎉$(NC)"; \
+	echo "$(GREEN)======================================$(NC)"; \
+	echo ""; \
+	echo "$(YELLOW)⏱️  Toplam Süre: $${MINUTES} dakika $${SECONDS} saniye$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)📊 Durum Bilgisi:$(NC)"; \
+	kubectl get pods -o wide; \
+	echo ""; \
+	kubectl get services; \
+	echo ""; \
+	kubectl get ingress; \
+	echo ""; \
+	echo "$(GREEN)======================================$(NC)"; \
+	echo "$(BLUE)🌐 Uygulamaya Erişim:$(NC)"; \
+	echo "$(GREEN)======================================$(NC)"; \
+	echo "  Web Uygulaması: http://web.local"; \
+	echo "  API: http://api.local/api/datetime"; \
+	echo ""
 
 verify: ## Deployment'ı doğrular ve test eder
 	@echo "$(BLUE)🔍 Deployment Doğrulama$(NC)"
