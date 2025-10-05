@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](TROUBLESHOOTING.md) |
-| :---------------------------------: | :-----------------------------: |
+| 🇬🇧 [English](docs/TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](docs/TROUBLESHOOTING.md) |
+| :--------------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -502,8 +502,8 @@ curl http://api.local/api/datetime
                 │ Pod STATUS?    │  │ Control-plane'de │
                 │ - Pending      │  │ mi?              │
                 │ - ImagePull... │  └────┬──────┬──────┘
-                └────┬───────┬───┘      │      │
-                     │       │       HAYIR   EVET
+                └────┬───────┬───┘       │      │
+                     │       │        HAYIR   EVET
                      ▼       ▼          │      │
             ┌─────────┐ ┌─────────┐     ▼      ▼
             │Webhook  │ │Image    │  ┌────┐ ┌────────┐
@@ -603,7 +603,7 @@ kubectl run test --image=curlimages/curl -it --rm -- curl http://datetime-api-se
 
 ## 📚 İlgili Dokümanlar
 
-- **[README](README.md)**: Genel kullanım ve kurulum
+- **[README](../README.md)**: Genel kullanım ve kurulum
 - **[WORKER_NODES](WORKER_NODES.md)**: Multi-node cluster rehberi
 - **[INGRESS_ROUTING](INGRESS_ROUTING.md)**: Ingress routing detayları
 - **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)**: Ingress Controller düzeltme yöntemleri

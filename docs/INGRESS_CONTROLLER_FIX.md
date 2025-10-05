@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](INGRESS_CONTROLLER_FIX.en.md) | 🇹🇷 [Türkçe](INGRESS_CONTROLLER_FIX.md) |
+| 🇬🇧 [English](docs/INGRESS_CONTROLLER_FIX.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_CONTROLLER_FIX.md) |
 |:---:|:---:|
 
 </div>

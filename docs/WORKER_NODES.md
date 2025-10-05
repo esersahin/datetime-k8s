@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](WORKER_NODES.en.md) | 🇹🇷 [Türkçe](WORKER_NODES.md) |
+| 🇬🇧 [English](docs/WORKER_NODES.en.md) | 🇹🇷 [Türkçe](docs/WORKER_NODES.md) |
 |:---:|:---:|
 
 </div>
@@ -38,7 +38,7 @@ Bu yapıda:
 
 - ✅ Tüm Kubernetes control plane bileşenleri çalışıyor (API Server, Scheduler, Controller Manager)
 - ⚠️ Pod'lar control-plane node'da çalışıyor
-- ⚠️ Production-like bir ortam değil
+- ⚠️ Canlıya benzer bir ortam değil
 - ⚠️ High availability yok
 
 ## 🎯 Hedef Durum

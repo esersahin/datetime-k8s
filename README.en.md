@@ -9,7 +9,7 @@
 ### 🌐 Read in Other Languages
 
 | 🇬🇧 [English](README.en.md) | 🇹🇷 [Türkçe](README.md) |
-|:---:|:---:|
+| :------------------------: | :--------------------: |
 
 </div>
 
@@ -18,6 +18,62 @@
 # DateTime Kubernetes Application
 
 Complete Kubernetes deployment solution for .NET 9 Minimal API and Nginx web application.
+
+## 🎯 What is This Project For?
+
+This project is **not production-ready**. It is designed for the following purposes:
+
+### ✅ Use Cases
+
+- **📚 Learning**: Learn Kubernetes concepts (pods, services, ingress, multi-node) through hands-on practice
+- **🔬 Testing**: Test new Kubernetes configurations in a safe environment
+- **💻 Local Development**: Develop and debug applications in a production-like environment
+- **🎓 Education**: Use for Kubernetes workshops and training materials
+- **🧪 Simulation**: Simulate production scenarios like multi-node clusters and load balancing
+
+### ❌ What's Missing for Production
+
+<details>
+<summary><b>What do you need for a real production environment?</b></summary>
+
+**Security**:
+- ❌ No HTTPS/TLS certificates
+- ❌ No secret management (Vault, Sealed Secrets)
+- ❌ No network policies
+- ❌ No RBAC (Role-Based Access Control) configuration
+- ❌ No Pod Security Standards
+
+**High Availability**:
+- ❌ Single control-plane (need at least 3 for HA)
+- ❌ No persistent storage (PV/PVC) strategy
+- ❌ No backup/restore mechanism
+- ❌ No disaster recovery plan
+
+**Monitoring & Observability**:
+- ❌ No Prometheus/Grafana monitoring
+- ❌ No centralized logging (ELK, Loki)
+- ❌ No distributed tracing (Jaeger, Tempo)
+- ❌ No alerting mechanism
+
+**Infrastructure**:
+- ❌ Need real cluster instead of Kind (EKS, GKE, AKS, on-prem)
+- ❌ No cloud load balancer integration
+- ❌ No auto-scaling (HPA, VPA, Cluster Autoscaler)
+- ❌ Missing resource limits and requests
+- ❌ No Quality of Service (QoS) configuration
+
+**CI/CD & Deployment**:
+- ❌ No automated testing pipeline
+- ❌ No container registry integration (Docker Hub, ECR, GCR)
+- ❌ No GitOps (ArgoCD, Flux)
+- ❌ No blue-green or canary deployment strategy
+- ❌ No rollback mechanism
+
+</details>
+
+> **💡 Note**: This project provides a **production-like development environment**. For actual production use, all the above gaps must be addressed.
+
+---
 
 ## ✨ Features
 
@@ -132,8 +188,6 @@ datetime-web-567d9789cd-yyyyy   1/1     Running   0          10s
 - ✅ 2x datetime-web pods (on worker nodes)
 - ✅ Services and Ingress configuration
 
-📄 For detailed output: [DEPLOY_OUTPUT.md](DEPLOY_OUTPUT.md)
-
 </details>
 
 ## ⚡ TL;DR (Quick Start)
@@ -203,88 +257,73 @@ open http://web.local
 
 ```
 datetime-k8s/
-├── api/                        # .NET 9 API
-│   ├── Program.cs              # .NET 9 Minimal API
-│   ├── DateTimeApi.csproj      # Project file
-│   └── Dockerfile.api          # API Docker image
-├── web/                        # Nginx Web App
-│   ├── index.html              # Web UI (Vanilla JS)
-│   ├── nginx.conf              # Nginx configuration
-│   └── Dockerfile.web          # Web Docker image
-├── k8s/                        # Kubernetes Manifests
-│   ├── api-deployment.yaml     # API Deployment + Service
-│   ├── web-deployment.yaml     # Web Deployment + Service
-│   ├── kind-config.yaml        # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml            # Ingress (api.local, web.local)
+├── api/                               # .NET 9 API
+│   ├── Program.cs                     # .NET 9 Minimal API
+│   ├── DateTimeApi.csproj             # Project file
+│   └── Dockerfile.api                 # API Docker image
+├── web/                               # Nginx Web App
+│   ├── index.html                     # Web UI (Vanilla JS)
+│   ├── nginx.conf                     # Nginx configuration
+│   └── Dockerfile.web                 # Web Docker image
+├── k8s/                               # Kubernetes Manifests
+│   ├── api-deployment.yaml            # API Deployment + Service
+│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
+│   ├── ingress.yaml                   # Ingress (api.local, web.local)
 │   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
-├── Makefile                    # 🎯 Main automation (RECOMMENDED!)
-├── deploy.sh                   # 🚀 Deployment script
-├── verify-deployment.sh        # 🔍 Verification and test script
-├── fix-ingress.sh              # 🔧 hostNetwork fix
-├── fix-webhooks.sh             # 🔧 Webhook cleanup
-├── patch-ingress-controller.sh # 🔧 Ingress patch
-├── setup-project.sh            # 📁 Directory structure creation
-├── README.md                   # 📖 Main documentation
-├── TROUBLESHOOTING.md          # 🆘 Troubleshooting guide (IMPORTANT!)
-├── WORKER_NODES.md             # 📘 Multi-node cluster guide
-├── INGRESS_ROUTING.md          # 📘 Ingress routing explanation
-├── INGRESS_CONTROLLER_FIX.md   # 📘 Ingress fix methods
-├── INGRESS_SETUP.md            # 📘 Ingress setup guide
-├── LOAD_BALANCING.md           # 📘 Load balancing strategies
-└── CHANGES_SUMMARY.md          # 📄 Changes summary
+├── docs/                              # Documents
+│   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
+│   ├── INGRESS_CONTROLLER_FIX.en.md   # 📘 Ingress fix methods
+│   ├── INGRESS_ROUTING.en.md          # 📘 Ingress routing explanation
+│   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
+│   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
+│   ├── PROJECT_SUMMARY.en.md          # 📘 Summary of components and key points
+│   ├── QUICK_START.en.md              # 📘 Setup, deploy, test and other operations
+│   ├── TROUBLESHOOTING.en.md          # 📘 Troubleshooting guide
+│   └── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
+├── Makefile                           # 🎯 Main automation (RECOMMENDED!)
+├── deploy.sh                          # 🚀 Deployment script
+├── verify-deployment.sh               # 🔍 Verification and test script
+├── fix-ingress.sh                     # 🔧 hostNetwork fix
+├── fix-webhooks.sh                    # 🔧 Webhook cleanup
+├── patch-ingress-controller.sh        # 🔧 Ingress patch
+├── setup-project.sh                   # 📁 Directory structure creation
+├── CONTRIBUTING.en.md                 # 📖 How to contribute?
+└── README.en.md                       # 📖 Main documentation
 ```
 
 ### 📜 Script and Makefile Comparison
 
-| Feature             | Makefile                        | Shell Scripts              |
-| ------------------- | ------------------------------- | -------------------------- |
-| Ease of Use         | ⭐⭐⭐⭐⭐ `make deploy`        | ⭐⭐⭐⭐ `./deploy.sh`     |
-| Modularity          | ⭐⭐⭐⭐⭐ Each command separate | ⭐⭐⭐ Monolithic          |
-| Error Handling      | ⭐⭐⭐⭐⭐ Automatic             | ⭐⭐⭐⭐ Manual            |
-| Advanced Features   | ⭐⭐⭐⭐⭐ Scale, restart, etc.  | ⭐⭐⭐ Basic operations    |
-| Learning Curve      | ⭐⭐⭐ Makefile knowledge        | ⭐⭐⭐⭐ Bash knowledge    |
-| Multi-Node          | ✅ Auto config creation         | ✅ Manual config required |
-
-**Recommendation:** Use Makefile! More flexible and powerful. 🎯
-
-```
-├── web/
-│ ├── index.html # Web UI (Vanilla JS)
-│ ├── nginx.conf # Nginx configuration
-│ └── Dockerfile.web # Web Docker image
-├── k8s/
-│ ├── api-deployment.yaml # API Deployment + Service
-│ ├── web-deployment.yaml # Web Deployment + Service
-│ └── ingress.yaml # Ingress (api.local, web.local)
-├── deploy.sh # 🚀 MAIN DEPLOYMENT SCRIPT
-├── verify-deployment.sh # 🔍 Verification and test script
-├── fix-ingress.sh # 🔧 hostNetwork fix
-├── fix-webhooks.sh # 🔧 Webhook cleanup
-├── kind-config.yaml # Kind cluster configuration
-└── README.md # Documentation
-```
-
+| Feature           | Makefile                         | Shell Scripts             |
+| ----------------- | -------------------------------- | ------------------------- |
+| Ease of Use       | ⭐⭐⭐⭐⭐ `make deploy`         | ⭐⭐⭐⭐ `./deploy.sh`    |
+| Modularity        | ⭐⭐⭐⭐⭐ Each command separate | ⭐⭐⭐ Monolithic         |
+| Error Handling    | ⭐⭐⭐⭐⭐ Automatic             | ⭐⭐⭐⭐ Manual           |
+| Advanced Features | ⭐⭐⭐⭐⭐ Scale, restart, etc.  | ⭐⭐⭐ Basic operations   |
+| Learning Curve    | ⭐⭐⭐ Makefile knowledge        | ⭐⭐⭐⭐ Bash knowledge   |
+| Multi-Node        | ✅ Auto config creation          | ✅ Manual config required |
 
 ### 📜 Script Descriptions
 
-| Script | Function | Usage Frequency |
-|--------|----------|-----------------|
-| **deploy.sh** | Full deployment from scratch | Once (initial setup) |
-| **verify-deployment.sh** | Status check and test | Always (for testing) |
-| **fix-ingress.sh** | For hostNetwork issue | As needed |
-| **fix-webhooks.sh** | For webhook issue | As needed |
+| Script                   | Function                     | Usage Frequency      |
+| ------------------------ | ---------------------------- | -------------------- |
+| **deploy.sh**            | Full deployment from scratch | Once (initial setup) |
+| **verify-deployment.sh** | Status check and test        | Always (for testing) |
+| **fix-ingress.sh**       | For hostNetwork issue        | As needed            |
+| **fix-webhooks.sh**      | For webhook issue            | As needed            |
 
 ### 📄 Configuration File
 
-| File | Function | Auto-created? |
-|------|----------|--------------|
+| File                 | Function                                                 | Auto-created?                                        |
+| -------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
 | **kind-config.yaml** | Kind cluster configuration (1 control-plane + 2 workers) | ✅ Yes (with `make create-cluster` or `make deploy`) |
 
-**Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see `WORKER_NODES.md`.
+**Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](WORKER_NODES.en.md).
 
 ### 🎯 Quick Reference
 
 **Makefile Commands** (full list with make help):
+
 - Deployment: `make deploy`, `make redeploy`, `make clean-all`
 - Monitoring: `make status`, `make show-nodes`, `make logs-api`, `make verify`
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
@@ -292,6 +331,7 @@ datetime-k8s/
 - Build: `make build-all`, `make quick-update`
 
 **Shell Scripts**:
+
 - Full Deploy: `./deploy.sh`
 - Verify: `./verify-deployment.sh`
 - Fix: `./fix-ingress.sh`, `./fix-webhooks.sh`
@@ -416,12 +456,12 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 
 ### 📊 Summary Table
 
-| Script                 | When to Use                      | Priority      | Auto-fix                 |
-| ---------------------- | -------------------------------- | ------------- | ------------------------ |
-| `deploy.sh`            | Initial setup / Redeploy         | 🥇 Primary    | ✅ hostNetwork + webhook |
-| `verify-deployment.sh` | Status check / Test              | 🥈 Secondary  | ❌ Report only           |
-| `fix-ingress.sh`       | Only hostNetwork issue           | 🔧 Special    | ✅ hostNetwork           |
-| `fix-webhooks.sh`      | Only webhook issue               | 🔧 Special    | ✅ Webhooks              |
+| Script                 | When to Use              | Priority     | Auto-fix                 |
+| ---------------------- | ------------------------ | ------------ | ------------------------ |
+| `deploy.sh`            | Initial setup / Redeploy | 🥇 Primary   | ✅ hostNetwork + webhook |
+| `verify-deployment.sh` | Status check / Test      | 🥈 Secondary | ❌ Report only           |
+| `fix-ingress.sh`       | Only hostNetwork issue   | 🔧 Special   | ✅ hostNetwork           |
+| `fix-webhooks.sh`      | Only webhook issue       | 🔧 Special   | ✅ Webhooks              |
 
 ### ⚡ Quick Commands
 
@@ -439,103 +479,6 @@ chmod +x *.sh && ./deploy.sh
 # Clean everything and start over
 kind delete cluster && ./deploy.sh
 ```
-
-## 📦 Creating Files
-
-### Automatic Directory Structure
-
-```bash
-# Create directories with setup script
-chmod +x setup-project.sh
-./setup-project.sh
-
-# Enter main directory
-cd datetime-k8s
-```
-
-### Manual Directory Structure
-
-```bash
-mkdir -p datetime-k8s/{api,web,k8s}
-cd datetime-k8s
-```
-
-### API Files (`datetime-k8s/api/` directory)
-
-Place the following files in the `api/` folder:
-
-1. **Program.cs** - .NET Minimal API code
-2. **DateTimeApi.csproj** - Project file
-3. **Dockerfile.api** - Docker image file
-
-### Web Files (`datetime-k8s/web/` directory)
-
-Place the following files in the `web/` folder:
-
-1. **index.html** - Web interface
-2. **nginx.conf** - Nginx configuration
-3. **Dockerfile.web** - Docker image file
-
-### Kubernetes Manifests (`datetime-k8s/k8s/` directory)
-
-Place the following files in the `k8s/` folder:
-
-1. **api-deployment.yaml** - API deployment and service
-2. **web-deployment.yaml** - Web deployment and service
-3. **ingress.yaml** - Ingress configuration
-
-### Main Directory Files (`datetime-k8s/` directory)
-
-Place the following files in the main directory (`datetime-k8s/`):
-
-1. **Makefile** - Make commands (RECOMMENDED!)
-2. **kind-config.yaml** - Kind cluster configuration (multi-node: 1 control-plane + 2 workers)
-3. **deploy.sh** - Main deployment script
-4. **verify-deployment.sh** - Verification script
-5. **fix-ingress.sh** - Ingress fix script
-6. **fix-webhooks.sh** - Webhook cleanup script
-7. **setup-project.sh** - Project setup script
-8. **README.md** - Documentation
-9. **WORKER_NODES.md** - Multi-node cluster guide
-
-### ✅ File Placement Check
-
-To verify correct placement:
-
-```bash
-cd datetime-k8s
-tree .
-```
-
-You should see this structure:
-
-```
-datetime-k8s/
-├── api/
-│   ├── Program.cs
-│   ├── DateTimeApi.csproj
-│   └── Dockerfile.api
-├── web/
-│   ├── index.html
-│   ├── nginx.conf
-│   └── Dockerfile.web
-├── k8s/
-│   ├── api-deployment.yaml
-│   ├── ingress-nginx-deployment.yaml
-│   ├── ingress.yaml
-│   ├── kind-config.yaml
-│   └── web-deployment.yaml
-├── Makefile
-├── deploy.sh
-├── verify-deployment.sh
-├── fix-ingress.sh
-├── fix-webhooks.sh
-├── setup-project.sh
-├── WORKER_NODES.md
-└── README.md
-```
-
-**Note**: If `kind-config.yaml` doesn't exist, the `make deploy` or `make create-cluster` command will create it automatically.
 
 ## 🎯 Deployment
 
@@ -557,35 +500,35 @@ make status
 
 #### Makefile Main Commands
 
-| Command          | Description                    |
-| ---------------- | ------------------------------ |
-| `make help`      | Lists all commands             |
-| `make deploy`    | **Full deployment (MAIN CMD)** |
-| `make verify`    | Verifies deployment            |
-| `make test`      | Tests endpoints                |
-| `make status`    | Shows cluster status           |
-| `make logs-api`  | Follows API logs               |
-| `make logs-web`  | Follows Web logs               |
-| `make clean`     | Deletes K8s resources          |
+| Command          | Description                        |
+| ---------------- | ---------------------------------- |
+| `make help`      | Lists all commands                 |
+| `make deploy`    | **Full deployment (MAIN CMD)**     |
+| `make verify`    | Verifies deployment                |
+| `make test`      | Tests endpoints                    |
+| `make status`    | Shows cluster status               |
+| `make logs-api`  | Follows API logs                   |
+| `make logs-web`  | Follows Web logs                   |
+| `make clean`     | Deletes K8s resources              |
 | `make clean-all` | Deletes everything (incl. cluster) |
-| `make redeploy`  | Completely redeploys           |
+| `make redeploy`  | Completely redeploys               |
 
 #### Makefile Advanced Commands
 
-| Command                     | Description                       |
-| --------------------------- | --------------------------------- |
-| `make build-api`            | Builds only API image             |
-| `make build-web`            | Builds only Web image             |
-| `make build-all`            | Builds all images                 |
-| `make create-cluster`       | Creates Kind cluster              |
-| `make install-ingress`      | Installs NGINX Ingress            |
-| `make fix-ingress`          | Fixes hostNetwork                 |
-| `make fix-webhooks`         | Cleans webhooks                   |
-| `make scale-api REPLICAS=3` | Scales API to 3 replicas          |
-| `make scale-web REPLICAS=3` | Scales Web to 3 replicas          |
-| `make restart-api`          | Restarts API                      |
-| `make restart-web`          | Restarts Web                      |
-| `make quick-update`         | Updates only images               |
+| Command                     | Description              |
+| --------------------------- | ------------------------ |
+| `make build-api`            | Builds only API image    |
+| `make build-web`            | Builds only Web image    |
+| `make build-all`            | Builds all images        |
+| `make create-cluster`       | Creates Kind cluster     |
+| `make install-ingress`      | Installs NGINX Ingress   |
+| `make fix-ingress`          | Fixes hostNetwork        |
+| `make fix-webhooks`         | Cleans webhooks          |
+| `make scale-api REPLICAS=3` | Scales API to 3 replicas |
+| `make scale-web REPLICAS=3` | Scales Web to 3 replicas |
+| `make restart-api`          | Restarts API             |
+| `make restart-web`          | Restarts Web             |
+| `make quick-update`         | Updates only images      |
 
 ### ✨ Deployment with Shell Script (Alternative)
 
@@ -933,7 +876,7 @@ Check /etc/hosts file:
 cat /etc/hosts | grep local
 ```
 
-For detailed troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+For detailed troubleshooting, see [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 
 ## 📝 Notes
 
@@ -942,7 +885,7 @@ For detailed troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - **Multi-Node Cluster**: Uses 1 control-plane + 2 worker nodes configuration by default
   - Control-plane: Kubernetes management components and Ingress Controller
   - Worker nodes: Application pods (datetime-api, datetime-web)
-  - For details: `WORKER_NODES.md`
+  - For details: [WORKER_NODES](WORKER_NODES.en.md)
 - **Mac Optimization**: `make deploy` or `deploy.sh` automatically fixes Mac/Kind issues:
   - Sets hostNetwork to true
   - Cleans up problematic admission webhooks
@@ -969,9 +912,9 @@ For detailed troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 **Usage:**
 
 ```bash
-make deploy      # Initial setup
-make verify      # Check
-make logs-api    # Log monitoring
+make deploy                # Initial setup
+make verify                # Check
+make logs-api              # Log monitoring
 make scale-api REPLICAS=3  # Scaling
 ```
 
@@ -986,9 +929,9 @@ make scale-api REPLICAS=3  # Scaling
 **Usage:**
 
 ```bash
-./deploy.sh           # Initial setup
+./deploy.sh             # Initial setup
 ./verify-deployment.sh  # Check
-./fix-ingress.sh      # Fix
+./fix-ingress.sh        # Fix
 ```
 
 ### Scenarios
@@ -1058,14 +1001,14 @@ kind delete cluster
 
 ## 📚 Documentation
 
-- Quick Start: [QUICK_START.md](QUICK_START.en.md)
-- Troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.en.md)
-- Network: [INGRESS_ROUTING.md](INGRESS_ROUTING.en.md)
-- Multi-node: [WORKER_NODES.md](WORKER_NODES.en.md)
+- Quick Start: [QUICK_START](docs/QUICK_START.en.md)
+- Troubleshooting: [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
+- Network: [INGRESS_ROUTING](docs/INGRESS_ROUTING.en.md)
+- Multi-node: [WORKER_NODES](docs/WORKER_NODES.en.md)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.en.md) for details.
+Contributions are welcome! Please see [CONTRIBUTING](CONTRIBUTING.en.md) for details.
 
 ## 📄 License
 
@@ -1079,7 +1022,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Project Status**: ✅ Production-ready
+**Project Status**: ✅ Production-like development environment
 **Platform**: Kubernetes (Kind)
 **Test Status**: ✅ All tests passing
 **Documentation**: ✅ Comprehensive

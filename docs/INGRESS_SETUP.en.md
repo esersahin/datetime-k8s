@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](INGRESS_SETUP.md) |
+| 🇬🇧 [English](docs/INGRESS_SETUP.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_SETUP.md) |
 | :-------------------------------: | :---------------------------: |
 
 </div>
@@ -162,7 +162,7 @@ curl http://api.local/api/datetime
 
 - **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)**: All solutions and detailed explanation
 - **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**: Routing mechanism
-- **[README](README.en.md)**: General documentation
+- **[README](../README.en.md)**: General documentation
 
 ---
 

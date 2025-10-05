@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
-| :---------------------------------: | :-----------------------------: |
+| 🇬🇧 [English](docs/PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/PROJECT_SUMMARY.md) |
+| :--------------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -32,38 +32,39 @@ Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özet
 
 ```
 datetime-k8s/
-├── api/                                # .NET 9 API
-│   ├── Program.cs                      # .NET 9 Minimal API
-│   ├── DateTimeApi.csproj              # Proje dosyası
-│   └── Dockerfile.api                  # API Docker image
-├── web/                                # Nginx Web App
-│   ├── index.html                      # Web UI (Vanilla JS)
-│   ├── nginx.conf                      # Nginx yapılandırması
-│   └── Dockerfile.web                  # Web Docker image
-├── k8s/                                # Kubernetes Manifests
-│   ├── api-deployment.yaml             # API Deployment + Service
-│   ├── web-deployment.yaml             # Web Deployment + Service
-│   ├── kind-config.yaml                # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml                    # Ingress (api.local, web.local)
-│   └── ingress-nginx-deployment.yaml   # ⭐ Özel Ingress (ARM64 + control-plane fix)
-├── Makefile                            # ⭐ Ana otomasyon
-├── deploy.sh                           # Deployment script
-├── verify-deployment.sh                # Doğrulama script
-├── fix-ingress.sh                      # Ingress düzeltme
-├── fix-webhooks.sh                     # Webhook temizleme
-├── patch-ingress-controller.sh         # Ingress patch
-├── setup-project.sh                    # Proje kurulum
-└── Dokümantasyon/
-    ├── README.md                       # Ana dokümantasyon
-    ├── QUICK_START.md                  # ⚡ Hızlı başlangıç
-    ├── TROUBLESHOOTING.md              # 🆘 Sorun giderme
-    ├── WORKER_NODES.md                 # Multi-node rehber
-    ├── INGRESS_ROUTING.md              # Routing açıklama
-    ├── INGRESS_CONTROLLER_FIX.md       # Ingress düzeltme
-    ├── INGRESS_SETUP.md                # Ingress kurulum
-    ├── LOAD_BALANCING.md               # Load balancing
-    ├── CHANGES_SUMMARY.md              # Değişiklikler
-    └── PROJECT_SUMMARY.md              # Bu dosya
+├── api/                               # .NET 9 API
+│   ├── Program.cs                     # .NET 9 Minimal API
+│   ├── DateTimeApi.csproj             # Proje dosyası
+│   └── Dockerfile.api                 # API Docker image
+├── web/                               # Nginx Web App
+│   ├── index.html                     # Web UI (Vanilla JS)
+│   ├── nginx.conf                     # Nginx yapılandırması
+│   └── Dockerfile.web                 # Web Docker image
+├── k8s/                               # Kubernetes Manifests
+│   ├── api-deployment.yaml            # API Deployment + Service
+│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
+│   ├── ingress.yaml                   # Ingress (api.local, web.local)
+│   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
+├── docs/                              # Documents
+│   ├── CHANGES_SUMMARY.md             # 📄 Projede yapılan değişikliklerin özeti
+│   ├── INGRESS_CONTROLLER_FIX.md      # 📘 Ingress düzeltme yöntemleri
+│   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
+│   ├── INGRESS_SETUP.md               # 📘 Ingress kurulum rehberi
+│   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
+│   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin ve önemli noktaların özeti
+│   ├── QUICK_START.md                 # 📘 Setup, deploy, test ve diğer operasyonlar
+│   ├── TROUBLESHOOTING.md             # 📘 Sorun giderme rehberi
+│   └── WORKER_NODES.md                # 📘 Multi-node cluster rehberi
+├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
+├── deploy.sh                          # 🚀 Deployment script
+├── verify-deployment.sh               # 🔍 Doğrulama ve test script
+├── fix-ingress.sh                     # 🔧 hostNetwork düzeltme
+├── fix-webhooks.sh                    # 🔧 Webhook temizleme
+├── patch-ingress-controller.sh        # 🔧 Ingress patch
+├── setup-project.sh                   # 📁 Dizin yapısı oluşturma
+├── CONTRIBUTING.en.md                 # 📖 Nasıl katkıda bulunurum?
+└── README.md                          # 📖 Ana dokümantasyon
 ```
 
 ## 🎯 Hızlı Kullanım
@@ -99,7 +100,7 @@ make clean-all       # Temizle
 | Dosya                                                   | Ne Zaman Okunmalı        | İçerik                   |
 | ------------------------------------------------------- | ------------------------ | ------------------------ |
 | **[QUICK_START](QUICK_START.md)**                       | İlk başlangıç            | 5 dakikada kurulum       |
-| **[README](README.md)**                                 | Genel bakış              | Tüm özellikler, komutlar |
+| **[README](../README.md)**                              | Genel bakış              | Tüm özellikler, komutlar |
 | **[TROUBLESHOOTING](TROUBLESHOOTING.md)**               | Sorun olduğunda          | Tüm hatalar ve çözümleri |
 | **[WORKER_NODES](WORKER_NODES.md)**                     | Multi-node öğrenmek için | Node yapılandırması      |
 | **[INGRESS_ROUTING](INGRESS_ROUTING.md)**               | Network anlamak için     | Trafik akışı             |
@@ -383,14 +384,15 @@ Projeyi geliştirmek için:
 5. **Service Mesh**: Istio entegrasyonu
 6. **Database**: PostgreSQL ekle
 7. **Caching**: Redis ekle
-8. **Logging**: ELK Stack
+8. **RabbitMQ**: RabbitMQ ekle
+9. **Logging**: ELK Stack
 
 ## 📞 Yardım ve Destek
 
 ### Sorun Giderme
 
 1. `make verify` çalıştır
-2. [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bak
+2. [TROUBLESHOOTING](TROUBLESHOOTING.md)'e bak
 3. `kubectl describe pod <pod-name>`
 4. `kubectl logs <pod-name>`
 
@@ -410,9 +412,9 @@ kubectl get all    # Tüm kaynakları görüntüle
 
 ---
 
-**Proje Durumu**: ✅ Production-ready  
-**Platform**: Kubernetes (Kind)  
-**Test Durumu**: ✅ Tüm testler geçiyor  
+**Proje Durumu**: ✅ Canlıya benzer geliştirme ortamı
+**Platform**: Kubernetes (Kind)
+**Test Durumu**: ✅ Tüm testler geçiyor
 **Dokümantasyon**: ✅ Kapsamlı
 
 **Keyifli Kodlamalar! 🚀**

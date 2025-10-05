@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
-| :---------------------------------: | :-----------------------------: |
+| 🇬🇧 [English](docs/PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/PROJECT_SUMMARY.md) |
+| :--------------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -32,38 +32,39 @@ This document summarizes all components, files, and important points of the proj
 
 ```
 datetime-k8s/
-├── api/                                # .NET 9 API
-│   ├── Program.cs                      # .NET 9 Minimal API
-│   ├── DateTimeApi.csproj              # Project file
-│   └── Dockerfile.api                  # API Docker image
-├── web/                                # Nginx Web App
-│   ├── index.html                      # Web UI (Vanilla JS)
-│   ├── nginx.conf                      # Nginx configuration
-│   └── Dockerfile.web                  # Web Docker image
-├── k8s/                                # Kubernetes Manifests
-│   ├── api-deployment.yaml             # API Deployment + Service
-│   ├── web-deployment.yaml             # Web Deployment + Service
-│   ├── kind-config.yaml                # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml                    # Ingress (api.local, web.local)
-│   └── ingress-nginx-deployment.yaml   # ⭐ Custom Ingress (ARM64 + control-plane fix)
-├── Makefile                            # ⭐ Main automation
-├── deploy.sh                           # Deployment script
-├── verify-deployment.sh                # Verification script
-├── fix-ingress.sh                      # Ingress fix
-├── fix-webhooks.sh                     # Webhook cleanup
-├── patch-ingress-controller.sh         # Ingress patch
-├── setup-project.sh                    # Project setup
-└── Documentation/
-    ├── README.md                       # Main documentation
-    ├── QUICK_START.md                  # ⚡ Quick start
-    ├── TROUBLESHOOTING.md              # 🆘 Troubleshooting
-    ├── WORKER_NODES.md                 # Multi-node guide
-    ├── INGRESS_ROUTING.md              # Routing explanation
-    ├── INGRESS_CONTROLLER_FIX.md       # Ingress fix
-    ├── INGRESS_SETUP.md                # Ingress setup
-    ├── LOAD_BALANCING.md               # Load balancing
-    ├── CHANGES_SUMMARY.md              # Changes
-    └── PROJECT_SUMMARY.md              # This file
+├── api/                               # .NET 9 API
+│   ├── Program.cs                     # .NET 9 Minimal API
+│   ├── DateTimeApi.csproj             # Project file
+│   └── Dockerfile.api                 # API Docker image
+├── web/                               # Nginx Web App
+│   ├── index.html                     # Web UI (Vanilla JS)
+│   ├── nginx.conf                     # Nginx configuration
+│   └── Dockerfile.web                 # Web Docker image
+├── k8s/                               # Kubernetes Manifests
+│   ├── api-deployment.yaml            # API Deployment + Service
+│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
+│   ├── ingress.yaml                   # Ingress (api.local, web.local)
+│   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
+├── docs/                              # Documents
+│   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
+│   ├── INGRESS_CONTROLLER_FIX.en.md   # 📘 Ingress fix methods
+│   ├── INGRESS_ROUTING.en.md          # 📘 Ingress routing explanation
+│   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
+│   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
+│   ├── PROJECT_SUMMARY.en.md          # 📘 Summary of components and key points
+│   ├── QUICK_START.en.md              # 📘 Setup, deploy, test and other operations
+│   ├── TROUBLESHOOTING.en.md          # 📘 Troubleshooting guide
+│   └── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
+├── Makefile                           # 🎯 Main automation (RECOMMENDED!)
+├── deploy.sh                          # 🚀 Deployment script
+├── verify-deployment.sh               # 🔍 Verification and test script
+├── fix-ingress.sh                     # 🔧 hostNetwork fix
+├── fix-webhooks.sh                    # 🔧 Webhook cleanup
+├── patch-ingress-controller.sh        # 🔧 Ingress patch
+├── setup-project.sh                   # 📁 Directory structure creation
+├── CONTRIBUTING.en.md                 # 📖 How to contribute?
+└── README.en.md                       # 📖 Main documentation
 ```
 
 ## 🎯 Quick Usage
@@ -99,7 +100,7 @@ make clean-all       # Clean
 | File                                                       | When to Read          | Content                  |
 | ---------------------------------------------------------- | --------------------- | ------------------------ |
 | **[QUICK_START](QUICK_START.en.md)**                       | First start           | 5-minute setup           |
-| **[README](README.en.md)**                                 | Overview              | All features, commands   |
+| **[README](../README.en.md)**                              | Overview              | All features, commands   |
 | **[TROUBLESHOOTING](TROUBLESHOOTING.en.md)**               | When issues occur     | All errors and solutions |
 | **[WORKER_NODES](WORKER_NODES.en.md)**                     | To learn multi-node   | Node configuration       |
 | **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**               | To understand network | Traffic flow             |
@@ -383,7 +384,8 @@ To improve the project:
 5. **Service Mesh**: Istio integration
 6. **Database**: Add PostgreSQL
 7. **Caching**: Add Redis
-8. **Logging**: ELK Stack
+8. **RabbitMQ**: Add RabbitMQ
+9. **Logging**: ELK Stack
 
 ## 📞 Help and Support
 
@@ -410,7 +412,7 @@ kubectl get all    # View all resources
 
 ---
 
-**Project Status**: ✅ Production-ready
+**Project Status**: ✅ Production-like development environment
 **Platform**: Kubernetes (Kind)
 **Test Status**: ✅ All tests passing
 **Documentation**: ✅ Comprehensive

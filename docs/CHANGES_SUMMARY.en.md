@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](CHANGES_SUMMARY.md) |
-|:---:|:---:|
+| 🇬🇧 [English](docs/CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/CHANGES_SUMMARY.md) |
+| :--------------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -16,6 +16,7 @@ This document contains a quick summary of all changes made.
 ## 🎯 Main Change: Multi-Node Kubernetes Cluster
 
 ### Before (Single Node)
+
 ```
 ├── 1 Node (control-plane)
     ├── Control plane components
@@ -23,6 +24,7 @@ This document contains a quick summary of all changes made.
 ```
 
 ### After (Multi-Node)
+
 ```
 ├── 1 Control-Plane Node
 │   ├── Control plane components
@@ -43,14 +45,14 @@ This document contains a quick summary of all changes made.
 
 ```yaml
 nodes:
-- role: control-plane
-  # ... port mappings
-- role: worker          # NEW!
-  labels:
-    worker-group: group-1
-- role: worker          # NEW!
-  labels:
-    worker-group: group-2
+  - role: control-plane
+    # ... port mappings
+  - role: worker # NEW!
+    labels:
+      worker-group: group-1
+  - role: worker # NEW!
+    labels:
+      worker-group: group-2
 ```
 
 ### 2. `Makefile` ✅
@@ -70,6 +72,7 @@ nodes:
 ```
 
 **Advantages**:
+
 - ✅ File always created (for version control)
 - ✅ User can edit later
 - ✅ Consistent configuration
@@ -82,6 +85,7 @@ make show-nodes
 ```
 
 Shows nodes in detail:
+
 - Node names
 - Labels
 - Taints
@@ -90,6 +94,7 @@ Shows nodes in detail:
 #### c) `status` Target - Updated
 
 Now also shows node information:
+
 ```bash
 make status
 # Nodes + Pods (with node placement) + Services + Ingress
@@ -148,6 +153,7 @@ spec:
 ```
 
 **Why Critical**:
+
 - ❌ Without this file: Ingress lands randomly, might not work
 - ✅ With this file: Always on control-plane, always works
 
@@ -163,6 +169,7 @@ kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type=strate
 ### 6. `fix-ingress.sh` ✅ NEW FILE!
 
 Comprehensive fix script:
+
 - Checks hostNetwork
 - Checks nodeSelector
 - Applies fixes if needed
@@ -182,10 +189,12 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 ### 1. Automatic kind-config.yaml Creation
 
 **Before**:
+
 - Had to manually create file
 - Or use inline config (hard to track)
 
 **After**:
+
 - File auto-created if missing
 - Always in version control
 - User can edit
@@ -193,29 +202,35 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 ### 2. Guaranteed Control-Plane Ingress
 
 **Before**:
+
 - Random node selection
 - Manual fixing needed
 
 **After**:
+
 - Custom YAML ensures control-plane
 - Works every time
 
 ### 3. ARM64 Compatibility
 
 **Before**:
+
 - SHA256 digest causing ImagePullBackOff on M1/M2/M3 Macs
 
 **After**:
+
 - No SHA digest
 - Multi-platform image support
 
 ### 4. Webhook-less Configuration
 
 **Before**:
+
 - Webhook secret issues
 - Pod stuck in Pending
 
 **After**:
+
 - Webhooks disabled
 - Pod starts immediately
 
@@ -224,6 +239,7 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 ## 📊 File Count Changes
 
 **Added Files**:
+
 - `k8s/ingress-nginx-deployment.yaml` (⭐ most important)
 - `patch-ingress-controller.sh`
 - `fix-ingress.sh`
@@ -231,6 +247,7 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 - 8 documentation files (MD)
 
 **Modified Files**:
+
 - `kind-config.yaml`
 - `Makefile`
 - `deploy.sh`
@@ -318,6 +335,7 @@ make deploy
 ### Kind Cluster Structure
 
 **Old**:
+
 ```
 kind-control-plane (all-in-one)
   ├── API Server
@@ -328,6 +346,7 @@ kind-control-plane (all-in-one)
 ```
 
 **New**:
+
 ```
 kind-control-plane
   ├── API Server
@@ -345,10 +364,12 @@ kind-worker2
 ### Node Labels
 
 **Control-Plane**:
+
 - `node-role.kubernetes.io/control-plane`
 - `ingress-ready=true` (custom)
 
 **Workers**:
+
 - `worker-group=group-1` (custom)
 - `worker-group=group-2` (custom)
 
@@ -388,6 +409,7 @@ All new documentation files:
 **Project Status**: ✅ Fully automated multi-node Kubernetes cluster
 
 **Key Achievement**: One command (`make deploy`) creates a production-like environment with:
+
 - 3 nodes (1 control + 2 worker)
 - Ingress Controller on correct node
 - Load balancing working

@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](QUICK_START.en.md) | 🇹🇷 [Türkçe](QUICK_START.md) |
-|:---:|:---:|
+| 🇬🇧 [English](docs/QUICK_START.en.md) | 🇹🇷 [Türkçe](docs/QUICK_START.md) |
+| :----------------------------------: | :------------------------------: |
 
 </div>
 
@@ -88,12 +88,12 @@ kubectl get endpoints
 
 ### Common Issues
 
-| Issue | Quick Fix |
-|-------|-----------|
-| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy` |
-| **No endpoint** | `kubectl apply -f k8s/` |
-| **No access** | `echo "127.0.0.1 api.local web.local" \| sudo tee -a /etc/hosts` |
-| **Pod Pending** | `kubectl describe pod <pod-name>` → See [TROUBLESHOOTING](TROUBLESHOOTING.en.md) |
+| Issue                | Quick Fix                                                                        |
+| -------------------- | -------------------------------------------------------------------------------- |
+| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                         |
+| **No endpoint**      | `kubectl apply -f k8s/`                                                          |
+| **No access**        | `echo "127.0.0.1 api.local web.local" \| sudo tee -a /etc/hosts`                 |
+| **Pod Pending**      | `kubectl describe pod <pod-name>` → See [TROUBLESHOOTING](TROUBLESHOOTING.en.md) |
 
 ### Detailed Troubleshooting
 
@@ -246,21 +246,22 @@ datetime-k8s/
 │   ├── ingress.yaml
 │   └── ingress-nginx-deployment.yaml   # ⭐ IMPORTANT!
 ├── Makefile                            # ⭐ IMPORTANT!
-├── kind-config.yaml
 └── deploy.sh
 ```
 
 ### Documentation Files
 
 ```
-├── README.md                   # General guide
-├── QUICK_START.md              # This file
-├── TROUBLESHOOTING.md          # 🆘 Troubleshooting
-├── WORKER_NODES.md             # Multi-node details
-├── INGRESS_ROUTING.md          # Routing explanation
-├── INGRESS_CONTROLLER_FIX.md   # Ingress fixes
-├── INGRESS_SETUP.md            # Ingress setup
-└── LOAD_BALANCING.md           # Load balancing
+├── README.md                      # General guide
+├── CHANGES_SUMMARY.md             # Summary of changes
+├── PROJECT_SUMMARY.en.md          # Summary of components and key points
+├── QUICK_START.en.md              # This file
+├── TROUBLESHOOTING.en.md          # 🆘 Troubleshooting
+├── WORKER_NODES.en.md             # Multi-node details
+├── INGRESS_ROUTING.en.md          # Routing explanation
+├── INGRESS_CONTROLLER_FIX.en.md   # Ingress fixes
+├── INGRESS_SETUP.en.md            # Ingress setup
+└── LOAD_BALANCING.en.md           # Load balancing strategies
 ```
 
 ---
@@ -427,35 +428,35 @@ make scale-web REPLICAS=2
 
 ### Basic Commands
 
-| Command | Description |
-|---------|-------------|
-| `make help` | List all commands |
+| Command       | Description                |
+| ------------- | -------------------------- |
+| `make help`   | List all commands          |
 | `make deploy` | **Full deployment (MAIN)** |
-| `make verify` | Verification tests |
-| `make status` | General status |
-| `make test` | Endpoint tests |
+| `make verify` | Verification tests         |
+| `make status` | General status             |
+| `make test`   | Endpoint tests             |
 
 ### Debugging
 
-| Command | Description |
-|---------|-------------|
-| `make show-nodes` | Node details |
-| `make logs-api` | API logs (real-time) |
-| `make logs-web` | Web logs (real-time) |
-| `make fix-ingress` | Fix Ingress |
-| `make fix-webhooks` | Clean webhooks |
+| Command             | Description          |
+| ------------------- | -------------------- |
+| `make show-nodes`   | Node details         |
+| `make logs-api`     | API logs (real-time) |
+| `make logs-web`     | Web logs (real-time) |
+| `make fix-ingress`  | Fix Ingress          |
+| `make fix-webhooks` | Clean webhooks       |
 
 ### Management
 
-| Command | Description |
-|---------|-------------|
-| `make scale-api REPLICAS=3` | Scale API |
-| `make scale-web REPLICAS=3` | Scale Web |
-| `make restart-api` | Restart API |
-| `make restart-web` | Restart Web |
-| `make clean` | Delete K8s resources |
-| `make clean-all` | Delete cluster + resources |
-| `make redeploy` | Full redeploy |
+| Command                     | Description                |
+| --------------------------- | -------------------------- |
+| `make scale-api REPLICAS=3` | Scale API                  |
+| `make scale-web REPLICAS=3` | Scale Web                  |
+| `make restart-api`          | Restart API                |
+| `make restart-web`          | Restart Web                |
+| `make clean`                | Delete K8s resources       |
+| `make clean-all`            | Delete cluster + resources |
+| `make redeploy`             | Full redeploy              |
 
 ---
 
@@ -488,7 +489,7 @@ For successful deployment:
 
 ### Documentation
 
-- **[README](README.en.md)** → General information
+- **[README](../README.en.md)** → General information
 - **[WORKER_NODES](WORKER_NODES.en.md)** → Multi-node details
 - **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** → Network flow
 - **[LOAD_BALANCING](LOAD_BALANCING.en.md)** → Load balancing
@@ -517,5 +518,5 @@ If you completed these steps:
 ---
 
 **First time setup**: Takes 5-10 minutes
-**Having issues**: Check TROUBLESHOOTING.md
+**Having issues**: Check [TROUBLESHOOTING](TROUBLESHOOTING.en.md)
 **Everything working**: Enjoy development! 🎨

@@ -2,8 +2,8 @@
 
 ### 🌐 Diğer Dillerde Oku / Read in Other Languages
 
-| 🇹🇷 [Türkçe](QUICK_START.md) | 🇬🇧 [English](QUICK_START.en.md) |
-| :-------------------------: | :-----------------------------: |
+| 🇹🇷 [Türkçe](docs/QUICK_START.md) | 🇬🇧 [English](docs/QUICK_START.en.md) |
+| :------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -246,7 +246,6 @@ datetime-k8s/
 │   ├── ingress.yaml
 │   └── ingress-nginx-deployment.yaml   # ⭐ ÖNEMLİ!
 ├── Makefile                            # ⭐ ÖNEMLİ!
-├── kind-config.yaml
 └── deploy.sh
 ```
 
@@ -254,13 +253,15 @@ datetime-k8s/
 
 ```
 ├── README.md                   # Genel rehber
+├── CHANGES_SUMMARY.md          # Değişikliklerin özeti
+├── PROJECT_SUMMARY.en.md       # Bileşenlerin ve önemli noktaların özeti
 ├── QUICK_START.md              # Bu dosya
 ├── TROUBLESHOOTING.md          # 🆘 Sorun giderme
 ├── WORKER_NODES.md             # Multi-node detaylar
 ├── INGRESS_ROUTING.md          # Routing açıklaması
 ├── INGRESS_CONTROLLER_FIX.md   # Ingress düzeltme
 ├── INGRESS_SETUP.md            # Ingress kurulum
-└── LOAD_BALANCING.md           # Load balancing
+└── LOAD_BALANCING.md           # Yük dengeleme stratejileri
 ```
 
 ---
@@ -488,7 +489,7 @@ Başarılı deployment için:
 
 ### Dokümantasyon
 
-- **[README](README.md)** → Genel bilgi
+- **[README](../README.md)** → Genel bilgi
 - **[WORKER_NODES](WORKER_NODES.md)** → Multi-node detaylar
 - **[INGRESS_ROUTING](INGRESS_ROUTING.md)** → Network akışı
 - **[LOAD_BALANCING](LOAD_BALANCING.md)** → Load balancing
@@ -517,5 +518,5 @@ Eğer bu adımları tamamladıysanız:
 ---
 
 **İlk kez kuruyorsanız**: 5-10 dakika sürer  
-**Sorun yaşıyorsanız**: TROUBLESHOOTING.md'ye bakın  
+**Sorun yaşıyorsanız**: [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bakın  
 **Her şey çalışıyorsa**: Keyifli geliştirmeler! 🎨

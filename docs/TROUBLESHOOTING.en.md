@@ -2,8 +2,8 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](TROUBLESHOOTING.md) |
-| :---------------------------------: | :-----------------------------: |
+| 🇬🇧 [English](docs/TROUBLESHOOTING.en.md) | 🇹🇷 [Türkçe](docs/TROUBLESHOOTING.md) |
+| :--------------------------------------: | :----------------------------------: |
 
 </div>
 
@@ -501,16 +501,16 @@ curl http://api.local/api/datetime
                 ┌────────────────┐  ┌──────────────────┐
                 │ Pod STATUS?    │  │ On control-plane?│
                 │ - Pending      │  └────┬──────┬──────┘
-                │ - ImagePull... │      │      │
-                └────┬───────┬───┘   NO     YES
-                     │       │        │      │
-                     ▼       ▼        ▼      ▼
+                │ - ImagePull... │       │      │
+                └────┬───────┬───┘      NO     YES
+                     │       │          │      │
+                     ▼       ▼          ▼      ▼
             ┌─────────┐ ┌─────────┐ ┌────┐ ┌────────┐
             │Webhook  │ │Image    │ │Fix │ │/etc/   │
             │Secret   │ │SHA256   │ │    │ │hosts?  │
             │create   │ │remove   │ └────┘ └────────┘
             └─────────┘ └─────────┘   │       │
-                                       ▼       ▼
+                                      ▼       ▼
                                    ✅ SOLVED
 ```
 
@@ -602,7 +602,7 @@ kubectl run test --image=curlimages/curl -it --rm -- curl http://datetime-api-se
 
 ## 📚 Related Documentation
 
-- **[README](README.en.md)**: General usage and installation
+- **[README](../README.en.md)**: General usage and installation
 - **[WORKER_NODES](WORKER_NODES.en.md)**: Multi-node cluster guide
 - **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**: Ingress routing details
 - **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)**: Ingress Controller fix methods

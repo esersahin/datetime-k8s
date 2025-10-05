@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](CHANGES_SUMMARY.md) |
+| 🇬🇧 [English](docs/CHANGES_SUMMARY.en.md) | 🇹🇷 [Türkçe](docs/CHANGES_SUMMARY.md) |
 | :---------------------------------: | :-----------------------------: |
 
 </div>
@@ -261,14 +261,14 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 
 ### Multi-Node Öncesi
 
-❌ Production-like değil
+❌ Canlıya benzer değil
 ❌ Yüksek erişilebilirlik testi yok
 ❌ Sınırlı ölçeklenebilirlik testi
 ❌ Tüm yumurtalar bir sepette
 
 ### Multi-Node Sonrası
 
-✅ Production-like ortam
+✅ Canlıya benzer ortam
 ✅ Node arızalarını test edebilme
 ✅ Gerçek load balancing
 ✅ Daha iyi kaynak izolasyonu
@@ -408,7 +408,7 @@ Tüm yeni dokümantasyon dosyaları:
 
 **Proje Durumu**: ✅ Tam otomasyonlu multi-node Kubernetes cluster
 
-**Ana Başarı**: Tek komut (`make deploy`) ile production-like ortam oluşturma:
+**Ana Başarı**: Tek komut (`make deploy`) ile canlıya benzer ortam oluşturma:
 
 - 3 node (1 control + 2 worker)
 - Ingress Controller doğru node'da

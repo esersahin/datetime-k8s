@@ -19,6 +19,62 @@
 
 .NET 9 Minimal API ve Nginx üzerinde çalışan web uygulaması için tam Kubernetes deployment çözümü.
 
+## 🎯 Bu Proje Ne İçin?
+
+Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki amaçlar için tasarlanmıştır:
+
+### ✅ Kullanım Alanları
+
+- **📚 Öğrenme**: Kubernetes kavramlarını (pods, services, ingress, multi-node) pratik yaparak öğrenme
+- **🔬 Test Etme**: Yeni Kubernetes yapılandırmalarını güvenli bir ortamda test etme
+- **💻 Yerel Geliştirme**: Canlıya benzer ortamda uygulama geliştirme ve debugging
+- **🎓 Eğitim**: Kubernetes workshop'ları ve eğitim materyalleri için kullanma
+- **🧪 Simülasyon**: Multi-node, load balancing gibi production senaryolarını simüle etme
+
+### ❌ Production İçin Eksikler
+
+<details>
+<summary><b>Gerçek production ortamı için nelere ihtiyaç var?</b></summary>
+
+**Güvenlik**:
+- ❌ HTTPS/TLS sertifikaları yok
+- ❌ Secret management (Vault, Sealed Secrets) yok
+- ❌ Network policies yok
+- ❌ RBAC (Role-Based Access Control) yapılandırması yok
+- ❌ Pod Security Standards yok
+
+**High Availability**:
+- ❌ Tek control-plane (HA için en az 3 tane gerekli)
+- ❌ Persistent storage (PV/PVC) stratejisi yok
+- ❌ Backup/restore mekanizması yok
+- ❌ Disaster recovery planı yok
+
+**Monitoring & Observability**:
+- ❌ Prometheus/Grafana monitoring yok
+- ❌ Centralized logging (ELK, Loki) yok
+- ❌ Distributed tracing (Jaeger, Tempo) yok
+- ❌ Alerting mekanizması yok
+
+**Infrastructure**:
+- ❌ Kind yerine gerçek cluster gerekli (EKS, GKE, AKS, on-prem)
+- ❌ Cloud load balancer entegrasyonu yok
+- ❌ Auto-scaling (HPA, VPA, Cluster Autoscaler) yok
+- ❌ Resource limits ve requests eksik
+- ❌ Quality of Service (QoS) yapılandırması yok
+
+**CI/CD & Deployment**:
+- ❌ Automated testing pipeline yok
+- ❌ Container registry (Docker Hub, ECR, GCR) entegrasyonu yok
+- ❌ GitOps (ArgoCD, Flux) yok
+- ❌ Blue-green veya canary deployment stratejisi yok
+- ❌ Rollback mekanizması yok
+
+</details>
+
+> **💡 Not**: Bu proje **canlıya benzer geliştirme ortamı** sağlar. Gerçek production kullanımı için yukarıdaki eksikliklerin tamamlanması gerekir.
+
+---
+
 ## ✨ Özellikler
 
 - 🚀 **Multi-Node Kubernetes Cluster**: 1 Control-Plane + 2 Worker Node
@@ -303,35 +359,39 @@ open http://web.local
 
 ```
 datetime-k8s/
-├── api/                        # .NET 9 API
-│   ├── Program.cs              # .NET 9 Minimal API
-│   ├── DateTimeApi.csproj      # Proje dosyası
-│   └── Dockerfile.api          # API Docker image
-├── web/                        # Nginx Web App
-│   ├── index.html              # Web UI (Vanilla JS)
-│   ├── nginx.conf              # Nginx yapılandırması
-│   └── Dockerfile.web          # Web Docker image
-├── k8s/                        # Kubernetes Manifests
-│   ├── api-deployment.yaml     # API Deployment + Service
-│   ├── web-deployment.yaml     # Web Deployment + Service
-│   ├── kind-config.yaml        # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml            # Ingress (api.local, web.local)
+├── api/                               # .NET 9 API
+│   ├── Program.cs                     # .NET 9 Minimal API
+│   ├── DateTimeApi.csproj             # Proje dosyası
+│   └── Dockerfile.api                 # API Docker image
+├── web/                               # Nginx Web App
+│   ├── index.html                     # Web UI (Vanilla JS)
+│   ├── nginx.conf                     # Nginx yapılandırması
+│   └── Dockerfile.web                 # Web Docker image
+├── k8s/                               # Kubernetes Manifests
+│   ├── api-deployment.yaml            # API Deployment + Service
+│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
+│   ├── ingress.yaml                   # Ingress (api.local, web.local)
 │   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
-├── Makefile                    # 🎯 Ana otomasyon (ÖNERİLEN!)
-├── deploy.sh                   # 🚀 Deployment script
-├── verify-deployment.sh        # 🔍 Doğrulama ve test script
-├── fix-ingress.sh              # 🔧 hostNetwork düzeltme
-├── fix-webhooks.sh             # 🔧 Webhook temizleme
-├── patch-ingress-controller.sh # 🔧 Ingress patch
-├── setup-project.sh            # 📁 Dizin yapısı oluşturma
-├── README.md                   # 📖 Ana dokümantasyon
-├── TROUBLESHOOTING.md          # 🆘 Sorun giderme rehberi (ÖNEMLİ!)
-├── WORKER_NODES.md             # 📘 Multi-node cluster rehberi
-├── INGRESS_ROUTING.md          # 📘 Ingress routing açıklaması
-├── INGRESS_CONTROLLER_FIX.md   # 📘 Ingress düzeltme yöntemleri
-├── INGRESS_SETUP.md            # 📘 Ingress kurulum rehberi
-├── LOAD_BALANCING.md           # 📘 Load balancing stratejileri
-└── CHANGES_SUMMARY.md          # 📄 Değişiklikler özeti
+├── docs/                              # Documents
+│   ├── CHANGES_SUMMARY.md             # 📄 Projede yapılan değişikliklerin özeti
+│   ├── INGRESS_CONTROLLER_FIX.md      # 📘 Ingress düzeltme yöntemleri
+│   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
+│   ├── INGRESS_SETUP.md               # 📘 Ingress kurulum rehberi
+│   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
+│   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin ve önemli noktaların özeti
+│   ├── QUICK_START.md                 # 📘 Setup, deploy, test ve diğer operasyonlar
+│   ├── TROUBLESHOOTING.md             # 📘 Sorun giderme rehberi
+│   └── WORKER_NODES.md                # 📘 Multi-node cluster rehberi
+├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
+├── deploy.sh                          # 🚀 Deployment script
+├── verify-deployment.sh               # 🔍 Doğrulama ve test script
+├── fix-ingress.sh                     # 🔧 hostNetwork düzeltme
+├── fix-webhooks.sh                    # 🔧 Webhook temizleme
+├── patch-ingress-controller.sh        # 🔧 Ingress patch
+├── setup-project.sh                   # 📁 Dizin yapısı oluşturma
+├── CONTRIBUTING.en.md                 # 📖 Nasıl katkıda bulunurum?
+└── README.md                          # 📖 Ana dokümantasyon
 ```
 
 ### 📜 Script ve Makefile Karşılaştırması
@@ -346,23 +406,6 @@ datetime-k8s/
 | Multi-Node         | ✅ Otomatik config oluşturma  | ✅ Manuel config gerekir |
 
 **Öneri:** Makefile kullanın! Daha esnek ve güçlü. 🎯
-
-```
-├── web/
-│ ├── index.html # Web UI (Vanilla JS)
-│ ├── nginx.conf # Nginx yapılandırması
-│ └── Dockerfile.web # Web Docker image
-├── k8s/
-│ ├── api-deployment.yaml # API Deployment + Service
-│ ├── web-deployment.yaml # Web Deployment + Service
-│ └── ingress.yaml # Ingress (api.local, web.local)
-├── deploy.sh # 🚀 ANA DEPLOYMENT SCRIPT
-├── verify-deployment.sh # 🔍 Doğrulama ve test script
-├── fix-ingress.sh # 🔧 hostNetwork düzeltme
-├── fix-webhooks.sh # 🔧 Webhook temizleme
-├── kind-config.yaml # Kind cluster yapılandırması
-└── README.md # Dokümantasyon
-```
 
 ### 📜 Script Açıklamaları
 
@@ -379,7 +422,7 @@ datetime-k8s/
 | -------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
 | **kind-config.yaml** | Kind cluster yapılandırması (1 control-plane + 2 workers) | ✅ Evet (`make create-cluster` veya `make deploy` ile) |
 
-**Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için `WORKER_NODES.md` dosyasına bakın.
+**Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için [WORKER_NODES](WORKER_NODES.md). dosyasına bakın.
 
 ### 🎯 Hızlı Referans
 
@@ -540,103 +583,6 @@ chmod +x *.sh && ./deploy.sh
 # Her şeyi temizle ve baştan başla
 kind delete cluster && ./deploy.sh
 ```
-
-## 📦 Dosyaları Oluşturma
-
-### Otomatik Dizin Yapısı
-
-```bash
-# Setup script'i ile dizinleri oluşturun
-chmod +x setup-project.sh
-./setup-project.sh
-
-# Ana dizine girin
-cd datetime-k8s
-```
-
-### Manuel Dizin Yapısı
-
-```bash
-mkdir -p datetime-k8s/{api,web,k8s}
-cd datetime-k8s
-```
-
-### API Dosyaları (`datetime-k8s/api/` dizini)
-
-Aşağıdaki dosyaları `api/` klasörüne yerleştirin:
-
-1. **Program.cs** - .NET Minimal API kodu
-2. **DateTimeApi.csproj** - Proje dosyası
-3. **Dockerfile.api** - Docker imaj dosyası
-
-### Web Dosyaları (`datetime-k8s/web/` dizini)
-
-Aşağıdaki dosyaları `web/` klasörüne yerleştirin:
-
-1. **index.html** - Web arayüzü
-2. **nginx.conf** - Nginx yapılandırması
-3. **Dockerfile.web** - Docker imaj dosyası
-
-### Kubernetes Manifests (`datetime-k8s/k8s/` dizini)
-
-Aşağıdaki dosyaları `k8s/` klasörüne yerleştirin:
-
-1. **api-deployment.yaml** - API deployment ve service
-2. **web-deployment.yaml** - Web deployment ve service
-3. **ingress.yaml** - Ingress yapılandırması
-
-### Ana Dizin Dosyaları (`datetime-k8s/` dizini)
-
-Aşağıdaki dosyaları ana dizine (`datetime-k8s/`) yerleştirin:
-
-1. **Makefile** - Make komutları (ÖNERİLEN!)
-2. **kind-config.yaml** - Kind cluster yapılandırması (multi-node: 1 control-plane + 2 workers)
-3. **deploy.sh** - Ana deployment script'i
-4. **verify-deployment.sh** - Doğrulama script'i
-5. **fix-ingress.sh** - Ingress düzeltme script'i
-6. **fix-webhooks.sh** - Webhook temizleme script'i
-7. **setup-project.sh** - Proje kurulum script'i
-8. **README.md** - Dokümantasyon
-9. **WORKER_NODES.md** - Multi-node cluster rehberi
-
-### ✅ Dosya Yerleşimi Kontrolü
-
-Doğru yerleşimi kontrol etmek için:
-
-```bash
-cd datetime-k8s
-tree .
-```
-
-Şu yapıyı görmelisiniz:
-
-```
-datetime-k8s/
-├── api/
-│   ├── Program.cs
-│   ├── DateTimeApi.csproj
-│   └── Dockerfile.api
-├── web/
-│   ├── index.html
-│   ├── nginx.conf
-│   └── Dockerfile.web
-├── k8s/
-│   ├── api-deployment.yaml
-│   ├── ingress-nginx-deployment.yaml
-│   ├── ingress.yaml
-│   ├── kind-config.yaml
-│   └── web-deployment.yaml
-├── Makefile
-├── deploy.sh
-├── verify-deployment.sh
-├── fix-ingress.sh
-├── fix-webhooks.sh
-├── setup-project.sh
-├── WORKER_NODES.md
-└── README.md
-```
-
-**Not**: `kind-config.yaml` yoksa `make deploy` veya `make create-cluster` komutu otomatik olarak oluşturacaktır.
 
 ## 🎯 Deployment
 
@@ -1034,6 +980,8 @@ nginx.ingress.kubernetes.io/cors-allow-origin: "*"
 cat /etc/hosts | grep local
 ```
 
+Ayrıntılı sorun giderme için, [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md) bölümüne bakın.
+
 ## 📝 Notlar
 
 - **Image Pull Policy**: `imagePullPolicy: Never` Kind için ayarlanmıştır
@@ -1157,14 +1105,14 @@ kind delete cluster
 
 ## 📚 Dokümantasyon
 
-- Hızlı Başlangıç: [QUICK_START.md](QUICK_START.md)
-- Sorun Giderme: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- Ağ: [INGRESS_ROUTING.md](INGRESS_ROUTING.md)
-- Multi-node: [WORKER_NODES.md](WORKER_NODES.md)
+- Hızlı Başlangıç: [QUICK_START.md](docs/QUICK_START.md)
+- Sorun Giderme: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- Ağ: [INGRESS_ROUTING.md](docs/INGRESS_ROUTING.md)
+- Multi-node: [WORKER_NODES.md](docs/WORKER_NODES.md)
 
 ## 🤝 Katkı
 
-Katkılarınızı bekliyoruz! Lütfen detaylar için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın.
+Katkılarınızı bekliyoruz! Lütfen detaylar için [CONTRIBUTING](CONTRIBUTING.md) dosyasına bakın.
 
 ## 📄 Lisans
 

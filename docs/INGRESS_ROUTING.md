@@ -2,7 +2,7 @@
 
 ### 🌐 Read in Other Languages
 
-| 🇬🇧 [English](INGRESS_ROUTING.en.md) | 🇹🇷 [Türkçe](INGRESS_ROUTING.md) |
+| 🇬🇧 [English](docs/INGRESS_ROUTING.en.md) | 🇹🇷 [Türkçe](docs/INGRESS_ROUTING.md) |
 | :---------------------------------: | :-----------------------------: |
 
 </div>
