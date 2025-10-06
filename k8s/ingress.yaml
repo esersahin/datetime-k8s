@@ -9,17 +9,25 @@ metadata:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     # Multi-node için önemli: Service-based routing
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-    # Load balancing stratejisi
-    # Seçenekler: round_robin (varsayılan), least_conn, ip_hash
-    # round_robin: İstekler sırayla dağıtılır
-    # ip_hash: Aynı client IP her zaman aynı pod'a gider
+    # Load balancing stratejisi: Round Robin
+    # round_robin: İstekler sırayla dağıtılır (en dengeli, stateless API'ler için ideal)
     # least_conn: En az bağlantısı olan pod'a gider
-    nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
-    # Alternatif: nginx.ingress.kubernetes.io/load-balance: "round_robin"
+    # ip_hash: Aynı client IP her zaman aynı pod'a gider (sticky sessions)
+    nginx.ingress.kubernetes.io/load-balance: "round_robin"
+    # Performans optimizasyonları
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "1"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+    # Upstream keepalive
+    nginx.ingress.kubernetes.io/upstream-keepalive-connections: "100"
+    nginx.ingress.kubernetes.io/upstream-keepalive-requests: "1000"
+    nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "60"
 spec:
   ingressClassName: nginx
   rules:
-    # API Ingress - worker node'lardaki pod'lara yönlendirir
+    # API Ingress - C# API (worker node'lardaki pod'lara yönlendirir)
     - host: api.local
       http:
         paths:
@@ -30,7 +38,18 @@ spec:
                 name: datetime-api-service
                 port:
                   number: 80
-    # Web Ingress - worker node'lardaki pod'lara yönlendirir
+    # API Go Ingress - Go API (worker node'lardaki pod'lara yönlendirir)
+    - host: api-go.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datetime-api-go-service
+                port:
+                  number: 80
+    # Web Ingress - C# Web (worker node'lardaki pod'lara yönlendirir)
     - host: web.local
       http:
         paths:
@@ -39,5 +58,16 @@ spec:
             backend:
               service:
                 name: datetime-web-service
+                port:
+                  number: 80
+    # Web Go Ingress - Go Web (worker node'lardaki pod'lara yönlendirir)
+    - host: web-go.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: datetime-web-go-service
                 port:
                   number: 80

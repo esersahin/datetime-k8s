@@ -339,7 +339,7 @@ done
 
 **Status**: Completely stateless (no sessions, just returns datetime)
 
-**Recommended Configuration**:
+**✅ Applied Configuration** (Current):
 
 ```yaml
 # ingress.yaml
@@ -348,17 +348,18 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    # Round robin (default) - best load distribution
+    # Round Robin load balancing (ideal for stateless APIs)
     nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
 ```yaml
-# REMOVE session affinity from Services
-# api-deployment.yaml & web-deployment.yaml
+# Service session affinity: None
+# api-deployment.yaml, web-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
 spec:
-  # Remove these lines:
-  # sessionAffinity: ClientIP
-  # sessionAffinityConfig: ...
+  selector:
+    app: datetime-api  # or datetime-web, datetime-api-go, datetime-web-go
+  # Round Robin requires sessionAffinity: None
+  sessionAffinity: None
 ```
 
 **Why**:
@@ -367,13 +368,18 @@ spec:
 - ✅ No issues if a pod restarts
 - ✅ Easy to scale
 - ✅ Simple and predictable
+- ✅ Best choice for stateless APIs
 
 ---
 
 ## 📝 Summary
 
-**Current configuration**: IP Hash (sticky sessions)
-**Ideal for DateTime project**: Round Robin (stateless)
+**✅ Applied Configuration** (Current):
+- **Ingress Level**: Round Robin (`load-balance: "round_robin"`)
+- **Service Level**: Round Robin (`sessionAffinity: None`)
+- **Result**: All pods receive equal load, optimal distribution
+
+**Ideal for DateTime project**: ✅ Round Robin (stateless)
 
 **To change**:
 

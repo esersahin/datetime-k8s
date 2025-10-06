@@ -339,7 +339,7 @@ done
 
 **Durum**: Tamamen stateless (session yok, sadece datetime döndürüyor)
 
-**Önerilen Yapılandırma**:
+**✅ Uygulanmış Yapılandırma** (Mevcut):
 
 ```yaml
 # ingress.yaml
@@ -348,17 +348,18 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    # Round robin (varsayılan) - en iyi yük dağılımı
+    # Round Robin load balancing (stateless API'ler için ideal)
     nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
 ```yaml
-# Service'lerde session affinity KALDIRILSIN
-# api-deployment.yaml & web-deployment.yaml
+# Service'lerde session affinity: None
+# api-deployment.yaml, web-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
 spec:
-  # Bu satırları kaldırın:
-  # sessionAffinity: ClientIP
-  # sessionAffinityConfig: ...
+  selector:
+    app: datetime-api  # veya datetime-web, datetime-api-go, datetime-web-go
+  # Round Robin için sessionAffinity: None
+  sessionAffinity: None
 ```
 
 **Neden**:
@@ -367,13 +368,18 @@ spec:
 - ✅ Bir pod restart olsa sorun çıkmaz
 - ✅ Scale etmek kolay
 - ✅ Basit ve öngörülebilir
+- ✅ Stateless API'ler için en iyi seçenek
 
 ---
 
 ## 📝 Özet
 
-**Şu anki yapılandırma**: IP Hash (sticky sessions)  
-**DateTime projesi için ideal**: Round Robin (stateless)
+**✅ Uygulanmış Yapılandırma** (Güncel):
+- **Ingress Level**: Round Robin (`load-balance: "round_robin"`)
+- **Service Level**: Round Robin (`sessionAffinity: None`)
+- **Sonuç**: Tüm pod'lar eşit yük alır, optimal dağılım
+
+**DateTime projesi için ideal**: ✅ Round Robin (stateless)
 
 **Değiştirmek için**:
 
