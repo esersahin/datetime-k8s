@@ -28,6 +28,18 @@ app.MapGet("/api/datetime", () =>
     });
 });
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+app.MapGet("/health", () =>
+{
+    var podName = Environment.GetEnvironmentVariable("HOSTNAME") ?? "unknown";
+    var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "unknown";
+
+    return Results.Ok(new
+    {
+        status = "healthy",
+        pod = podName,
+        node = nodeName,
+        service = "datetime-api"
+    });
+});
 
 app.Run();
