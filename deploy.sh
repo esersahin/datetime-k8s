@@ -167,10 +167,26 @@ docker build -t datetime-web:latest -f Dockerfile.web .
 cd ..
 print_success "Web imajı oluşturuldu"
 
+# API-Go için
+print_info "API-Go imajı build ediliyor..."
+cd api-go
+docker build -t datetime-api-go:latest .
+cd ..
+print_success "API-Go imajı oluşturuldu"
+
+# Web-Go için
+print_info "Web-Go imajı build ediliyor..."
+cd web-go
+docker build -t datetime-web-go:latest .
+cd ..
+print_success "Web-Go imajı oluşturuldu"
+
 # 4. İmajları Kind'a yükle
 print_info "İmajlar Kind cluster'a yükleniyor..."
 kind load docker-image datetime-api:latest
 kind load docker-image datetime-web:latest
+kind load docker-image datetime-api-go:latest
+kind load docker-image datetime-web-go:latest
 print_success "İmajlar yüklendi"
 
 # 5. Kubernetes kaynaklarını uygula
@@ -182,6 +198,16 @@ print_success "API deployment uygulandı"
 kubectl apply -f k8s/web-deployment.yaml
 print_success "Web deployment uygulandı"
 
+if [ -f "k8s/api-go-deployment.yaml" ]; then
+    kubectl apply -f k8s/api-go-deployment.yaml
+    print_success "API-Go deployment uygulandı"
+fi
+
+if [ -f "k8s/web-go-deployment.yaml" ]; then
+    kubectl apply -f k8s/web-go-deployment.yaml
+    print_success "Web-Go deployment uygulandı"
+fi
+
 kubectl apply -f k8s/ingress.yaml
 print_success "Ingress uygulandı"
 
@@ -189,15 +215,27 @@ print_success "Ingress uygulandı"
 print_info "Deployment'lar hazır olması bekleniyor..."
 kubectl wait --for=condition=available --timeout=120s deployment/datetime-api
 kubectl wait --for=condition=available --timeout=120s deployment/datetime-web
+kubectl wait --for=condition=available --timeout=120s deployment/datetime-api-go 2>/dev/null || true
+kubectl wait --for=condition=available --timeout=120s deployment/datetime-web-go 2>/dev/null || true
 print_success "Tüm deployment'lar hazır"
 
 # 7. /etc/hosts dosyasını güncelle
 print_info "Host dosyası güncelleniyor..."
 if ! grep -q "api.local" /etc/hosts; then
-    echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
-    print_success "Host dosyası güncellendi"
+    echo "127.0.0.1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts
+    echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts
+    print_success "Host dosyası güncellendi (IPv4 ve IPv6)"
 else
-    print_success "Host kayıtları zaten mevcut"
+    if ! grep -q "api-go.local" /etc/hosts; then
+        sudo sed -i '' 's/api.local web.local/api.local web.local api-go.local web-go.local/' /etc/hosts
+        print_success "Host dosyası güncellendi (api-go.local ve web-go.local eklendi)"
+    fi
+    if ! grep -q "::1.*api.local" /etc/hosts; then
+        echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts
+        print_success "IPv6 entries eklendi (5 saniye gecikme düzeltildi!)"
+    else
+        print_success "Host kayıtları zaten mevcut"
+    fi
 fi
 
 # 8. Süre hesaplama
@@ -225,8 +263,13 @@ echo ""
 echo "========================================"
 echo "🌐 Uygulamaya Erişim:"
 echo "========================================"
-echo "  Web Uygulaması: http://web.local"
-echo "  API: http://api.local/api/datetime"
+echo -e "  ${YELLOW}C# Uygulamaları:${NC}"
+echo "    Web: http://web.local"
+echo "    API: http://api.local/api/datetime"
+echo ""
+echo -e "  ${YELLOW}Go Uygulamaları:${NC}"
+echo "    Web-Go: http://web-go.local"
+echo "    API-Go: http://api-go.local/health"
 echo ""
 echo "========================================"
 echo "📝 Yararlı Komutlar:"

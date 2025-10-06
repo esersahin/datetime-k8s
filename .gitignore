@@ -10,6 +10,10 @@ obj/
 *.dll
 *.exe
 
+# Go
+api-go/api-go
+*.exe
+
 # IDE
 .vscode/
 .idea/

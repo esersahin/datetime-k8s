@@ -13,6 +13,8 @@ NC := \033[0m # No Color
 # Değişkenler
 API_IMAGE := datetime-api:latest
 WEB_IMAGE := datetime-web:latest
+API_GO_IMAGE := datetime-api-go:latest
+WEB_GO_IMAGE := datetime-web-go:latest
 CLUSTER_NAME := kind
 NAMESPACE := default
 
@@ -73,13 +75,25 @@ build-web: ## Web Docker imajını build eder
 	@cd web && docker build -t $(WEB_IMAGE) -f Dockerfile.web .
 	@echo "$(GREEN)✓ Web imajı oluşturuldu$(NC)"
 
-build-all: build-api build-web ## Tüm Docker imajlarını build eder
+build-api-go: ## API-Go Docker imajını build eder
+	@echo "$(YELLOW)🔨 API-Go imajı build ediliyor...$(NC)"
+	@cd api-go && docker build -t $(API_GO_IMAGE) .
+	@echo "$(GREEN)✓ API-Go imajı oluşturuldu$(NC)"
+
+build-web-go: ## Web-Go Docker imajını build eder
+	@echo "$(YELLOW)🔨 Web-Go imajı build ediliyor...$(NC)"
+	@cd web-go && docker build -t $(WEB_GO_IMAGE) .
+	@echo "$(GREEN)✓ Web-Go imajı oluşturuldu$(NC)"
+
+build-all: build-api build-web build-api-go build-web-go ## Tüm Docker imajlarını build eder
 	@echo "$(GREEN)✓ Tüm imajlar oluşturuldu$(NC)"
 
 load-images: build-all ## İmajları Kind cluster'a yükler
 	@echo "$(YELLOW)📦 İmajlar Kind cluster'a yükleniyor...$(NC)"
 	@kind load docker-image $(API_IMAGE) --name $(CLUSTER_NAME)
 	@kind load docker-image $(WEB_IMAGE) --name $(CLUSTER_NAME)
+	@kind load docker-image $(API_GO_IMAGE) --name $(CLUSTER_NAME)
+	@kind load docker-image $(WEB_GO_IMAGE) --name $(CLUSTER_NAME)
 	@echo "$(GREEN)✓ İmajlar yüklendi$(NC)"
 
 create-cluster: ## Kind cluster oluşturur (multi-node: 1 control-plane + 2 workers)
@@ -200,21 +214,35 @@ deploy-k8s: ## Kubernetes kaynaklarını deploy eder
 	@echo "$(GREEN)✓ API deployment uygulandı$(NC)"
 	@kubectl apply -f k8s/web-deployment.yaml
 	@echo "$(GREEN)✓ Web deployment uygulandı$(NC)"
+	@kubectl apply -f k8s/api-go-deployment.yaml 2>/dev/null && echo "$(GREEN)✓ API-Go deployment uygulandı$(NC)" || true
+	@kubectl apply -f k8s/web-go-deployment.yaml 2>/dev/null && echo "$(GREEN)✓ Web-Go deployment uygulandı$(NC)" || true
 	@kubectl apply -f k8s/ingress.yaml
 	@echo "$(GREEN)✓ Ingress uygulandı$(NC)"
 	@echo ""
 	@echo "$(YELLOW)⏳ Deployment'ların hazır olması bekleniyor...$(NC)"
 	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-api 2>/dev/null || true
 	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-web 2>/dev/null || true
+	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-api-go 2>/dev/null || true
+	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-web-go 2>/dev/null || true
 	@echo "$(GREEN)✓ Tüm deployment'lar hazır$(NC)"
 
 update-hosts: ## /etc/hosts dosyasını günceller
 	@echo "$(YELLOW)📝 /etc/hosts dosyası güncelleniyor...$(NC)"
 	@if ! grep -q "api.local" /etc/hosts; then \
-		echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts > /dev/null; \
-		echo "$(GREEN)✓ /etc/hosts güncellendi$(NC)"; \
+		echo "127.0.0.1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+		echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+		echo "$(GREEN)✓ /etc/hosts güncellendi (IPv4 ve IPv6)$(NC)"; \
 	else \
-		echo "$(GREEN)✓ /etc/hosts zaten güncel$(NC)"; \
+		if ! grep -q "api-go.local" /etc/hosts; then \
+			sudo sed -i '' 's/api.local web.local/api.local web.local api-go.local web-go.local/' /etc/hosts; \
+			echo "$(GREEN)✓ /etc/hosts güncellendi (api-go.local ve web-go.local eklendi)$(NC)"; \
+		fi; \
+		if ! grep -q "::1.*api.local" /etc/hosts; then \
+			echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+			echo "$(GREEN)✓ IPv6 entries eklendi (5 saniye gecikme düzeltildi!)$(NC)"; \
+		else \
+			echo "$(GREEN)✓ /etc/hosts zaten güncel$(NC)"; \
+		fi \
 	fi
 
 deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
@@ -242,8 +270,13 @@ deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
 	echo "$(GREEN)======================================$(NC)"; \
 	echo "$(BLUE)🌐 Uygulamaya Erişim:$(NC)"; \
 	echo "$(GREEN)======================================$(NC)"; \
-	echo "  Web Uygulaması: http://web.local"; \
-	echo "  API: http://api.local/api/datetime"; \
+	echo "  $(YELLOW)C# Uygulamaları:$(NC)"; \
+	echo "    Web: http://web.local"; \
+	echo "    API: http://api.local/api/datetime"; \
+	echo ""; \
+	echo "  $(YELLOW)Go Uygulamaları:$(NC)"; \
+	echo "    Web-Go: http://web-go.local"; \
+	echo "    API-Go: http://api-go.local/health"; \
 	echo ""
 
 verify: ## Deployment'ı doğrular ve test eder
@@ -437,6 +470,10 @@ quick-update: build-all load-images ## Sadece imajları günceller (cluster'ı d
 	@echo "$(YELLOW)🔄 Deployment'lar yeniden başlatılıyor...$(NC)"
 	@kubectl rollout restart deployment datetime-api
 	@kubectl rollout restart deployment datetime-web
+	@kubectl rollout restart deployment datetime-api-go 2>/dev/null || true
+	@kubectl rollout restart deployment datetime-web-go 2>/dev/null || true
 	@kubectl rollout status deployment datetime-api
 	@kubectl rollout status deployment datetime-web
+	@kubectl rollout status deployment datetime-api-go 2>/dev/null || true
+	@kubectl rollout status deployment datetime-web-go 2>/dev/null || true
 	@echo "$(GREEN)✓ Güncelleme tamamlandı$(NC)"
