@@ -113,7 +113,13 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 - ⚡ **Otomatik Deployment**: Tek komutla (`make deploy`) tam kurulum
 - 🔧 **Mac Optimized**: hostNetwork ve webhook sorunları otomatik düzeltilir
 - 📦 **Kind Integration**: Local Kubernetes cluster (Docker içinde)
-- 🌐 **Ingress Support**: http://api.local ve http://web.local
+- 🌐 **Ingress Support**:  
+  * **C# Uygulaması**
+      * **API URL:** `http://api.local`
+      * **WebUI URL:** `http://web.local`
+  * **Go Uygulaması**
+      * **API URL:** `http://api-go.local`
+      * **WebUI URL:** `http://web-go.local`
 - 🐳 **Docker Build**: Otomatik imaj build ve yükleme
 - 🎯 **Makefile Commands**: 25+ hazır komut
 - 📊 **Monitoring**: Log izleme, durum kontrolleri

@@ -113,7 +113,13 @@ This project is **not production-ready**. It is designed for the following purpo
 - ⚡ **Automated Deployment**: Full setup with a single command (`make deploy`)
 - 🔧 **Mac Optimized**: Automatic fixes for hostNetwork and webhook issues
 - 📦 **Kind Integration**: Local Kubernetes cluster (running in Docker)
-- 🌐 **Ingress Support**: http://api.local and http://web.local
+- 🌐 **Ingress Support**:
+  - **C# Application**
+    - **API URL:** `http://api.local`
+    - **WebUI URL:** `http://web.local`
+  - **Go Application**
+    - **API URL:** `http://api-go.local`
+    - **WebUI URL:** `http://web-go.local`
 - 🐳 **Docker Build**: Automated image building and loading
 - 🎯 **Makefile Commands**: 25+ ready-to-use commands
 - 📊 **Monitoring**: Log tracking, status checks
@@ -160,35 +166,35 @@ _Kind cluster running on Docker Desktop_
 <summary><b>🚀 Click to See Full Deployment Output</b> (all steps of make deploy command)</summary>
 
 ```bash
-⏱️  Deployment başlatılıyor... 
-🚀 Kind cluster kontrol ediliyor... 
+⏱️  Deployment başlatılıyor...
+🚀 Kind cluster kontrol ediliyor...
 No kind clusters found.
-Kind cluster oluşturuluyor (1 control-plane + 2 workers)... 
-✓ kind-config.yaml mevcut, kullanılıyor 
+Kind cluster oluşturuluyor (1 control-plane + 2 workers)...
+✓ kind-config.yaml mevcut, kullanılıyor
 Creating cluster "kind" ...
  ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
- ✓ Preparing nodes 📦 📦 📦  
- ✓ Writing configuration 📜 
- ✓ Starting control-plane 🕹️ 
- ✓ Installing CNI 🔌 
- ✓ Installing StorageClass 💾 
- ✓ Joining worker nodes 🚜 
+ ✓ Preparing nodes 📦 📦 📦
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
+ ✓ Joining worker nodes 🚜
 Set kubectl context to "kind-kind"
 You can now use your cluster with:
 
 kubectl cluster-info --context kind-kind
 
 Have a nice day! 👋
-✓ Multi-node Kind cluster oluşturuldu 
+✓ Multi-node Kind cluster oluşturuldu
 
-Cluster Nodeları: 
+Cluster Nodeları:
 NAME                 STATUS     ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
 kind-control-plane   NotReady   control-plane   11s   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker          NotReady   <none>          1s    v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker2         NotReady   <none>          1s    v1.34.0   172.20.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-📥 NGINX Ingress Controller kontrol ediliyor... 
-NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)... 
-Özel ingress-nginx-deployment.yaml kullanılıyor... 
+📥 NGINX Ingress Controller kontrol ediliyor...
+NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)...
+Özel ingress-nginx-deployment.yaml kullanılıyor...
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
 configmap/ingress-nginx-controller created
@@ -200,22 +206,22 @@ service/ingress-nginx-controller created
 deployment.apps/ingress-nginx-controller created
 ingressclass.networking.k8s.io/nginx created
 pod/ingress-nginx-controller-7884c64dd8-hrnqc condition met
-✓ NGINX Ingress Controller kuruldu 
-🔧 Ingress yapılandırması kontrol ediliyor... 
-hostNetwork ayarı düzeltiliyor... 
+✓ NGINX Ingress Controller kuruldu
+🔧 Ingress yapılandırması kontrol ediliyor...
+hostNetwork ayarı düzeltiliyor...
 deployment.apps/ingress-nginx-controller patched (no change)
 deployment "ingress-nginx-controller" successfully rolled out
 pod/ingress-nginx-controller-7884c64dd8-hrnqc condition met
-✓ hostNetwork ayarı düzeltildi 
-🔧 Ingress Controller control-plane kontrolü yapılıyor... 
-✓ Ingress Controller zaten control-planede 
+✓ hostNetwork ayarı düzeltildi
+🔧 Ingress Controller control-plane kontrolü yapılıyor...
+✓ Ingress Controller zaten control-planede
 
-Ingress Controller Durumu: 
+Ingress Controller Durumu:
 NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
 ingress-nginx-controller-7884c64dd8-hrnqc   1/1     Running   0          46s   172.20.0.4   kind-control-plane   <none>           <none>
-🧹 Admission webhookları temizleniyor... 
-✓ Webhooklar temizlendi 
-🔨 API imajı build ediliyor... 
+🧹 Admission webhookları temizleniyor...
+✓ Webhooklar temizlendi
+🔨 API imajı build ediliyor...
 [+] Building 0.0s (15/15) FINISHED                                                                                                                                                                 docker:desktop-linux
  => [internal] load build definition from Dockerfile.api                                                                                                                                                           0.0s
  => => transferring dockerfile: 1.13kB                                                                                                                                                                             0.0s
@@ -242,9 +248,9 @@ ingress-nginx-controller-7884c64dd8-hrnqc   1/1     Running   0          46s   1
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jovwovvyv3vgxp1fot4zhn0b0
 
 What is next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ API imajı oluşturuldu 
-🔨 Web imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ API imajı oluşturuldu
+🔨 Web imajı build ediliyor...
 [+] Building 1.7s (9/9) FINISHED                                                                                                                                                                   docker:desktop-linux
  => [internal] load build definition from Dockerfile.web                                                                                                                                                           0.0s
  => => transferring dockerfile: 197B                                                                                                                                                                               0.0s
@@ -265,9 +271,9 @@ What is next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/sbyd0p6ve1l6msy7hnq748lxz
 
 What is next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ Web imajı oluşturuldu 
-🔨 API-Go imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ Web imajı oluşturuldu
+🔨 API-Go imajı build ediliyor...
 [+] Building 1.7s (18/18) FINISHED                                                                                                                                                                 docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                                                               0.0s
  => => transferring dockerfile: 505B                                                                                                                                                                               0.0s
@@ -297,9 +303,9 @@ What is next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/z7jni5i7o8tycrtjhdzxcz7ku
 
 What is next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ API-Go imajı oluşturuldu 
-🔨 Web-Go imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ API-Go imajı oluşturuldu
+🔨 Web-Go imajı build ediliyor...
 [+] Building 0.3s (8/8) FINISHED                                                                                                                                                                   docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                                                               0.0s
  => => transferring dockerfile: 191B                                                                                                                                                                               0.0s
@@ -319,10 +325,10 @@ What is next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/qb0c0117cobfry28t7ozi7lt2
 
 What is next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ Web-Go imajı oluşturuldu 
-✓ Tüm imajlar oluşturuldu 
-📦 İmajlar Kind cluster`a yükleniyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ Web-Go imajı oluşturuldu
+✓ Tüm imajlar oluşturuldu
+📦 İmajlar Kind cluster`a yükleniyor...
 Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-worker", loading...
 Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-control-plane", loading...
 Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-worker2", loading...
@@ -335,39 +341,39 @@ Image: "datetime-api-go:latest" with ID "sha256:01eb86cef398558dd35e203fc64e400a
 Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-worker", loading...
 Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-control-plane", loading...
 Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-worker2", loading...
-✓ İmajlar yüklendi 
-📦 Kubernetes kaynakları uygulanıyor... 
+✓ İmajlar yüklendi
+📦 Kubernetes kaynakları uygulanıyor...
 deployment.apps/datetime-api created
 service/datetime-api-service created
-✓ API deployment uygulandı 
+✓ API deployment uygulandı
 deployment.apps/datetime-web created
 service/datetime-web-service created
-✓ Web deployment uygulandı 
+✓ Web deployment uygulandı
 deployment.apps/datetime-api-go created
 service/datetime-api-go-service created
-✓ API-Go deployment uygulandı 
+✓ API-Go deployment uygulandı
 deployment.apps/datetime-web-go created
 service/datetime-web-go-service created
-✓ Web-Go deployment uygulandı 
+✓ Web-Go deployment uygulandı
 ingress.networking.k8s.io/datetime-ingress created
-✓ Ingress uygulandı 
+✓ Ingress uygulandı
 
-⏳ Deploymentların hazır olması bekleniyor... 
+⏳ Deploymentların hazır olması bekleniyor...
 deployment.apps/datetime-api condition met
 deployment.apps/datetime-web condition met
 deployment.apps/datetime-api-go condition met
 deployment.apps/datetime-web-go condition met
-✓ Tüm deployment'lar hazır 
-📝 /etc/hosts dosyası güncelleniyor... 
-✓ /etc/hosts zaten güncel 
+✓ Tüm deployment'lar hazır
+📝 /etc/hosts dosyası güncelleniyor...
+✓ /etc/hosts zaten güncel
 
-====================================== 
-🎉 Deployment tamamlandı! 🎉 
-====================================== 
+======================================
+🎉 Deployment tamamlandı! 🎉
+======================================
 
-⏱️  Toplam Süre: 1 dakika 36 saniye 
+⏱️  Toplam Süre: 1 dakika 36 saniye
 
-📊 Durum Bilgisi: 
+📊 Durum Bilgisi:
 NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
 datetime-api-7c496c6d89-6xbp9      1/1     Running   0          9s    10.244.1.2   kind-worker    <none>           <none>
 datetime-api-7c496c6d89-v868r      0/1     Running   0          9s    10.244.2.2   kind-worker2   <none>           <none>
@@ -389,14 +395,14 @@ kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   85
 NAME               CLASS   HOSTS                                          ADDRESS   PORTS   AGE
 datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      8s
 
-====================================== 
-🌐 Uygulamaya Erişim: 
-====================================== 
-  C# Uygulamaları: 
+======================================
+🌐 Uygulamaya Erişim:
+======================================
+  C# Uygulamaları:
     Web: http://web.local
     API: http://api.local/api/datetime
 
-  Go Uygulamaları: 
+  Go Uygulamaları:
     Web-Go: http://web-go.local
     API-Go: http://api-go.local/health
 ```
