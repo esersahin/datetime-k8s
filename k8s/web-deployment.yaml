@@ -6,6 +6,11 @@ metadata:
     app: datetime-web
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1  # Aynı anda en fazla 1 pod kapalı olabilir
+      maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
       app: datetime-web
@@ -59,8 +64,6 @@ spec:
   # IMPORTANT: selector MUST match pod labels
   selector:
     app: datetime-web
-  # Session affinity - aynı client aynı pod'a yönlendirilir (opsiyonel)
-  sessionAffinity: ClientIP
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 300
+  # Session affinity: None = Round Robin load balancing
+  # Stateless web app için en iyi seçenek
+  sessionAffinity: None

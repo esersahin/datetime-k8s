@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-api
+  name: datetime-web-go
   labels:
-    app: datetime-api
+    app: datetime-web-go
 spec:
   replicas: 2
   strategy:
@@ -13,38 +13,29 @@ spec:
       maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
-      app: datetime-api
+      app: datetime-web-go
   template:
     metadata:
       labels:
-        app: datetime-api
+        app: datetime-web-go
     spec:
       containers:
-        - name: api
-          image: datetime-api:latest
+        - name: web-go
+          image: datetime-web-go:latest
           imagePullPolicy: Never
           ports:
-            - containerPort: 5000
+            - containerPort: 80
               name: http
-          env:
-            - name: ASPNETCORE_ENVIRONMENT
-              value: "Production"
-            - name: TZ
-              value: "Europe/Istanbul"
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           livenessProbe:
             httpGet:
-              path: /health
-              port: 5000
+              path: /
+              port: 80
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /health
-              port: 5000
+              path: /
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
           resources:
@@ -53,26 +44,26 @@ spec:
               cpu: "100m"
             limits:
               memory: "256Mi"
-              cpu: "200m"
+              cpu: "250m"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: datetime-api-service
+  name: datetime-web-go-service
   labels:
-    app: datetime-api
+    app: datetime-web-go
   annotations:
-    description: "API Service - Routes traffic to worker nodes"
+    description: "Web-Go Service - Routes traffic to worker nodes"
 spec:
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 5000
+      targetPort: 80
       protocol: TCP
       name: http
   # IMPORTANT: selector MUST match pod labels
   selector:
-    app: datetime-api
+    app: datetime-web-go
   # Session affinity: None = Round Robin load balancing
-  # Stateless API için en iyi seçenek
+  # Stateless web app için en iyi seçenek
   sessionAffinity: None
