@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DateTime API - Go Client</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tab-button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: all 0.3s;
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .tab-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .tab-button.active {
+        background: white;
+        color: #667eea;
+        border-color: white;
+      }
+
+      .tab-content {
+        display: none;
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      button.action-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: transform 0.2s;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      button.action-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      button.action-btn:active {
+        transform: translateY(0);
+      }
+
+      button.action-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      button.action-btn.loading {
+        position: relative;
+        color: transparent;
+      }
+
+      button.action-btn.loading::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin-left: -10px;
+        margin-top: -10px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      .result-box {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+      }
+
+      .result-box.show {
+        display: block;
+      }
+
+      .result-box.success {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+      }
+
+      .result-box.error {
+        background: #fee2e2;
+        border: 2px solid #ef4444;
+      }
+
+      .result-content {
+        white-space: pre-wrap;
+        font-family: "Courier New", monospace;
+        color: #333;
+      }
+
+      .clock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .clock-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+      }
+
+      .clock-city {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .clock-time {
+        font-size: 2em;
+        font-weight: bold;
+        margin: 10px 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .clock-date {
+        font-size: 1em;
+        opacity: 0.9;
+      }
+
+      .clock-offset {
+        font-size: 0.9em;
+        opacity: 0.8;
+        margin-top: 5px;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .two-column {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🕐 DateTime API - Go Client</h1>
+
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('worldclock')">
+          🌍 World Clock
+        </button>
+        <button class="tab-button" onclick="switchTab('timezone')">
+          🌐 Timezone Converter
+        </button>
+        <button class="tab-button" onclick="switchTab('calculator')">
+          ⏱️ Time Calculator
+        </button>
+        <button class="tab-button" onclick="switchTab('countdown')">
+          ⏳ Countdown
+        </button>
+        <button class="tab-button" onclick="switchTab('businessdays')">
+          📅 Business Days
+        </button>
+      </div>
+
+      <!-- World Clock Tab -->
+      <div id="worldclock" class="tab-content active">
+        <h2>🌍 World Clock</h2>
+        <button class="action-btn" onclick="loadWorldClock()">
+          Load World Clocks
+        </button>
+        <div id="clock-grid" class="clock-grid"></div>
+      </div>
+
+      <!-- Timezone Converter Tab -->
+      <div id="timezone" class="tab-content">
+        <h2>🌐 Timezone Converter</h2>
+        <div class="form-group">
+          <label>Time (ISO 8601):</label>
+          <input
+            type="text"
+            id="tz-time"
+            placeholder="2024-10-06T12:00:00Z"
+            value=""
+          />
+        </div>
+        <div class="two-column">
+          <div class="form-group">
+            <label>From Timezone:</label>
+            <select id="tz-from">
+              <option value="America/New_York">America/New_York</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="Europe/Istanbul" selected>Europe/Istanbul</option>
+              <option value="Asia/Tokyo">Asia/Tokyo</option>
+              <option value="Asia/Dubai">Asia/Dubai</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>To Timezone:</label>
+            <select id="tz-to">
+              <option value="America/New_York" selected>America/New_York</option>
+              <option value="Europe/London">Europe/London</option>
+              <option value="Europe/Istanbul">Europe/Istanbul</option>
+              <option value="Asia/Tokyo">Asia/Tokyo</option>
+              <option value="Asia/Dubai">Asia/Dubai</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+        </div>
+        <button class="action-btn" onclick="convertTimezone()">Convert</button>
+        <div id="tz-result" class="result-box">
+          <div class="result-content"></div>
+        </div>
+      </div>
+
+      <!-- Time Calculator Tab -->
+      <div id="calculator" class="tab-content">
+        <h2>⏱️ Time Calculator</h2>
+        <div class="form-group">
+          <label>Operation:</label>
+          <select id="calc-operation" onchange="toggleCalculatorMode()">
+            <option value="difference">Calculate Difference</option>
+            <option value="add">Add Time</option>
+            <option value="subtract">Subtract Time</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Start Time (ISO 8601):</label>
+          <input
+            type="text"
+            id="calc-start"
+            placeholder="2024-10-06T12:00:00Z"
+          />
+        </div>
+        <div id="calc-end-group" class="form-group">
+          <label>End Time (ISO 8601):</label>
+          <input type="text" id="calc-end" placeholder="2024-10-07T12:00:00Z" />
+        </div>
+        <div id="calc-duration-group" style="display: none">
+          <div class="two-column">
+            <div class="form-group">
+              <label>Days:</label>
+              <input type="number" id="calc-days" value="0" />
+            </div>
+            <div class="form-group">
+              <label>Hours:</label>
+              <input type="number" id="calc-hours" value="0" />
+            </div>
+          </div>
+          <div class="two-column">
+            <div class="form-group">
+              <label>Minutes:</label>
+              <input type="number" id="calc-minutes" value="0" />
+            </div>
+            <div class="form-group">
+              <label>Seconds:</label>
+              <input type="number" id="calc-seconds" value="0" />
+            </div>
+          </div>
+        </div>
+        <button class="action-btn" onclick="calculateTime()">Calculate</button>
+        <div id="calc-result" class="result-box">
+          <div class="result-content"></div>
+        </div>
+      </div>
+
+      <!-- Countdown Tab -->
+      <div id="countdown" class="tab-content">
+        <h2>⏳ Countdown Timer</h2>
+        <div class="form-group">
+          <label>Target Time (ISO 8601):</label>
+          <input
+            type="text"
+            id="countdown-target"
+            placeholder="2025-01-01T00:00:00Z"
+          />
+        </div>
+        <div class="form-group">
+          <label>From Time (ISO 8601) - Optional:</label>
+          <input
+            type="text"
+            id="countdown-from"
+            placeholder="Leave empty for current time"
+          />
+        </div>
+        <button class="action-btn" onclick="calculateCountdown()">
+          Calculate Countdown
+        </button>
+        <div id="countdown-result" class="result-box">
+          <div class="result-content"></div>
+        </div>
+      </div>
+
+      <!-- Business Days Tab -->
+      <div id="businessdays" class="tab-content">
+        <h2>📅 Business Days Calculator</h2>
+        <div class="form-group">
+          <label>Mode:</label>
+          <select id="bd-mode" onchange="toggleBusinessDaysMode()">
+            <option value="between">Calculate Between Dates</option>
+            <option value="add">Add Business Days</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Start Date (YYYY-MM-DD):</label>
+          <input type="text" id="bd-start" placeholder="2024-10-01" />
+        </div>
+        <div id="bd-end-group" class="form-group">
+          <label>End Date (YYYY-MM-DD):</label>
+          <input type="text" id="bd-end" placeholder="2024-10-31" />
+        </div>
+        <div id="bd-days-group" class="form-group" style="display: none">
+          <label>Number of Business Days to Add:</label>
+          <input type="number" id="bd-days" value="10" />
+        </div>
+        <div class="form-group">
+          <label>Timezone:</label>
+          <select id="bd-timezone">
+            <option value="UTC">UTC</option>
+            <option value="America/New_York">America/New_York</option>
+            <option value="Europe/Istanbul" selected>Europe/Istanbul</option>
+            <option value="Asia/Tokyo">Asia/Tokyo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Holidays (comma-separated, YYYY-MM-DD):</label>
+          <input
+            type="text"
+            id="bd-holidays"
+            placeholder="2024-10-29,2024-11-01"
+          />
+        </div>
+        <button class="action-btn" onclick="calculateBusinessDays()">
+          Calculate
+        </button>
+        <div id="bd-result" class="result-box">
+          <div class="result-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://api-go.local";
+
+      function switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        document.querySelectorAll(".tab-button").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+
+        // Show selected tab
+        document.getElementById(tabName).classList.add("active");
+        event.target.classList.add("active");
+      }
+
+      function showResult(elementId, content, isError = false) {
+        const resultEl = document.getElementById(elementId);
+        const contentEl = resultEl.querySelector(".result-content");
+        resultEl.className = "result-box show " + (isError ? "error" : "success");
+        contentEl.textContent = content;
+      }
+
+      function setButtonLoading(button, loading) {
+        if (loading) {
+          button.disabled = true;
+          button.classList.add("loading");
+          button.dataset.originalText = button.textContent;
+        } else {
+          button.disabled = false;
+          button.classList.remove("loading");
+        }
+      }
+
+      // World Clock
+      async function loadWorldClock() {
+        const gridEl = document.getElementById("clock-grid");
+        gridEl.innerHTML = '<div class="loading-spinner"></div>';
+
+        try {
+          const response = await fetch(`${API_URL}/api/worldclock`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const clocks = await response.json();
+          gridEl.innerHTML = "";
+
+          clocks.forEach((clock) => {
+            const card = document.createElement("div");
+            card.className = "clock-card";
+            card.innerHTML = `
+              <div class="clock-city">${clock.city}</div>
+              <div class="clock-time">${clock.time}</div>
+              <div class="clock-date">${clock.date}</div>
+              <div class="clock-offset">${clock.offset}</div>
+            `;
+            gridEl.appendChild(card);
+          });
+        } catch (error) {
+          gridEl.innerHTML = `<div style="color: white; text-align: center;">Error: ${error.message}</div>`;
+        }
+      }
+
+      // Timezone Converter
+      async function convertTimezone() {
+        const button = event.target;
+        setButtonLoading(button, true);
+
+        const time = document.getElementById("tz-time").value || new Date().toISOString();
+        const from = document.getElementById("tz-from").value;
+        const to = document.getElementById("tz-to").value;
+
+        try {
+          const response = await fetch(`${API_URL}/api/timezone/convert`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              time: time,
+              from_timezone: from,
+              to_timezone: to,
+            }),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          showResult(
+            "tz-result",
+            `Original: ${data.original_time} (${data.original_timezone})\nConverted: ${data.converted_time} (${data.converted_timezone})\nOffset: ${data.offset} hours`
+          );
+        } catch (error) {
+          showResult("tz-result", `Error: ${error.message}`, true);
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      // Time Calculator
+      function toggleCalculatorMode() {
+        const operation = document.getElementById("calc-operation").value;
+        const endGroup = document.getElementById("calc-end-group");
+        const durationGroup = document.getElementById("calc-duration-group");
+
+        if (operation === "difference") {
+          endGroup.style.display = "block";
+          durationGroup.style.display = "none";
+        } else {
+          endGroup.style.display = "none";
+          durationGroup.style.display = "block";
+        }
+      }
+
+      async function calculateTime() {
+        const button = event.target;
+        setButtonLoading(button, true);
+
+        const operation = document.getElementById("calc-operation").value;
+        const startTime = document.getElementById("calc-start").value;
+
+        let body = { start_time: startTime };
+
+        if (operation === "difference") {
+          body.end_time = document.getElementById("calc-end").value;
+        } else {
+          body.operation = operation;
+          body.days = parseInt(document.getElementById("calc-days").value) || 0;
+          body.hours = parseInt(document.getElementById("calc-hours").value) || 0;
+          body.minutes = parseInt(document.getElementById("calc-minutes").value) || 0;
+          body.seconds = parseInt(document.getElementById("calc-seconds").value) || 0;
+        }
+
+        try {
+          const response = await fetch(`${API_URL}/api/time/calculate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+
+          let resultText = `Result: ${data.result}\n`;
+          if (data.difference) {
+            resultText += `\nDifference:\n`;
+            resultText += `  Years: ${data.difference.years}\n`;
+            resultText += `  Months: ${data.difference.months}\n`;
+            resultText += `  Days: ${data.difference.days}\n`;
+            resultText += `  Hours: ${data.difference.hours}\n`;
+            resultText += `  Minutes: ${data.difference.minutes}\n`;
+            resultText += `  Seconds: ${data.difference.seconds}\n`;
+            resultText += `  Total: ${data.difference.total_duration}`;
+          }
+
+          showResult("calc-result", resultText);
+        } catch (error) {
+          showResult("calc-result", `Error: ${error.message}`, true);
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      // Countdown
+      async function calculateCountdown() {
+        const button = event.target;
+        setButtonLoading(button, true);
+
+        const targetTime = document.getElementById("countdown-target").value;
+        const fromTime = document.getElementById("countdown-from").value;
+
+        const body = { target_time: targetTime };
+        if (fromTime) body.from_time = fromTime;
+
+        try {
+          const response = await fetch(`${API_URL}/api/countdown`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+
+          let resultText = `Target: ${data.target_time}\n`;
+          resultText += `Current: ${data.current_time}\n\n`;
+          resultText += `Time Remaining:\n`;
+          resultText += `  ${data.time_remaining.years} years, `;
+          resultText += `${data.time_remaining.months} months, `;
+          resultText += `${data.time_remaining.days} days\n`;
+          resultText += `  ${data.time_remaining.hours} hours, `;
+          resultText += `${data.time_remaining.minutes} minutes, `;
+          resultText += `${data.time_remaining.seconds} seconds\n\n`;
+          resultText += `Total Duration: ${data.time_remaining.total_duration}\n`;
+          resultText += `Total Seconds: ${data.total_seconds}\n`;
+          resultText += `Is Past: ${data.is_past ? "Yes" : "No"}`;
+
+          showResult("countdown-result", resultText);
+        } catch (error) {
+          showResult("countdown-result", `Error: ${error.message}`, true);
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      // Business Days
+      function toggleBusinessDaysMode() {
+        const mode = document.getElementById("bd-mode").value;
+        const endGroup = document.getElementById("bd-end-group");
+        const daysGroup = document.getElementById("bd-days-group");
+
+        if (mode === "between") {
+          endGroup.style.display = "block";
+          daysGroup.style.display = "none";
+        } else {
+          endGroup.style.display = "none";
+          daysGroup.style.display = "block";
+        }
+      }
+
+      async function calculateBusinessDays() {
+        const button = event.target;
+        setButtonLoading(button, true);
+
+        const mode = document.getElementById("bd-mode").value;
+        const startDate = document.getElementById("bd-start").value;
+        const timezone = document.getElementById("bd-timezone").value;
+        const holidaysStr = document.getElementById("bd-holidays").value;
+
+        const body = {
+          start_date: startDate,
+          timezone: timezone,
+        };
+
+        if (holidaysStr) {
+          body.holidays = holidaysStr.split(",").map((h) => h.trim());
+        }
+
+        if (mode === "between") {
+          body.end_date = document.getElementById("bd-end").value;
+        } else {
+          body.days = parseInt(document.getElementById("bd-days").value);
+        }
+
+        try {
+          const response = await fetch(`${API_URL}/api/businessdays`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+
+          let resultText = `Start Date: ${data.start_date}\n`;
+          resultText += `End Date: ${data.end_date}\n\n`;
+          resultText += `Business Days: ${data.business_days}\n`;
+          resultText += `Total Days: ${data.total_days}\n`;
+          resultText += `Weekends: ${data.weekends}\n`;
+          resultText += `Holidays: ${data.holidays}`;
+
+          showResult("bd-result", resultText);
+        } catch (error) {
+          showResult("bd-result", `Error: ${error.message}`, true);
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      // Auto-load world clock on page load
+      window.onload = function () {
+        loadWorldClock();
+        // Set current time as default
+        const now = new Date().toISOString();
+        document.getElementById("tz-time").value = now;
+        document.getElementById("calc-start").value = now;
+      };
+    </script>
+  </body>
+</html>
