@@ -106,3 +106,12 @@ type HealthResponse struct {
 	Pod       string    `json:"pod"`
 	Node      string    `json:"node"`
 }
+
+// ResiliencyStatus represents the resiliency configuration status
+type ResiliencyStatus struct {
+	Service              string    `json:"service"`
+	CircuitBreakerState  string    `json:"circuitBreakerState"`
+	RateLimitConfigured  bool      `json:"rateLimitConfigured"`
+	RetryPolicyActive    bool      `json:"retryPolicyActive"`
+	Timestamp            time.Time `json:"timestamp"`
+}

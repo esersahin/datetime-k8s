@@ -35,6 +35,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: GO_API_URL
+              value: "http://datetime-api-go-service"
           livenessProbe:
             httpGet:
               path: /health

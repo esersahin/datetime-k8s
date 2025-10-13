@@ -33,6 +33,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: CSHARP_API_URL
+              value: "http://datetime-api-service"
           livenessProbe:
             httpGet:
               path: /health

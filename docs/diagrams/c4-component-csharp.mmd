@@ -1,0 +1,32 @@
+C4Component
+    title Component Diagram - CSharp API (.NET 9)
+
+    Container_Boundary(csharp_api_boundary, "CSharp API Container") {
+        Component(endpoints, "API Endpoints", "Minimal API", "REST endpoints (/api/datetime, /health, /api/go-time)")
+        Component(resilience_layer, "Resiliency Layer", "Microsoft.Extensions.Http.Resilience", "Manages all resiliency patterns")
+
+        Component(circuit_breaker, "Circuit Breaker", "Built-in Resilience", "3 states: Closed, Open, Half-Open")
+        Component(retry_policy, "Retry Policy", "Built-in Resilience", "Exponential backoff with jitter")
+        Component(rate_limiter, "Rate Limiter", "Built-in Resilience", "Token bucket (100 req/s global, 20 req/s Go API)")
+        Component(timeout, "Timeout Handler", "Built-in Resilience", "10s per request, 30s total")
+
+        Component(http_client, "HTTP Client", "HttpClientFactory", "Calls Go API via DNS")
+        Component(datetime_service, "DateTime Service", "CSharp Business Logic", "Turkish datetime formatting")
+    }
+
+    Container_Ext(go_api_ext, "Go API", "Go HTTP Server", "External microservice")
+    ContainerDb_Ext(k8s_dns_ext, "CoreDNS", "Kubernetes DNS")
+
+    Rel(endpoints, resilience_layer, "Uses", "Dependency Injection")
+    Rel(endpoints, datetime_service, "Calls", "Method call")
+
+    Rel(resilience_layer, circuit_breaker, "Contains")
+    Rel(resilience_layer, retry_policy, "Contains")
+    Rel(resilience_layer, rate_limiter, "Contains")
+    Rel(resilience_layer, timeout, "Contains")
+
+    Rel(resilience_layer, http_client, "Wraps", "Resilient HTTP calls")
+    Rel(http_client, k8s_dns_ext, "Resolves", "DNS: datetime-api-go-service")
+    Rel(http_client, go_api_ext, "Calls", "HTTP with resiliency")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

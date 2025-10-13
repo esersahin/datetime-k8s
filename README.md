@@ -18,7 +18,22 @@
 
 # DateTime Kubernetes Application
 
-.NET 9 Minimal API, Go API ve Nginx üzerinde çalışan web uygulamaları için tam Kubernetes deployment çözümü. C# ve Go implementasyonları.
+.NET 9 Minimal API, Go API ve Nginx üzerinde çalışan web uygulamaları için tam Kubernetes deployment çözümü. C# ve Go implementasyonları ile polyglot mikroservis mimarisi.
+
+## 🏗️ Mimari
+
+![Architecture Overview](docs/diagrams/architecture-overview.png)
+
+*Servisler arası iletişim, circuit breaker, retry policy ve rate limiting ile polyglot mikroservisler*
+
+**Öne Çıkan Özellikler:**
+- 🔄 **Circuit Breaker** - Hata durumunda otomatik koruma
+- 🔁 **Retry Policy** - Exponential backoff ile akıllı yeniden deneme
+- ⏱️ **Rate Limiting** - Token bucket algoritması ile hız sınırlama
+- 🌐 **Service Discovery** - Kubernetes DNS ile otomatik servis keşfi
+- 🛡️ **Resiliency Patterns** - Production-ready dayanıklılık kalıpları
+
+[📊 Detaylı mimari diyagramlar için tıklayın →](docs/ARCHITECTURE.md)
 
 ## 📋 İçindekiler
 
@@ -57,6 +72,9 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 - **💻 Yerel Geliştirme**: Canlıya benzer ortamda uygulama geliştirme ve debugging
 - **🎓 Eğitim**: Kubernetes workshop'ları ve eğitim materyalleri için kullanma
 - **🧪 Simülasyon**: Multi-node, load balancing gibi production senaryolarını simüle etme
+- **🛡️ Resiliency Pattern'leri**: Circuit breaker, retry policy, rate limiting gibi dayanıklılık kalıplarını öğrenme
+- **🔗 Servisler Arası İletişim**: Polyglot (C# + Go) mikroservisler arası iletişimi ve service discovery'yi test etme
+- **⚡ Performance Testing**: Token bucket algoritması, exponential backoff gibi algoritmaları gerçek ortamda deneme
 
 ### ❌ Production İçin Eksikler
 
@@ -1266,7 +1284,15 @@ kind delete cluster
 
 ## 📚 Dokümantasyon
 
+### Mimari
+- **🎯 C4 Model Diyagramlar**: [ARCHITECTURE_C4](docs/ARCHITECTURE_C4.md) - Endüstri standardı C4 Model ile mimari (Context, Container, Component, Deployment)
+- **🏗️ Detaylı Teknik Diyagramlar**: [ARCHITECTURE](docs/ARCHITECTURE.md) - Circuit breaker, rate limiting, request flow diyagramları
+
+### Geliştirme
 - Hızlı Başlangıç: [QUICK_START](docs/QUICK_START.md)
+- **🔗 Service-to-Service Communication**: [SERVICE_TO_SERVICE_COMMUNICATION](docs/SERVICE_TO_SERVICE_COMMUNICATION.md) - Servisler arası iletişim, resiliency ve rate limiting
+
+### Sorun Giderme & Yapılandırma
 - Sorun Giderme: [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
 - Ağ: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md)
 - Multi-node: [WORKER_NODES](docs/WORKER_NODES.md)

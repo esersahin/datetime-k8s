@@ -1,0 +1,14 @@
+C4Context
+    title System Context - DateTime Kubernetes Application
+
+    Person(user, "End User", "Application user accessing via browser")
+    Person(developer, "Developer", "Tests APIs and monitors system")
+
+    System_Boundary(k8s, "DateTime K8s System") {
+        System(datetime_system, "DateTime Microservices", "Polyglot microservices (CSharp + Go) with resiliency patterns")
+    }
+
+    Rel(user, datetime_system, "Views date/time info", "HTTPS/HTTP")
+    Rel(developer, datetime_system, "Tests & monitors", "HTTP, kubectl")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

@@ -1,0 +1,37 @@
+C4Deployment
+    title Deployment Diagram - Kubernetes Kind Cluster
+
+    Deployment_Node(local_machine, "Local Machine", "macOS / Linux") {
+        Deployment_Node(docker, "Docker Desktop", "Docker Engine") {
+            Deployment_Node(kind_cluster, "Kind Cluster", "Kubernetes v1.34") {
+
+                Deployment_Node(control_plane, "Control Plane Node", "kindest/node:v1.34.0") {
+                    Container(ingress_ctrl, "NGINX Ingress Controller", "NGINX", "Load balancer")
+                    Container(coredns, "CoreDNS", "DNS Server", "Service discovery")
+                    Container(k8s_api, "K8s API Server", "kube-apiserver", "Cluster management")
+                }
+
+                Deployment_Node(worker1, "Worker Node 1", "kindest/node:v1.34.0") {
+                    Container(csharp_api_pod1, "CSharp API Pod", ".NET 9", "Replica 1/2")
+                    Container(go_api_pod1, "Go API Pod", "Go 1.25", "Replica 1/3")
+                    Container(csharp_web_pod1, "Web Pod", "Nginx", "Replica 1/2")
+                }
+
+                Deployment_Node(worker2, "Worker Node 2", "kindest/node:v1.34.0") {
+                    Container(csharp_api_pod2, "CSharp API Pod", ".NET 9", "Replica 2/2")
+                    Container(go_api_pod2, "Go API Pod", "Go 1.25", "Replica 2/3")
+                    Container(go_api_pod3, "Go API Pod", "Go 1.25", "Replica 3/3")
+                    Container(go_web_pod1, "Web-Go Pod", "Nginx", "Replica 1/2")
+                }
+            }
+        }
+    }
+
+    Rel(ingress_ctrl, csharp_api_pod1, "Routes traffic", "Round Robin")
+    Rel(ingress_ctrl, csharp_api_pod2, "Routes traffic", "Round Robin")
+    Rel(ingress_ctrl, go_api_pod1, "Routes traffic", "Round Robin")
+
+    Rel(csharp_api_pod1, coredns, "Service discovery", "DNS")
+    Rel(csharp_api_pod1, go_api_pod2, "Service call", "HTTP + Circuit Breaker")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

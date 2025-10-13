@@ -1,0 +1,35 @@
+C4Container
+    title Container Diagram - DateTime Kubernetes Application
+
+    Person(user, "End User", "Browser user")
+
+    System_Boundary(k8s_cluster, "Kubernetes Cluster (Kind)") {
+        Container(ingress, "NGINX Ingress", "NGINX", "Routes traffic, load balancing")
+
+        Container_Boundary(csharp_stack, "CSharp Stack (.NET 9)") {
+            Container(csharp_web, "Web UI", "Nginx + HTML/JS", "Displays datetime in Turkish")
+            Container(csharp_api, "CSharp API", ".NET 9 Minimal API", "REST API with resiliency patterns")
+        }
+
+        Container_Boundary(go_stack, "Go Stack (Go 1.25)") {
+            Container(go_web, "Web UI Go", "Nginx + HTML/JS", "Displays world clock")
+            Container(go_api, "Go API", "Go HTTP Server", "REST API with timezone features")
+        }
+
+        ContainerDb(k8s_dns, "CoreDNS", "Kubernetes DNS", "Service discovery")
+    }
+
+    Rel(user, ingress, "Accesses", "HTTP :80")
+    Rel(ingress, csharp_web, "Routes /web.local", "HTTP")
+    Rel(ingress, csharp_api, "Routes /api.local", "HTTP")
+    Rel(ingress, go_web, "Routes /web-go.local", "HTTP")
+    Rel(ingress, go_api, "Routes /api-go.local", "HTTP")
+
+    Rel(csharp_web, csharp_api, "Fetches datetime", "HTTP REST")
+    Rel(go_web, go_api, "Fetches world clock", "HTTP REST")
+    Rel(csharp_api, go_api, "Service-to-service call", "HTTP + Circuit Breaker")
+
+    Rel(csharp_api, k8s_dns, "Resolves service", "DNS query")
+    Rel(go_api, k8s_dns, "Resolves service", "DNS query")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")

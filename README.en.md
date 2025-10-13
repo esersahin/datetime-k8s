@@ -18,7 +18,22 @@
 
 # DateTime Kubernetes Application
 
-Complete Kubernetes deployment solution for .NET 9 Minimal API, Go API, and Nginx web applications. C# and Go implementations.
+Complete Kubernetes deployment solution for .NET 9 Minimal API, Go API, and Nginx web applications. Polyglot microservices architecture with C# and Go implementations.
+
+## 🏗️ Architecture
+
+![Architecture Overview](docs/diagrams/architecture-overview.png)
+
+*Polyglot microservices with inter-service communication, circuit breaker, retry policy, and rate limiting*
+
+**Featured Capabilities:**
+- 🔄 **Circuit Breaker** - Automatic protection during failures
+- 🔁 **Retry Policy** - Smart retry with exponential backoff
+- ⏱️ **Rate Limiting** - Rate limiting with token bucket algorithm
+- 🌐 **Service Discovery** - Automatic service discovery with Kubernetes DNS
+- 🛡️ **Resiliency Patterns** - Production-ready resilience patterns
+
+[📊 Click for detailed architecture diagrams →](docs/ARCHITECTURE.en.md)
 
 ## 📋 Table of Contents
 
@@ -57,6 +72,9 @@ This project is **not production-ready**. It is designed for the following purpo
 - **💻 Local Development**: Develop and debug applications in a production-like environment
 - **🎓 Education**: Use for Kubernetes workshops and training materials
 - **🧪 Simulation**: Simulate production scenarios like multi-node clusters and load balancing
+- **🛡️ Resiliency Patterns**: Learn resilience patterns like circuit breaker, retry policy, and rate limiting
+- **🔗 Service-to-Service Communication**: Test polyglot (C# + Go) microservices communication and service discovery
+- **⚡ Performance Testing**: Try algorithms like token bucket and exponential backoff in a real environment
 
 ### ❌ What's Missing for Production
 
@@ -1265,7 +1283,15 @@ kind delete cluster
 
 ## 📚 Documentation
 
+### Architecture
+- **🎯 C4 Model Diagrams**: [ARCHITECTURE_C4](docs/ARCHITECTURE_C4.en.md) - Industry-standard C4 Model architecture (Context, Container, Component, Deployment)
+- **🏗️ Detailed Technical Diagrams**: [ARCHITECTURE](docs/ARCHITECTURE.en.md) - Circuit breaker, rate limiting, request flow diagrams
+
+### Development
 - Quick Start: [QUICK_START](docs/QUICK_START.en.md)
+- **🔗 Service-to-Service Communication**: [SERVICE_TO_SERVICE_COMMUNICATION](docs/SERVICE_TO_SERVICE_COMMUNICATION.en.md) - Inter-service communication, resiliency, and rate limiting
+
+### Troubleshooting & Configuration
 - Troubleshooting: [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 - Network: [INGRESS_ROUTING](docs/INGRESS_ROUTING.en.md)
 - Multi-node: [WORKER_NODES](docs/WORKER_NODES.en.md)
