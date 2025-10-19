@@ -188,7 +188,7 @@ _Docker Desktop üzerinde çalışan Kind cluster_
 🚀 Kind cluster kontrol ediliyor... 
 No kind clusters found.
 Kind cluster oluşturuluyor (1 control-plane + 2 workers)... 
-✓ kind-config.yaml mevcut, kullanılıyor 
+✓ k8s/kind-config.yaml mevcut, kullanılıyor 
 Creating cluster "kind" ...
  ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
  ✓ Preparing nodes 📦 📦 📦  
@@ -202,13 +202,13 @@ You can now use your cluster with:
 
 kubectl cluster-info --context kind-kind
 
-Have a nice day! 👋
+Thanks for using kind! 😊
 ✓ Multi-node Kind cluster oluşturuldu 
 
 Cluster Node'ları: 
 NAME                 STATUS     ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
-kind-control-plane   NotReady   control-plane   11s   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker          NotReady   <none>          1s    v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane   NotReady   control-plane   15s   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker          NotReady   <none>          1s    v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker2         NotReady   <none>          1s    v1.34.0   172.20.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 📥 NGINX Ingress Controller kontrol ediliyor... 
 NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)... 
@@ -223,142 +223,143 @@ rolebinding.rbac.authorization.k8s.io/ingress-nginx created
 service/ingress-nginx-controller created
 deployment.apps/ingress-nginx-controller created
 ingressclass.networking.k8s.io/nginx created
-pod/ingress-nginx-controller-7884c64dd8-hrnqc condition met
+pod/ingress-nginx-controller-7f8d89bb7f-fdr9d condition met
+pod/ingress-nginx-controller-7f8d89bb7f-hfnbk condition met
 ✓ NGINX Ingress Controller kuruldu 
 🔧 Ingress yapılandırması kontrol ediliyor... 
 hostNetwork ayarı düzeltiliyor... 
 deployment.apps/ingress-nginx-controller patched (no change)
 deployment "ingress-nginx-controller" successfully rolled out
-pod/ingress-nginx-controller-7884c64dd8-hrnqc condition met
+pod/ingress-nginx-controller-7f8d89bb7f-fdr9d condition met
+pod/ingress-nginx-controller-7f8d89bb7f-hfnbk condition met
 ✓ hostNetwork ayarı düzeltildi 
-🔧 Ingress Controller control-plane kontrolü yapılıyor... 
-✓ Ingress Controller zaten control-plane'de 
 
 Ingress Controller Durumu: 
-NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE                 NOMINATED NODE   READINESS GATES
-ingress-nginx-controller-7884c64dd8-hrnqc   1/1     Running   0          46s   172.20.0.4   kind-control-plane   <none>           <none>
+NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+ingress-nginx-controller-7f8d89bb7f-fdr9d   1/1     Running   0          66s   172.20.0.2   kind-worker2   <none>           <none>
+ingress-nginx-controller-7f8d89bb7f-hfnbk   1/1     Running   0          66s   172.20.0.4   kind-worker    <none>           <none>
 🧹 Admission webhook'ları temizleniyor... 
 ✓ Webhook'lar temizlendi 
 🔨 API imajı build ediliyor... 
-[+] Building 0.0s (15/15) FINISHED                                                                                                                                                                 docker:desktop-linux
- => [internal] load build definition from Dockerfile.api                                                                                                                                                           0.0s
- => => transferring dockerfile: 1.13kB                                                                                                                                                                             0.0s
- => [internal] load metadata for mcr.microsoft.com/dotnet/sdk:9.0                                                                                                                                                  0.0s
- => [internal] load metadata for mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                                                               0.0s
- => [internal] load .dockerignore                                                                                                                                                                                  0.0s
- => => transferring context: 2B                                                                                                                                                                                    0.0s
- => [build 1/6] FROM mcr.microsoft.com/dotnet/sdk:9.0                                                                                                                                                              0.0s
- => [stage-1 1/3] FROM mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                                                                         0.0s
- => [internal] load build context                                                                                                                                                                                  0.0s
- => => transferring context: 70B                                                                                                                                                                                   0.0s
- => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                                                              0.0s
- => CACHED [build 2/6] WORKDIR /src                                                                                                                                                                                0.0s
- => CACHED [build 3/6] COPY DateTimeApi.csproj .                                                                                                                                                                   0.0s
- => CACHED [build 4/6] RUN dotnet restore                                                                                                                                                                          0.0s
- => CACHED [build 5/6] COPY Program.cs .                                                                                                                                                                           0.0s
- => CACHED [build 6/6] RUN dotnet publish -c Release -o /app/publish                                                                                                                                               0.0s
- => CACHED [stage-1 3/3] COPY --from=build /app/publish .                                                                                                                                                          0.0s
- => exporting to image                                                                                                                                                                                             0.0s
- => => exporting layers                                                                                                                                                                                            0.0s
- => => writing image sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3                                                                                                                       0.0s
- => => naming to docker.io/library/datetime-api:latest                                                                                                                                                             0.0s
+[+] Building 0.0s (15/15) FINISHED                                                                                                                    docker:desktop-linux
+ => [internal] load build definition from Dockerfile.api                                                                                                              0.0s
+ => => transferring dockerfile: 1.13kB                                                                                                                                0.0s
+ => [internal] load metadata for mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                  0.0s
+ => [internal] load metadata for mcr.microsoft.com/dotnet/sdk:9.0                                                                                                     0.0s
+ => [internal] load .dockerignore                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                       0.0s
+ => [build 1/6] FROM mcr.microsoft.com/dotnet/sdk:9.0                                                                                                                 0.0s
+ => [stage-1 1/3] FROM mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                            0.0s
+ => [internal] load build context                                                                                                                                     0.0s
+ => => transferring context: 70B                                                                                                                                      0.0s
+ => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                 0.0s
+ => CACHED [build 2/6] WORKDIR /src                                                                                                                                   0.0s
+ => CACHED [build 3/6] COPY DateTimeApi.csproj .                                                                                                                      0.0s
+ => CACHED [build 4/6] RUN dotnet restore                                                                                                                             0.0s
+ => CACHED [build 5/6] COPY Program.cs .                                                                                                                              0.0s
+ => CACHED [build 6/6] RUN dotnet publish -c Release -o /app/publish                                                                                                  0.0s
+ => CACHED [stage-1 3/3] COPY --from=build /app/publish .                                                                                                             0.0s
+ => exporting to image                                                                                                                                                0.0s
+ => => exporting layers                                                                                                                                               0.0s
+ => => writing image sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477                                                                          0.0s
+ => => naming to docker.io/library/datetime-api:latest                                                                                                                0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jovwovvyv3vgxp1fot4zhn0b0
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jeqzotwqs4xz1gifip9onhvzp
 
 What's next:
     View a summary of image vulnerabilities and recommendations → docker scout quickview 
 ✓ API imajı oluşturuldu 
 🔨 Web imajı build ediliyor... 
-[+] Building 1.7s (9/9) FINISHED                                                                                                                                                                   docker:desktop-linux
- => [internal] load build definition from Dockerfile.web                                                                                                                                                           0.0s
- => => transferring dockerfile: 197B                                                                                                                                                                               0.0s
- => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                                                                    1.7s
- => [auth] library/nginx:pull token for registry-1.docker.io                                                                                                                                                       0.0s
- => [internal] load .dockerignore                                                                                                                                                                                  0.0s
- => => transferring context: 2B                                                                                                                                                                                    0.0s
- => [1/3] FROM docker.io/library/nginx:alpine@sha256:42a516af16b852e33b7682d5ef8acbd5d13fe08fecadc7ed98605ba5e3b26ab8                                                                                              0.0s
- => [internal] load build context                                                                                                                                                                                  0.0s
- => => transferring context: 62B                                                                                                                                                                                   0.0s
- => CACHED [2/3] COPY index.html /usr/share/nginx/html/                                                                                                                                                            0.0s
- => CACHED [3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf                                                                                                                                                    0.0s
- => exporting to image                                                                                                                                                                                             0.0s
- => => exporting layers                                                                                                                                                                                            0.0s
- => => writing image sha256:baad24e9d9305dcad32e70cd79c77ad18df7f87f7b36503bce53d6116df206cd                                                                                                                       0.0s
- => => naming to docker.io/library/datetime-web:latest                                                                                                                                                             0.0s
+[+] Building 1.2s (9/9) FINISHED                                                                                                                      docker:desktop-linux
+ => [internal] load build definition from Dockerfile.web                                                                                                              0.0s
+ => => transferring dockerfile: 197B                                                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                       1.2s
+ => [auth] library/nginx:pull token for registry-1.docker.io                                                                                                          0.0s
+ => [internal] load .dockerignore                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                       0.0s
+ => [1/3] FROM docker.io/library/nginx:alpine@sha256:61e01287e546aac28a3f56839c136b31f590273f3b41187a36f46f6a03bbfe22                                                 0.0s
+ => [internal] load build context                                                                                                                                     0.0s
+ => => transferring context: 62B                                                                                                                                      0.0s
+ => CACHED [2/3] COPY index.html /usr/share/nginx/html/                                                                                                               0.0s
+ => CACHED [3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf                                                                                                       0.0s
+ => exporting to image                                                                                                                                                0.0s
+ => => exporting layers                                                                                                                                               0.0s
+ => => writing image sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a                                                                          0.0s
+ => => naming to docker.io/library/datetime-web:latest                                                                                                                0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/sbyd0p6ve1l6msy7hnq748lxz
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/z19lxtxm9y5z3x7n1dmv8lciw
 
 What's next:
     View a summary of image vulnerabilities and recommendations → docker scout quickview 
 ✓ Web imajı oluşturuldu 
 🔨 API-Go imajı build ediliyor... 
-[+] Building 1.7s (18/18) FINISHED                                                                                                                                                                 docker:desktop-linux
- => [internal] load build definition from Dockerfile                                                                                                                                                               0.0s
- => => transferring dockerfile: 505B                                                                                                                                                                               0.0s
- => [internal] load metadata for docker.io/library/alpine:latest                                                                                                                                                   1.2s
- => [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                                                              1.7s
- => [auth] library/golang:pull token for registry-1.docker.io                                                                                                                                                      0.0s
- => [auth] library/alpine:pull token for registry-1.docker.io                                                                                                                                                      0.0s
- => [internal] load .dockerignore                                                                                                                                                                                  0.0s
- => => transferring context: 2B                                                                                                                                                                                    0.0s
- => [builder 1/6] FROM docker.io/library/golang:1.25-alpine@sha256:b6ed3fd0452c0e9bcdef5597f29cc1418f61672e9d3a2f55bf02e7222c014abd                                                                                0.0s
- => [stage-1 1/4] FROM docker.io/library/alpine:latest@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1                                                                                     0.0s
- => [internal] load build context                                                                                                                                                                                  0.0s
- => => transferring context: 547B                                                                                                                                                                                  0.0s
- => CACHED [stage-1 2/4] RUN apk --no-cache add ca-certificates tzdata                                                                                                                                             0.0s
- => CACHED [stage-1 3/4] WORKDIR /root/                                                                                                                                                                            0.0s
- => CACHED [builder 2/6] WORKDIR /app                                                                                                                                                                              0.0s
- => CACHED [builder 3/6] COPY go.mod go.sum* ./                                                                                                                                                                    0.0s
- => CACHED [builder 4/6] RUN go mod download                                                                                                                                                                       0.0s
- => CACHED [builder 5/6] COPY . .                                                                                                                                                                                  0.0s
- => CACHED [builder 6/6] RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .                                                                                                                     0.0s
- => CACHED [stage-1 4/4] COPY --from=builder /app/main .                                                                                                                                                           0.0s
- => exporting to image                                                                                                                                                                                             0.0s
- => => exporting layers                                                                                                                                                                                            0.0s
- => => writing image sha256:01eb86cef398558dd35e203fc64e400afde82a7174673335b5476fdc60010cbc                                                                                                                       0.0s
- => => naming to docker.io/library/datetime-api-go:latest                                                                                                                                                          0.0s
+[+] Building 1.1s (18/18) FINISHED                                                                                                                    docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                  0.0s
+ => => transferring dockerfile: 505B                                                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                                      1.1s
+ => [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                 1.0s
+ => [auth] library/alpine:pull token for registry-1.docker.io                                                                                                         0.0s
+ => [auth] library/golang:pull token for registry-1.docker.io                                                                                                         0.0s
+ => [internal] load .dockerignore                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                       0.0s
+ => [builder 1/6] FROM docker.io/library/golang:1.25-alpine@sha256:aee43c3ccbf24fdffb7295693b6e33b21e01baec1b2a55acc351fde345e9ec34                                   0.0s
+ => [internal] load build context                                                                                                                                     0.0s
+ => => transferring context: 721B                                                                                                                                     0.0s
+ => [stage-1 1/4] FROM docker.io/library/alpine:latest@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412                                        0.0s
+ => CACHED [stage-1 2/4] RUN apk --no-cache add ca-certificates tzdata                                                                                                0.0s
+ => CACHED [stage-1 3/4] WORKDIR /root/                                                                                                                               0.0s
+ => CACHED [builder 2/6] WORKDIR /app                                                                                                                                 0.0s
+ => CACHED [builder 3/6] COPY go.mod go.sum* ./                                                                                                                       0.0s
+ => CACHED [builder 4/6] RUN go mod download                                                                                                                          0.0s
+ => CACHED [builder 5/6] COPY . .                                                                                                                                     0.0s
+ => CACHED [builder 6/6] RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .                                                                        0.0s
+ => CACHED [stage-1 4/4] COPY --from=builder /app/main .                                                                                                              0.0s
+ => exporting to image                                                                                                                                                0.0s
+ => => exporting layers                                                                                                                                               0.0s
+ => => writing image sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef                                                                          0.0s
+ => => naming to docker.io/library/datetime-api-go:latest                                                                                                             0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/z7jni5i7o8tycrtjhdzxcz7ku
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/r8p7c2u4h1yh0j2qdby0j0064
 
 What's next:
     View a summary of image vulnerabilities and recommendations → docker scout quickview 
 ✓ API-Go imajı oluşturuldu 
 🔨 Web-Go imajı build ediliyor... 
-[+] Building 0.3s (8/8) FINISHED                                                                                                                                                                   docker:desktop-linux
- => [internal] load build definition from Dockerfile                                                                                                                                                               0.0s
- => => transferring dockerfile: 191B                                                                                                                                                                               0.0s
- => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                                                                    0.2s
- => [internal] load .dockerignore                                                                                                                                                                                  0.0s
- => => transferring context: 2B                                                                                                                                                                                    0.0s
- => [1/3] FROM docker.io/library/nginx:alpine@sha256:42a516af16b852e33b7682d5ef8acbd5d13fe08fecadc7ed98605ba5e3b26ab8                                                                                              0.0s
- => [internal] load build context                                                                                                                                                                                  0.0s
- => => transferring context: 63B                                                                                                                                                                                   0.0s
- => CACHED [2/3] COPY index.html /usr/share/nginx/html/                                                                                                                                                            0.0s
- => CACHED [3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf                                                                                                                                                    0.0s
- => exporting to image                                                                                                                                                                                             0.0s
- => => exporting layers                                                                                                                                                                                            0.0s
- => => writing image sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40                                                                                                                       0.0s
- => => naming to docker.io/library/datetime-web-go:latest                                                                                                                                                          0.0s
+[+] Building 0.3s (8/8) FINISHED                                                                                                                      docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                  0.0s
+ => => transferring dockerfile: 191B                                                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                       0.2s
+ => [internal] load .dockerignore                                                                                                                                     0.0s
+ => => transferring context: 2B                                                                                                                                       0.0s
+ => [1/3] FROM docker.io/library/nginx:alpine@sha256:61e01287e546aac28a3f56839c136b31f590273f3b41187a36f46f6a03bbfe22                                                 0.0s
+ => [internal] load build context                                                                                                                                     0.0s
+ => => transferring context: 63B                                                                                                                                      0.0s
+ => CACHED [2/3] COPY index.html /usr/share/nginx/html/                                                                                                               0.0s
+ => CACHED [3/3] COPY nginx.conf /etc/nginx/conf.d/default.conf                                                                                                       0.0s
+ => exporting to image                                                                                                                                                0.0s
+ => => exporting layers                                                                                                                                               0.0s
+ => => writing image sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5                                                                          0.0s
+ => => naming to docker.io/library/datetime-web-go:latest                                                                                                             0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/qb0c0117cobfry28t7ozi7lt2
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jp5kxu25mhau6kh0hjpxao2my
 
 What's next:
     View a summary of image vulnerabilities and recommendations → docker scout quickview 
 ✓ Web-Go imajı oluşturuldu 
 ✓ Tüm imajlar oluşturuldu 
 📦 İmajlar Kind cluster'a yükleniyor... 
-Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-worker", loading...
-Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-control-plane", loading...
-Image: "datetime-api:latest" with ID "sha256:1bdf72a8ac555e04cdbef2bd6273e3542d64c5b4f7a5678333aad58c25e0fcd3" not yet present on node "kind-worker2", loading...
-Image: "datetime-web:latest" with ID "sha256:baad24e9d9305dcad32e70cd79c77ad18df7f87f7b36503bce53d6116df206cd" not yet present on node "kind-worker", loading...
-Image: "datetime-web:latest" with ID "sha256:baad24e9d9305dcad32e70cd79c77ad18df7f87f7b36503bce53d6116df206cd" not yet present on node "kind-control-plane", loading...
-Image: "datetime-web:latest" with ID "sha256:baad24e9d9305dcad32e70cd79c77ad18df7f87f7b36503bce53d6116df206cd" not yet present on node "kind-worker2", loading...
-Image: "datetime-api-go:latest" with ID "sha256:01eb86cef398558dd35e203fc64e400afde82a7174673335b5476fdc60010cbc" not yet present on node "kind-worker", loading...
-Image: "datetime-api-go:latest" with ID "sha256:01eb86cef398558dd35e203fc64e400afde82a7174673335b5476fdc60010cbc" not yet present on node "kind-control-plane", loading...
-Image: "datetime-api-go:latest" with ID "sha256:01eb86cef398558dd35e203fc64e400afde82a7174673335b5476fdc60010cbc" not yet present on node "kind-worker2", loading...
-Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-worker", loading...
-Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-control-plane", loading...
-Image: "datetime-web-go:latest" with ID "sha256:5685346f9e8c18d3a0efe94dce137bd297e485ace967ee721bd433207c94fe40" not yet present on node "kind-worker2", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker2", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker2", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker2", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker2", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-control-plane", loading...
 ✓ İmajlar yüklendi 
 📦 Kubernetes kaynakları uygulanıyor... 
 deployment.apps/datetime-api created
@@ -389,29 +390,29 @@ deployment.apps/datetime-web-go condition met
 🎉 Deployment tamamlandı! 🎉 
 ====================================== 
 
-⏱️  Toplam Süre: 1 dakika 36 saniye 
+⏱️  Toplam Süre: 1 dakika 57 saniye 
 
 📊 Durum Bilgisi: 
 NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
-datetime-api-7c496c6d89-6xbp9      1/1     Running   0          9s    10.244.1.2   kind-worker    <none>           <none>
-datetime-api-7c496c6d89-v868r      0/1     Running   0          9s    10.244.2.2   kind-worker2   <none>           <none>
-datetime-api-go-6ff5cb96d9-fhvnn   1/1     Running   0          8s    10.244.1.5   kind-worker    <none>           <none>
-datetime-api-go-6ff5cb96d9-t6p4z   1/1     Running   0          8s    10.244.2.4   kind-worker2   <none>           <none>
-datetime-api-go-6ff5cb96d9-tnf4n   1/1     Running   0          8s    10.244.1.4   kind-worker    <none>           <none>
-datetime-web-567d9789cd-7hb79      1/1     Running   0          8s    10.244.1.3   kind-worker    <none>           <none>
-datetime-web-567d9789cd-qc7rk      1/1     Running   0          8s    10.244.2.3   kind-worker2   <none>           <none>
-datetime-web-go-5c776fd996-qmxq8   1/1     Running   0          8s    10.244.1.6   kind-worker    <none>           <none>
-datetime-web-go-5c776fd996-s6wqs   1/1     Running   0          8s    10.244.2.5   kind-worker2   <none>           <none>
+datetime-api-5dcc57466c-6ml9n      1/1     Running   0          8s    10.244.1.2   kind-worker    <none>           <none>
+datetime-api-5dcc57466c-c685z      1/1     Running   0          8s    10.244.2.2   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-8b4wf    1/1     Running   0          7s    10.244.1.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-bvm9d    1/1     Running   0          7s    10.244.2.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-tkqtl    1/1     Running   0          7s    10.244.2.4   kind-worker2   <none>           <none>
+datetime-web-567d9789cd-6jljg      1/1     Running   0          8s    10.244.2.3   kind-worker2   <none>           <none>
+datetime-web-567d9789cd-8s6zd      1/1     Running   0          8s    10.244.1.3   kind-worker    <none>           <none>
+datetime-web-go-5c776fd996-dwrsr   1/1     Running   0          7s    10.244.2.6   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fncb9   1/1     Running   0          7s    10.244.1.5   kind-worker    <none>           <none>
 
 NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-datetime-api-go-service   ClusterIP   10.96.230.58    <none>        80/TCP    8s
-datetime-api-service      ClusterIP   10.96.224.176   <none>        80/TCP    9s
-datetime-web-go-service   ClusterIP   10.96.58.101    <none>        80/TCP    8s
-datetime-web-service      ClusterIP   10.96.89.245    <none>        80/TCP    8s
-kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   85s
+datetime-api-go-service   ClusterIP   10.96.176.236   <none>        80/TCP    7s
+datetime-api-service      ClusterIP   10.96.99.148    <none>        80/TCP    8s
+datetime-web-go-service   ClusterIP   10.96.15.170    <none>        80/TCP    7s
+datetime-web-service      ClusterIP   10.96.176.189   <none>        80/TCP    8s
+kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   107s
 
 NAME               CLASS   HOSTS                                          ADDRESS   PORTS   AGE
-datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      8s
+datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      7s
 
 ====================================== 
 🌐 Uygulamaya Erişim: 
@@ -423,7 +424,6 @@ datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...         
   Go Uygulamaları: 
     Web-Go: http://web-go.local
     API-Go: http://api-go.local/health
-
 ```
 
 **Deployment Süresi:** M1-Max (32 GB)
@@ -434,7 +434,7 @@ datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...         
 **Oluşturulan Kaynaklar:**
 
 - ✅ Multi-node Kubernetes cluster (1 control-plane + 2 workers)
-- ✅ NGINX Ingress Controller (control-plane'de)
+- ✅ NGINX Ingress Controller (worker node'larda, 2 replica)
 - ✅ 2x datetime-api pods (worker node'larda)
 - ✅ 2x datetime-web pods (worker node'larda)
 - ✅ Services ve Ingress yapılandırması
@@ -1297,6 +1297,7 @@ kind delete cluster
 - Ağ: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md)
 - Multi-node: [WORKER_NODES](docs/WORKER_NODES.md)
 - **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü
+- **🔄 Ingress Controller Migration**: [INGRESS_WORKER_NODE_MIGRATION](docs/INGRESS-WORKER-NODE-MIGRATION.md) - Ingress controller'ı worker node'lara taşıma, deployment optimizasyonu ve troubleshooting rehberi
 
 ## 🤝 Katkı
 

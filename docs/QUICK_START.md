@@ -58,7 +58,7 @@ cd datetime-k8s
 make deploy
 
 # Veya shell script ile
-./deploy.sh
+make deploy
 ```
 
 ### Adım 3: Test Et
@@ -263,7 +263,6 @@ datetime-k8s/
 │   ├── ingress.yaml
 │   └── ingress-nginx-deployment.yaml   # ⭐ ÖNEMLİ!
 ├── Makefile                            # ⭐ ÖNEMLİ!
-└── deploy.sh
 ```
 
 ### Dokümantasyon Dosyaları

@@ -19,9 +19,8 @@ Bu dokümanda Kind cluster'ınıza 2 worker node ekleyerek multi-node bir cluste
 2. [Hedef Durum](#-hedef-durum)
 3. [kind-config.yaml Değişiklikleri](#-kind-configyaml-değişiklikleri)
 4. [Makefile Değişiklikleri](#-makefile-değişiklikleri)
-5. [deploy.sh Değişiklikleri](#-deploysh-değişiklikleri)
-6. [Deployment Sonrası Kontroller](#-deployment-sonrası-kontroller)
-7. [Pod Scheduling ve Node Affinity](#-pod-scheduling-ve-node-affinity)
+5. [Deployment Sonrası Kontroller](#-deployment-sonrası-kontroller)
+6. [Pod Scheduling ve Node Affinity](#-pod-scheduling-ve-node-affinity)
 
 ---
 
@@ -262,59 +261,6 @@ status: ## Cluster durumunu gösterir
 
 ---
 
-## 🚀 deploy.sh Değişiklikleri
-
-### Güncellenen Cluster Oluşturma Bölümü
-
-```bash
-# 1. Kind cluster kontrolü
-print_info "Kind cluster kontrol ediliyor..."
-if ! kind get clusters | grep -q "kind"; then
-    print_info "Kind cluster oluşturuluyor (1 control-plane + 2 workers)..."
-
-    # kind-config.yaml varsa onu kullan, yoksa inline config kullan
-    if [ -f "kind-config.yaml" ]; then
-        print_info "kind-config.yaml dosyası kullanılıyor..."
-        kind create cluster --config=kind-config.yaml
-    else
-        print_info "Inline config kullanılıyor (multi-node)..."
-        cat <<EOF | kind create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-  labels:
-    worker-group: group-1
-- role: worker
-  labels:
-    worker-group: group-2
-EOF
-    fi
-
-    print_success "Multi-node Kind cluster oluşturuldu"
-    echo ""
-    print_info "Cluster node'ları:"
-    kubectl get nodes -o wide
-else
-    print_success "Kind cluster zaten mevcut"
-fi
-```
-
----
 
 ## 🔍 Deployment Sonrası Kontroller
 
@@ -669,7 +615,6 @@ kubectl get nodes
    - `printf` kullanarak dosya oluşturma
 3. ✅ `Makefile` - `show-nodes` target'ı eklendi
 4. ✅ `Makefile` - `status` target'ı güncellendi
-5. ✅ `deploy.sh` - Multi-node config eklendi
 
 ### Hızlı Referans Tablosu
 

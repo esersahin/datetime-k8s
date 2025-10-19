@@ -19,9 +19,8 @@ This document will teach you how to create a multi-node cluster by adding 2 work
 2. [Target State](#-target-state)
 3. [kind-config.yaml Changes](#-kind-configyaml-changes)
 4. [Makefile Changes](#-makefile-changes)
-5. [deploy.sh Changes](#-deploysh-changes)
-6. [Post-Deployment Checks](#-post-deployment-checks)
-7. [Pod Scheduling and Node Affinity](#-pod-scheduling-and-node-affinity)
+5. [Post-Deployment Checks](#-post-deployment-checks)
+6. [Pod Scheduling and Node Affinity](#-pod-scheduling-and-node-affinity)
 
 ---
 
@@ -262,59 +261,6 @@ status: ## Show cluster status
 
 ---
 
-## 🚀 deploy.sh Changes
-
-### Updated Cluster Creation Section
-
-```bash
-# 1. Check Kind cluster
-print_info "Checking Kind cluster..."
-if ! kind get clusters | grep -q "kind"; then
-    print_info "Creating Kind cluster (1 control-plane + 2 workers)..."
-
-    # Use kind-config.yaml if exists, otherwise use inline config
-    if [ -f "kind-config.yaml" ]; then
-        print_info "Using kind-config.yaml file..."
-        kind create cluster --config=kind-config.yaml
-    else
-        print_info "Using inline config (multi-node)..."
-        cat <<EOF | kind create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-  labels:
-    worker-group: group-1
-- role: worker
-  labels:
-    worker-group: group-2
-EOF
-    fi
-
-    print_success "Multi-node Kind cluster created"
-    echo ""
-    print_info "Cluster nodes:"
-    kubectl get nodes -o wide
-else
-    print_success "Kind cluster already exists"
-fi
-```
-
----
 
 ## 🔍 Post-Deployment Checks
 
@@ -669,7 +615,6 @@ kubectl get nodes
    - File creation using `printf`
 3. ✅ `Makefile` - Added `show-nodes` target
 4. ✅ `Makefile` - Updated `status` target
-5. ✅ `deploy.sh` - Added multi-node config
 
 ### Quick Reference Table
 

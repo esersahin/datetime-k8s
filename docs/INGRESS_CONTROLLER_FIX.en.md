@@ -42,10 +42,8 @@ The project now includes `k8s/ingress-nginx-deployment.yaml` file. This file has
 **Usage**:
 
 ```bash
-# Automatic (deploy.sh or Makefile)
+# Automatic (Makefile)
 make deploy
-# or
-./deploy.sh
 
 # Manual
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
@@ -57,26 +55,7 @@ kubectl apply -f k8s/ingress-nginx-deployment.yaml
 - ✅ Always same configuration
 - ✅ No need for patch
 
-### Solution 2: Automatic (deploy.sh)
-
-The `deploy.sh` script first checks for custom YAML, otherwise uses Kind's default and applies patch:
-
-```bash
-./deploy.sh
-# Or
-make deploy
-```
-
-### Solution 3: Manual Patch Script
-
-To fix Ingress only:
-
-```bash
-chmod +x patch-ingress-controller.sh
-./patch-ingress-controller.sh
-```
-
-### Solution 4: Makefile
+### Solution 2: Makefile
 
 ```bash
 make fix-ingress
@@ -87,7 +66,7 @@ This command:
 - Checks node placement
 - Moves to control-plane if needed
 
-### Solution 5: Manual kubectl patch
+### Solution 3: Manual kubectl patch
 
 ```bash
 kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type=strategic -p '
@@ -116,7 +95,7 @@ kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type=strate
 kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx
 ```
 
-### Solution 6: YAML File (Kustomize)
+### Solution 4: YAML File (Kustomize)
 
 ```bash
 # k8s/ingress-controller-patch.yaml file created
@@ -204,19 +183,15 @@ That's why the pod can land on any random node.
 
 ## 🚀 Recommended Approach
 
-**For new projects**: Use `deploy.sh` or `make deploy` (automatic fix)
+**For new projects**: Use `make deploy` (automatic fix)
 
-**For existing projects**:
-1. Run `./patch-ingress-controller.sh`
-2. Or use `make fix-ingress`
+**For existing projects**: Use `make fix-ingress`
 
 ## 📝 Summary
 
 | Method | Usage | Automatic | Persistent |
 |--------|----------|----------|--------|
-| **deploy.sh** | `./deploy.sh` | ✅ | ✅ |
-| **Makefile** | `make fix-ingress` | ✅ | ✅ |
-| **patch-ingress-controller.sh** | `./patch-ingress-controller.sh` | ✅ | ✅ |
+| **Makefile** | `make deploy` / `make fix-ingress` | ✅ | ✅ |
 | **kubectl patch** | Manual command | ❌ | ✅ |
 | **ingress-controller-patch.yaml** | `kubectl apply` | ❌ | ✅ |
 

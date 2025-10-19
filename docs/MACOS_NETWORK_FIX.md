@@ -38,14 +38,14 @@ macOS, `.local` ile biten domain'ler için:
 
 ## ✅ Çözüm: IPv6 Entry Eklemek
 
-### Otomatik Çözüm (Makefile/deploy.sh)
+### Otomatik Çözüm (Makefile)
 
-Artık Makefile ve deploy.sh otomatik olarak IPv6 ekliyor:
+Artık Makefile otomatik olarak IPv6 ekliyor:
 
 ```bash
 make update-hosts
 # veya
-./deploy.sh
+make deploy
 ```
 
 Şu satırları `/etc/hosts`'a ekler:

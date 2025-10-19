@@ -76,12 +76,6 @@ datetime-k8s/
 │   ├── TROUBLESHOOTING.en.md          # 📘 Troubleshooting guide
 │   └── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
 ├── Makefile                           # 🎯 Main automation (RECOMMENDED!)
-├── deploy.sh                          # 🚀 Deployment script
-├── verify-deployment.sh               # 🔍 Verification and test script
-├── fix-ingress.sh                     # 🔧 hostNetwork fix
-├── fix-webhooks.sh                    # 🔧 Webhook cleanup
-├── patch-ingress-controller.sh        # 🔧 Ingress patch
-├── setup-project.sh                   # 📁 Directory structure creation
 ├── CONTRIBUTING.en.md                 # 📖 How to contribute?
 └── README.en.md                       # 📖 Main documentation
 ```

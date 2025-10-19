@@ -38,14 +38,14 @@ If `/etc/hosts` only has IPv4 (127.0.0.1), macOS still tries IPv6 lookup and **w
 
 ## ✅ Solution: Add IPv6 Entry
 
-### Automatic Fix (Makefile/deploy.sh)
+### Automatic Fix (Makefile)
 
-Makefile and deploy.sh now automatically add IPv6:
+Makefile now automatically adds IPv6:
 
 ```bash
 make update-hosts
 # or
-./deploy.sh
+make deploy
 ```
 
 Adds these lines to `/etc/hosts`:

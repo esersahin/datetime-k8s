@@ -116,9 +116,9 @@ make status
 # Nodes + Pods (with node placement) + Services + Ingress
 ```
 
-### 3. `deploy.sh` ✅
+### 3. `Makefile` - Deploy Target ✅
 
-Multi-node inline config eklendi (fallback olarak).
+Multi-node cluster desteği eklendi.
 
 ```bash
 # Eski:
@@ -173,29 +173,21 @@ spec:
 - ❌ Bu dosya olmadan: Ingress rastgele düşer, çalışmayabilir
 - ✅ Bu dosya ile: Her zaman control-plane'de, her zaman çalışır
 
-### 5. `patch-ingress-controller.sh` ✅ YENİ DOSYA!
+### 5. `Makefile` - Fix Targets ✅
 
-Mevcut Ingress Controller'ı patch'lemek için script:
+Ingress ve webhook sorunlarını düzeltmek için yeni hedefler:
 
-```bash
-#!/bin/bash
-kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type=strategic -p '...'
-```
-
-### 6. `fix-ingress.sh` ✅ YENİ DOSYA!
-
-Kapsamlı düzeltme scripti:
-
+**`make fix-ingress`**:
 - hostNetwork kontrolü
 - nodeSelector kontrolü
 - Gerekirse düzeltmeleri uygular
 
-### 7. `fix-webhooks.sh` ✅ YENİ DOSYA!
-
-Webhook konfigürasyonlarını temizler:
+**`make fix-webhooks`**:
+- Webhook konfigürasyonlarını temizler
 
 ```bash
-kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission
+make fix-ingress   # Ingress Controller'ı düzelt
+make fix-webhooks  # Webhook'ları temizle
 ```
 
 ---
@@ -257,19 +249,15 @@ kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingr
 **Eklenen Dosyalar**:
 
 - `k8s/ingress-nginx-deployment.yaml` (⭐ en önemli)
-- `patch-ingress-controller.sh`
-- `fix-ingress.sh`
-- `fix-webhooks.sh`
 - 8 dokümantasyon dosyası (MD)
 
 **Değiştirilen Dosyalar**:
 
-- `kind-config.yaml`
-- `Makefile`
-- `deploy.sh`
+- `k8s/kind-config.yaml`
+- `Makefile` (yeni hedefler: fix-ingress, fix-webhooks, show-nodes)
 - `README.md`
 
-**Toplam**: 4 yeni script + 1 yeni YAML + 8 doküman + 4 değiştirilmiş = **17 dosya**
+**Toplam**: 1 yeni YAML + 8 doküman + 3 değiştirilmiş = **12 dosya**
 
 ---
 
