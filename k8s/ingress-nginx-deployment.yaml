@@ -1,11 +1,12 @@
-﻿# NGINX Ingress Controller Deployment
-# Kind için optimize edilmiş - Control-Plane'de çalışır
+# NGINX Ingress Controller Deployment
+# Kind için optimize edilmiş - Worker Node'larda çalışır
 #
 # Kullanım:
 #   kubectl apply -f k8s/ingress-nginx-deployment.yaml
 #
 # NOT: Bu deployment Kind'ın resmi manifest'ini base alır ama
-# nodeSelector ve tolerations ile control-plane'de çalışması garantilenir
+# nodeSelector ile worker node'larda çalışması garantilenir
+# Control plane'de çalışmaz - bu sayede control plane zarif bir şekilde sadece cluster yönetimine odaklanır
 
 # Namespace
 apiVersion: v1
@@ -204,8 +205,17 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
 spec:
-  replicas: 1
+  # 2 replicas for high availability across both worker nodes
+  replicas: 2
   revisionHistoryLimit: 10
+
+  # ⭐ OPTIMIZASYON: Progressive rollout - bir anda sadece 1 yeni replica ayağa kalkar
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # Downtime olmasın, en az mevcut replica sayısı korunsun
+      maxSurge: 1        # Bir anda sadece 1 yeni replica ekle (daha hızlı deployment)
+
   selector:
     matchLabels:
       app.kubernetes.io/name: ingress-nginx
@@ -225,19 +235,13 @@ spec:
       # ⭐ KRITIK: Host network kullan (localhost:80/443 için)
       hostNetwork: true
 
-      # ⭐ KRITIK: Control-plane'de çalış (ingress-ready label'ı olan node)
+      # ⭐ KRITIK: Worker node'larda çalış (ingress-ready label'ı olan worker node'lar)
       nodeSelector:
         kubernetes.io/os: linux
         ingress-ready: "true"
 
-      # ⭐ KRITIK: Control-plane taint'ini tolere et
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
+      # Worker node'lar için tolerations gerekmez
+      # Control plane'de çalışmamasını istiyoruz, bu yüzden tolerations kaldırıldı
 
       containers:
         - name: controller
@@ -299,8 +303,8 @@ spec:
               path: /healthz
               port: 10254
               scheme: HTTP
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 5   # 10 → 5: Daha erken kontrol başlat
+            periodSeconds: 5         # 10 → 5: Daha sık kontrol et (daha hızlı ready olur)
             successThreshold: 1
             timeoutSeconds: 1
           ports:

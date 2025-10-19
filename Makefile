@@ -100,41 +100,14 @@ create-cluster: ## Kind cluster oluşturur (multi-node: 1 control-plane + 2 work
 	@echo "$(YELLOW)🚀 Kind cluster kontrol ediliyor...$(NC)"
 	@if ! kind get clusters | grep -q "$(CLUSTER_NAME)"; then \
 		echo "$(YELLOW)Kind cluster oluşturuluyor (1 control-plane + 2 workers)...$(NC)"; \
-		if [ ! -f "kind-config.yaml" ]; then \
-			echo "$(YELLOW)kind-config.yaml bulunamadı, oluşturuluyor...$(NC)"; \
-			printf 'kind: Cluster\n' > kind-config.yaml; \
-			printf 'apiVersion: kind.x-k8s.io/v1alpha4\n' >> kind-config.yaml; \
-			printf 'nodes:\n' >> kind-config.yaml; \
-			printf '# Control Plane Node\n' >> kind-config.yaml; \
-			printf -- '- role: control-plane\n' >> kind-config.yaml; \
-			printf '  kubeadmConfigPatches:\n' >> kind-config.yaml; \
-			printf '  - |\n' >> kind-config.yaml; \
-			printf '    kind: InitConfiguration\n' >> kind-config.yaml; \
-			printf '    nodeRegistration:\n' >> kind-config.yaml; \
-			printf '      kubeletExtraArgs:\n' >> kind-config.yaml; \
-			printf '        node-labels: "ingress-ready=true"\n' >> kind-config.yaml; \
-			printf '  extraPortMappings:\n' >> kind-config.yaml; \
-			printf '  - containerPort: 80\n' >> kind-config.yaml; \
-			printf '    hostPort: 80\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '  - containerPort: 443\n' >> kind-config.yaml; \
-			printf '    hostPort: 443\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 1\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-1\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 2\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-2\n' >> kind-config.yaml; \
-			echo "$(GREEN)✓ kind-config.yaml oluşturuldu$(NC)"; \
+		if [ ! -f "k8s/kind-config.yaml" ]; then \
+			echo "$(RED)❌ HATA: k8s/kind-config.yaml bulunamadı!$(NC)"; \
+			echo "$(YELLOW)Bu dosya worker node yapılandırması için gereklidir.$(NC)"; \
+			exit 1; \
 		else \
-			echo "$(GREEN)✓ kind-config.yaml mevcut, kullanılıyor$(NC)"; \
+			echo "$(GREEN)✓ k8s/kind-config.yaml mevcut, kullanılıyor$(NC)"; \
 		fi; \
-		kind create cluster --config=kind-config.yaml; \
+		kind create cluster --config=k8s/kind-config.yaml; \
 		echo "$(GREEN)✓ Multi-node Kind cluster oluşturuldu$(NC)"; \
 		echo ""; \
 		echo "$(BLUE)Cluster Node'ları:$(NC)"; \
@@ -156,11 +129,11 @@ install-ingress: create-cluster ## NGINX Ingress Controller kurar (Kind optimize
 			echo "$(YELLOW)Kind'ın varsayılan manifest'i kullanılıyor...$(NC)"; \
 			kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml; \
 		fi; \
-		sleep 5; \
+		sleep 10; \
 		kubectl wait --namespace ingress-nginx \
 			--for=condition=ready pod \
 			--selector=app.kubernetes.io/component=controller \
-			--timeout=90s 2>/dev/null || true; \
+			--timeout=180s 2>/dev/null || true; \
 		echo "$(GREEN)✓ NGINX Ingress Controller kuruldu$(NC)"; \
 	else \
 		echo "$(GREEN)✓ NGINX Ingress Controller zaten mevcut$(NC)"; \
@@ -174,28 +147,14 @@ fix-ingress: ## Ingress hostNetwork ayarını düzeltir (Mac için)
 			echo "$(YELLOW)hostNetwork ayarı düzeltiliyor...$(NC)"; \
 			kubectl patch deployment ingress-nginx-controller -n ingress-nginx \
 				-p '{"spec":{"template":{"spec":{"hostNetwork":true}}}}'; \
-			kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=90s; \
+			kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=180s; \
 			kubectl wait --namespace ingress-nginx \
 				--for=condition=ready pod \
 				--selector=app.kubernetes.io/component=controller \
-				--timeout=90s 2>/dev/null || true; \
+				--timeout=180s 2>/dev/null || true; \
 			echo "$(GREEN)✓ hostNetwork ayarı düzeltildi$(NC)"; \
 		else \
 			echo "$(GREEN)✓ hostNetwork ayarı zaten doğru$(NC)"; \
-		fi; \
-		echo "$(YELLOW)🔧 Ingress Controller control-plane kontrolü yapılıyor...$(NC)"; \
-		CURRENT_NODE=$$(kubectl get pods -n ingress-nginx -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].spec.nodeName}'); \
-		if [ "$$CURRENT_NODE" != "kind-control-plane" ]; then \
-			echo "$(YELLOW)Ingress Controller $$CURRENT_NODE'da, control-plane'e taşınıyor...$(NC)"; \
-			kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '{"spec":{"template":{"spec":{"nodeSelector":{"ingress-ready":"true"}}}}}'; \
-			kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=90s; \
-			kubectl wait --namespace ingress-nginx \
-				--for=condition=ready pod \
-				--selector=app.kubernetes.io/component=controller \
-				--timeout=90s 2>/dev/null || true; \
-			echo "$(GREEN)✓ Ingress Controller control-plane'e taşındı$(NC)"; \
-		else \
-			echo "$(GREEN)✓ Ingress Controller zaten control-plane'de$(NC)"; \
 		fi; \
 		echo ""; \
 		echo "$(BLUE)Ingress Controller Durumu:$(NC)"; \

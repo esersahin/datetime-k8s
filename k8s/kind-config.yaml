@@ -1,14 +1,17 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
-  # Control Plane Node
+  # Control Plane Node - Sadece cluster yönetimi için
   - role: control-plane
+
+  # Worker Node 1 - Ingress controller burada çalışacak
+  - role: worker
     kubeadmConfigPatches:
       - |
-        kind: InitConfiguration
+        kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
+            node-labels: "ingress-ready=true,worker-group=group-1"
     extraPortMappings:
       - containerPort: 80
         hostPort: 80
@@ -17,12 +20,18 @@ nodes:
         hostPort: 443
         protocol: TCP
 
-  # Worker Node 1
+  # Worker Node 2 - İsteğe bağlı olarak high availability için
   - role: worker
-    labels:
-      worker-group: group-1
-
-  # Worker Node 2
-  - role: worker
-    labels:
-      worker-group: group-2
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true,worker-group=group-2"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
