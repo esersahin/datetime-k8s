@@ -17,12 +17,13 @@
 2. [System Components](#-system-components)
 3. [Two-Layer Load Balancing Architecture](#-two-layer-load-balancing-architecture)
 4. [Detailed Traffic Flow](#-detailed-traffic-flow)
-5. [HAProxy vs NGINX Ingress Comparison](#-haproxy-vs-nginx-ingress-comparison)
-6. [Why Two Layers?](#-why-two-layers)
-7. [Example Scenarios](#-example-scenarios)
-8. [Practical Commands and Tests](#-practical-commands-and-tests)
-9. [Analogy Explanation](#-analogy-explanation)
-10. [Summary](#-summary)
+5. [HAProxy vs NGINX: Technology Comparison](#-haproxy-vs-nginx-technology-comparison)
+6. [HAProxy vs NGINX Ingress Comparison](#-haproxy-vs-nginx-ingress-comparison)
+7. [Why Two Layers?](#-why-two-layers)
+8. [Example Scenarios](#-example-scenarios)
+9. [Practical Commands and Tests](#-practical-commands-and-tests)
+10. [Analogy Explanation](#-analogy-explanation)
+11. [Summary](#-summary)
 
 ---
 
@@ -448,6 +449,237 @@ curl -v http://api.local/api/datetime
 < HTTP/1.1 200 OK
 {"date":"26.10.2025","time":"13:32:36",...}  ← Response from application pod
 ```
+
+---
+
+## 🔬 HAProxy vs NGINX: Technology Comparison
+
+### The Fundamental Question: Does HAProxy Use NGINX?
+
+**NO!** HAProxy and NGINX are **completely different, independent** technologies. HAProxy does not use NGINX internally; it has its own engine and algorithms.
+
+---
+
+### HAProxy - Dedicated Load Balancer
+
+**Technology Details:**
+- **Written In**: C (for high performance)
+- **Engine**: Own custom event-driven engine
+- **First Release**: 2000 (by Willy Tarreau)
+- **Version**: 2.8 LTS (Long Term Support)
+- **License**: GPLv2
+
+**Focus:**
+- Layer 4 (TCP) and Layer 7 (HTTP/HTTPS) load balancing
+- Maximum performance and minimum latency
+- Production-grade HA (High Availability)
+
+**Strengths:**
+- ✅ **Very High Performance**: Millions of connections per second
+- ✅ **Advanced Health Checks**: Layer 4, Layer 7, custom health checks
+- ✅ **Session Persistence**: Sticky sessions, source IP tracking
+- ✅ **Detailed Statistics**: Real-time stats page (:8404)
+- ✅ **Failover**: Automatic server failure detection and routing
+- ✅ **TCP and HTTP**: Specialized in both protocols
+- ✅ **Low Resource Usage**: Minimal memory and CPU consumption
+
+**Use Cases:**
+- External load balancing (like Cloud LB)
+- TCP/HTTP traffic distribution
+- High-traffic websites (GitHub, Reddit, Stack Overflow)
+- Database connection pooling
+- API gateway load balancing
+
+**Our Usage:**
+```
+HAProxy → Worker Node Selection
+- kind-worker:80
+- kind-worker2:80
+- kind-worker3:80
+
+Algorithm: Round-robin
+Health Check: GET /healthz (Layer 7)
+Failover: Automatic
+Stats: http://localhost:8404
+```
+
+---
+
+### NGINX - Web Server + Reverse Proxy
+
+**Technology Details:**
+- **Written In**: C (event-driven architecture)
+- **Engine**: Own asynchronous, event-driven engine
+- **First Release**: 2004 (by Igor Sysoev)
+- **Version**: 1.25+ (open source), NGINX Plus (commercial)
+- **License**: 2-clause BSD
+
+**Focus:**
+- Web server (static content serving)
+- Reverse proxy and HTTP routing
+- Content caching and compression
+- SSL/TLS termination
+
+**Strengths:**
+- ✅ **Host-based Routing**: Virtual hosts, server_name matching
+- ✅ **Path-based Routing**: Location blocks, regex matching
+- ✅ **SSL/TLS**: Advanced SSL configuration, SNI support
+- ✅ **Content Caching**: Proxy cache, FastCGI cache
+- ✅ **Request Rewriting**: URL rewriting, redirects
+- ✅ **Static Content**: High-performance static file serving
+- ✅ **HTTP/2 and HTTP/3**: Modern protocol support
+
+**Use Cases:**
+- Web serving (static files)
+- Reverse proxy (HTTP routing)
+- API gateway (HTTP layer)
+- SSL termination
+- Kubernetes Ingress Controller
+- Microservices routing
+
+**Our Usage (As Ingress Controller):**
+```
+NGINX Ingress → Service Routing
+- api.local → api-service
+- web.local → web-service
+- api-go.local → datetime-api-go-service
+- web-go.local → web-go-service
+
+Method: Host header matching
+Location: Kubernetes pod (3 replicas)
+SSL: Termination support
+```
+
+---
+
+### Comparison Table
+
+| **FEATURE** | **HAProxy** | **NGINX** |
+|-------------|-------------|-----------|
+| **Primary Purpose** | Load Balancer | Web Server + Reverse Proxy |
+| **Written In** | C | C |
+| **Engine** | Event-driven (custom) | Event-driven (async) |
+| **Layer 4 (TCP)** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ Good |
+| **Layer 7 (HTTP)** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent |
+| **Web Serving** | ❌ None | ⭐⭐⭐⭐⭐ Excellent |
+| **Static Files** | ❌ None | ⭐⭐⭐⭐⭐ Very fast |
+| **Caching** | ❌ None | ⭐⭐⭐⭐⭐ Advanced |
+| **Load Balancing** | ⭐⭐⭐⭐⭐ Specialized | ⭐⭐⭐⭐ Good |
+| **Health Checks** | ⭐⭐⭐⭐⭐ Very advanced | ⭐⭐⭐ Basic |
+| **Session Persistence** | ⭐⭐⭐⭐⭐ Advanced | ⭐⭐⭐ Good |
+| **Stats/Monitoring** | ⭐⭐⭐⭐⭐ Built-in (:8404) | ⭐⭐ Stub status |
+| **SSL/TLS** | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Very advanced |
+| **URL Rewriting** | ⭐⭐ Limited | ⭐⭐⭐⭐⭐ Very powerful |
+| **Performance** | ⭐⭐⭐⭐⭐ Very high | ⭐⭐⭐⭐⭐ Very high |
+| **Resource Usage** | ⭐⭐⭐⭐⭐ Minimal | ⭐⭐⭐⭐ Low |
+| **Configuration** | haproxy.cfg | nginx.conf |
+| **Community** | Active | Very active |
+| **Commercial** | HAProxy Enterprise | NGINX Plus |
+
+---
+
+### Why Use Both Together?
+
+#### Real-World Scenarios:
+
+**Cloud Provider Architecture:**
+```
+User → Cloud Load Balancer → Kubernetes → NGINX Ingress → Services
+        (HAProxy-like)                     (HTTP routing)
+```
+
+**AWS:**
+```
+User → ALB/ELB → Kubernetes → NGINX Ingress → Services
+      (Layer 7 LB)           (Host routing)
+```
+
+**GCP:**
+```
+User → Cloud Load Balancing → Kubernetes → NGINX Ingress → Services
+      (Global LB)                          (Ingress rules)
+```
+
+**On-Premise (Our Architecture):**
+```
+User → HAProxy → Kubernetes → NGINX Ingress → Services
+      (External LB)          (Internal Router)
+```
+
+#### Each Works at a Different Layer:
+
+**Layer 1 - HAProxy (Infrastructure Level)**:
+- **Task**: Traffic distribution across worker nodes
+- **Level**: Infrastructure/Network level
+- **Decision**: "Which worker node should I send to?"
+- **Knows**: Worker IP/DNS addresses
+- **Doesn't Know**: Kubernetes Services, Pods, Ingress rules
+
+**Layer 2 - NGINX Ingress (Application Level)**:
+- **Task**: HTTP host/path-based routing
+- **Level**: Application/HTTP level
+- **Decision**: "Which Service does this Host header go to?"
+- **Knows**: Kubernetes Services, Ingress rules
+- **Doesn't Know**: Worker node status
+
+**Analogy:**
+```
+HAProxy = Airport Shuttle Service
+  → Decides which terminal to go to
+  → Takes you to Terminal 1, 2, or 3
+
+NGINX Ingress = Terminal Directional Signs
+  → Shows which gate to go to
+  → Routes based on Host header
+```
+
+---
+
+### Alternative Scenarios
+
+#### Scenario 1: HAProxy Only
+```
+User → HAProxy → Services (ExternalIP)
+```
+❌ **Issues:**
+- Not Kubernetes-native
+- Cannot use Ingress resources
+- Host-based routing requires manual config
+- Service discovery becomes difficult
+
+#### Scenario 2: NGINX Ingress Only
+```
+User → NGINX Ingress (NodePort) → Services
+```
+❌ **Issues:**
+- No worker node failover
+- Port mapping confusion (8080, 8081, 8082)
+- No HA
+- Not production-like
+
+#### Scenario 3: Two Layers (Our Method) ✅
+```
+User → HAProxy → NGINX Ingress → Services
+```
+✅ **Advantages:**
+- Worker-level HA (HAProxy)
+- Application-level routing (NGINX)
+- Kubernetes-native (Ingress resources)
+- Production-like architecture
+- Easy failover
+
+---
+
+### Summary: Independent but Complementary
+
+HAProxy and NGINX:
+- ✅ **Completely different** software
+- ✅ **Independent** engines and algorithms
+- ✅ **Complementary** features
+- ✅ **Work at different layers**
+- ✅ **Together create a perfect** solution
+
+HAProxy works as an **external load balancer** in front of NGINX, while NGINX works as an **internal HTTP router** behind it.
 
 ---
 
