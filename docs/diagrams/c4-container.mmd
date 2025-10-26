@@ -1,29 +1,35 @@
 C4Container
-    title Container Diagram - DateTime Kubernetes Application
+    title Container Diagram - DateTime Kubernetes Application (HA Setup)
 
     Person(user, "End User", "Browser user")
 
-    System_Boundary(k8s_cluster, "Kubernetes Cluster (Kind)") {
-        Container(ingress, "NGINX Ingress", "NGINX", "Routes traffic, load balancing")
+    System_Boundary(external_lb, "External Load Balancer") {
+        Container(haproxy, "HAProxy", "HAProxy 2.8", "External LB - Round-robin to workers")
+    }
+
+    System_Boundary(k8s_cluster, "Kubernetes Cluster (Kind) - 3+3 HA") {
+        Container(ingress, "NGINX Ingress", "NGINX (3 replicas)", "Host-based routing, one per worker")
 
         Container_Boundary(csharp_stack, "CSharp Stack (.NET 9)") {
-            Container(csharp_web, "Web UI", "Nginx + HTML/JS", "Displays datetime in Turkish")
-            Container(csharp_api, "CSharp API", ".NET 9 Minimal API", "REST API with resiliency patterns")
+            Container(csharp_web, "Web UI", "Nginx + HTML/JS", "Displays datetime in Turkish (2 replicas)")
+            Container(csharp_api, "CSharp API", ".NET 9 Minimal API", "REST API with resiliency patterns (2 replicas)")
         }
 
         Container_Boundary(go_stack, "Go Stack (Go 1.25)") {
-            Container(go_web, "Web UI Go", "Nginx + HTML/JS", "Displays world clock")
-            Container(go_api, "Go API", "Go HTTP Server", "REST API with timezone features")
+            Container(go_web, "Web UI Go", "Nginx + HTML/JS", "Displays world clock (2 replicas)")
+            Container(go_api, "Go API", "Go HTTP Server", "REST API with timezone features (3 replicas)")
         }
 
         ContainerDb(k8s_dns, "CoreDNS", "Kubernetes DNS", "Service discovery")
     }
 
-    Rel(user, ingress, "Accesses", "HTTP :80")
-    Rel(ingress, csharp_web, "Routes /web.local", "HTTP")
-    Rel(ingress, csharp_api, "Routes /api.local", "HTTP")
-    Rel(ingress, go_web, "Routes /web-go.local", "HTTP")
-    Rel(ingress, go_api, "Routes /api-go.local", "HTTP")
+    Rel(user, haproxy, "Accesses", "HTTP :80")
+    Rel(haproxy, ingress, "Load balances", "Round-robin + Health Check")
+
+    Rel(ingress, csharp_web, "Routes /web.local", "HTTP (Host header)")
+    Rel(ingress, csharp_api, "Routes /api.local", "HTTP (Host header)")
+    Rel(ingress, go_web, "Routes /web-go.local", "HTTP (Host header)")
+    Rel(ingress, go_api, "Routes /api-go.local", "HTTP (Host header)")
 
     Rel(csharp_web, csharp_api, "Fetches datetime", "HTTP REST")
     Rel(go_web, go_api, "Fetches world clock", "HTTP REST")

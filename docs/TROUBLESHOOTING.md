@@ -559,7 +559,7 @@ curl http://api.local/api/datetime
 
 Tüm sorunlar çözüldükten sonra:
 
-- [ ] **Node Sayısı**: `kubectl get nodes` → 3 node (1 control + 2 worker)
+- [ ] **Node Sayısı**: `kubectl get nodes` → 6 nodes (3 control-planes + 3 workers - HA setup)
 - [ ] **Endpoint'ler**: `kubectl get endpoints` → Her service 2 endpoint
 - [ ] **Ingress Controller**: `kubectl get pods -n ingress-nginx -o wide` → kind-control-plane
 - [ ] **Pod Durumu**: `kubectl get pods` → Hepsi Running

@@ -1,0 +1,57 @@
+sequenceDiagram
+    title HAProxy and NGINX Ingress - Two-Layer Load Balancing Architecture
+
+    participant User as 👤 User
+    participant DNS as 🌐 DNS (/etc/hosts)
+    participant HAProxy as ⚖️ HAProxy<br/>(External LB)
+    participant Worker1 as 🖥️ Worker1:80
+    participant Worker2 as 🖥️ Worker2:80
+    participant Worker3 as 🖥️ Worker3:80
+    participant NGINX1 as 🔀 NGINX Ingress<br/>(Worker1)
+    participant NGINX2 as 🔀 NGINX Ingress<br/>(Worker2)
+    participant NGINX3 as 🔀 NGINX Ingress<br/>(Worker3)
+    participant Service as 🎯 api-service<br/>(Kubernetes)
+    participant Pod as 📦 API Pod
+
+    Note over User,Pod: Request: curl http://api.local/api/datetime
+
+    User->>DNS: Resolve api.local
+    DNS-->>User: 127.0.0.1
+
+    User->>HAProxy: HTTP GET /api/datetime<br/>Host: api.local
+
+    Note over HAProxy: Layer 1: Worker Selection<br/>Algorithm: Round-robin<br/>Health Check: /healthz
+
+    HAProxy->>Worker2: Forward to Worker2<br/>(Round-robin selected)
+
+    Note over Worker2: hostNetwork: true<br/>Port 80 listening
+
+    Worker2->>NGINX2: Request arrives at<br/>NGINX Ingress Pod
+
+    Note over NGINX2: Layer 2: Service Routing<br/>Check Host Header:<br/>"api.local"
+
+    NGINX2->>Service: Route to api-service<br/>(Host match)
+
+    Note over Service: Layer 3: Pod Selection<br/>kube-proxy<br/>Round-robin
+
+    Service->>Pod: Forward to API Pod
+
+    Pod-->>Service: Response:<br/>{"date":"26.10.2025",...}
+
+    Service-->>NGINX2: Return response
+
+    NGINX2-->>Worker2: Return response
+
+    Worker2-->>HAProxy: Return response
+
+    HAProxy-->>User: HTTP 200 OK<br/>{"date":"26.10.2025",...}
+
+    Note over User,Pod: End-to-end latency: ~15-20ms
+
+    rect rgb(255, 240, 240)
+    Note over HAProxy,Worker3: Failover Scenario:<br/>If Worker2 DOWN → HAProxy routes to Worker1 or Worker3<br/>Health check every 2 seconds
+    end
+
+    rect rgb(240, 255, 240)
+    Note over NGINX1,NGINX3: High Availability:<br/>3 NGINX Ingress replicas (one per worker)<br/>hostNetwork: true on each worker
+    end

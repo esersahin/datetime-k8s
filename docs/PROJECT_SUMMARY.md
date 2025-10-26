@@ -38,7 +38,7 @@ Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özet
 
 **Özellikler**:
 
-- 🚀 Multi-node Kubernetes cluster (1 control-plane + 2 workers)
+- 🚀 Multi-node Kubernetes cluster (3 control-planes + 3 workers - HA setup)
 - ⚡ Otomatik deployment (tek komut)
 - 🔧 Mac optimized (hostNetwork, webhook fix)
 - 📦 Docker build + Kind integration
@@ -158,9 +158,9 @@ spec:
 
 **Multi-node cluster yapılandırması**:
 
-- 1 control-plane (ingress-ready label)
-- 2 worker (pod'lar burada)
-- extraPortMappings (80/443)
+- 3 control-planes (HA setup)
+- 3 workers (pod'lar burada, HA setup)
+- extraPortMappings (80/443, 8080/8443, 8081/8444)
 
 ## 🚨 Yaşanan Sorunlar ve Çözümleri
 

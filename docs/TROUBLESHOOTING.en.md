@@ -558,7 +558,7 @@ curl http://api.local/api/datetime
 
 After all issues are resolved:
 
-- [ ] **Node Count**: `kubectl get nodes` → 3 nodes (1 control + 2 worker)
+- [ ] **Node Count**: `kubectl get nodes` → 6 nodes (3 control-planes + 3 workers - HA setup)
 - [ ] **Endpoints**: `kubectl get endpoints` → Each service has 2 endpoints
 - [ ] **Ingress Controller**: `kubectl get pods -n ingress-nginx -o wide` → kind-control-plane
 - [ ] **Pod Status**: `kubectl get pods` → All Running

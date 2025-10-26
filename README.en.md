@@ -92,7 +92,7 @@ This project is **not production-ready**. It is designed for the following purpo
 
 **High Availability**:
 
-- ❌ Single control-plane (need at least 3 for HA)
+- ✅ 3 control-plane nodes (HA setup)
 - ❌ No persistent storage (PV/PVC) strategy
 - ❌ No backup/restore mechanism
 - ❌ No disaster recovery plan
@@ -128,7 +128,7 @@ This project is **not production-ready**. It is designed for the following purpo
 
 ## ✨ Features
 
-- 🚀 **Multi-Node Kubernetes Cluster**: 1 Control-Plane + 2 Worker Nodes
+- 🚀 **Multi-Node Kubernetes Cluster**: 3 Control-Planes + 3 Worker Nodes (HA Setup)
 - ⚡ **Automated Deployment**: Full setup with a single command (`make deploy`)
 - 🔧 **Mac Optimized**: Automatic fixes for hostNetwork and webhook issues
 - 📦 **Kind Integration**: Local Kubernetes cluster (running in Docker)
@@ -185,35 +185,40 @@ _Kind cluster running on Docker Desktop_
 <summary><b>🚀 Click to See Full Deployment Output</b> (all steps of make deploy command)</summary>
 
 ```bash
-⏱️  Deployment başlatılıyor...
-🚀 Kind cluster kontrol ediliyor...
+⏱️  Deployment başlatılıyor... 
+🚀 Kind cluster kontrol ediliyor... 
 No kind clusters found.
-Kind cluster oluşturuluyor (1 control-plane + 2 workers)...
-✓ k8s/kind-config.yaml mevcut, kullanılıyor
+Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)... 
+✓ k8s/kind-config.yaml mevcut, kullanılıyor 
 Creating cluster "kind" ...
  ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
- ✓ Preparing nodes 📦 📦 📦
- ✓ Writing configuration 📜
- ✓ Starting control-plane 🕹️
- ✓ Installing CNI 🔌
- ✓ Installing StorageClass 💾
- ✓ Joining worker nodes 🚜
+ ✓ Preparing nodes 📦 📦 📦 📦 📦 📦  
+ ✓ Configuring the external load balancer ⚖️ 
+ ✓ Writing configuration 📜 
+ ✓ Starting control-plane 🕹️ 
+ ✓ Installing CNI 🔌 
+ ✓ Installing StorageClass 💾 
+ ✓ Joining more control-plane nodes 🎮 
+ ✓ Joining worker nodes 🚜 
 Set kubectl context to "kind-kind"
 You can now use your cluster with:
 
 kubectl cluster-info --context kind-kind
 
 Thanks for using kind! 😊
-✓ Multi-node Kind cluster oluşturuldu
+✓ Multi-node Kind cluster oluşturuldu 
 
-Cluster Node'ları:
-NAME                 STATUS     ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
-kind-control-plane   NotReady   control-plane   15s   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker          NotReady   <none>          1s    v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker2         NotReady   <none>          1s    v1.34.0   172.20.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-📥 NGINX Ingress Controller kontrol ediliyor...
-NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)...
-Özel ingress-nginx-deployment.yaml kullanılıyor...
+Cluster Node'ları: 
+NAME                  STATUS     ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready      control-plane   37s   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   NotReady   control-plane   11s   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   NotReady   control-plane   2s    v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           NotReady   <none>          0s    v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          NotReady   <none>          1s    v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          NotReady   <none>          0s    v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+📥 NGINX Ingress Controller kontrol ediliyor... 
+NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)... 
+Özel ingress-nginx-deployment.yaml kullanılıyor... 
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
 configmap/ingress-nginx-controller created
@@ -224,25 +229,28 @@ rolebinding.rbac.authorization.k8s.io/ingress-nginx created
 service/ingress-nginx-controller created
 deployment.apps/ingress-nginx-controller created
 ingressclass.networking.k8s.io/nginx created
-pod/ingress-nginx-controller-7f8d89bb7f-fdr9d condition met
-pod/ingress-nginx-controller-7f8d89bb7f-hfnbk condition met
-✓ NGINX Ingress Controller kuruldu
-🔧 Ingress yapılandırması kontrol ediliyor...
-hostNetwork ayarı düzeltiliyor...
+pod/ingress-nginx-controller-7f8d89bb7f-h2927 condition met
+pod/ingress-nginx-controller-7f8d89bb7f-jjxxj condition met
+pod/ingress-nginx-controller-7f8d89bb7f-lcjkk condition met
+✓ NGINX Ingress Controller kuruldu 
+🔧 Ingress yapılandırması kontrol ediliyor... 
+hostNetwork ayarı düzeltiliyor... 
 deployment.apps/ingress-nginx-controller patched (no change)
 deployment "ingress-nginx-controller" successfully rolled out
-pod/ingress-nginx-controller-7f8d89bb7f-fdr9d condition met
-pod/ingress-nginx-controller-7f8d89bb7f-hfnbk condition met
-✓ hostNetwork ayarı düzeltildi
+pod/ingress-nginx-controller-7f8d89bb7f-h2927 condition met
+pod/ingress-nginx-controller-7f8d89bb7f-jjxxj condition met
+pod/ingress-nginx-controller-7f8d89bb7f-lcjkk condition met
+✓ hostNetwork ayarı düzeltildi 
 
-Ingress Controller Durumu:
+Ingress Controller Durumu: 
 NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
-ingress-nginx-controller-7f8d89bb7f-fdr9d   1/1     Running   0          66s   172.20.0.2   kind-worker2   <none>           <none>
-ingress-nginx-controller-7f8d89bb7f-hfnbk   1/1     Running   0          66s   172.20.0.4   kind-worker    <none>           <none>
-🧹 Admission webhook'ları temizleniyor...
-✓ Webhook'lar temizlendi
-🔨 API imajı build ediliyor...
-[+] Building 0.0s (15/15) FINISHED                                                                                                                    docker:desktop-linux
+ingress-nginx-controller-7f8d89bb7f-h2927   1/1     Running   0          85s   172.20.0.7   kind-worker3   <none>           <none>
+ingress-nginx-controller-7f8d89bb7f-jjxxj   1/1     Running   0          85s   172.20.0.3   kind-worker    <none>           <none>
+ingress-nginx-controller-7f8d89bb7f-lcjkk   1/1     Running   0          85s   172.20.0.4   kind-worker2   <none>           <none>
+🧹 Admission webhook'ları temizleniyor... 
+✓ Webhook'lar temizlendi 
+🔨 API imajı build ediliyor... 
+[+] Building 0.1s (15/15) FINISHED                                                                                                                    docker:desktop-linux
  => [internal] load build definition from Dockerfile.api                                                                                                              0.0s
  => => transferring dockerfile: 1.13kB                                                                                                                                0.0s
  => [internal] load metadata for mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                  0.0s
@@ -250,9 +258,9 @@ ingress-nginx-controller-7f8d89bb7f-hfnbk   1/1     Running   0          66s   1
  => [internal] load .dockerignore                                                                                                                                     0.0s
  => => transferring context: 2B                                                                                                                                       0.0s
  => [build 1/6] FROM mcr.microsoft.com/dotnet/sdk:9.0                                                                                                                 0.0s
- => [stage-1 1/3] FROM mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                            0.0s
  => [internal] load build context                                                                                                                                     0.0s
  => => transferring context: 70B                                                                                                                                      0.0s
+ => [stage-1 1/3] FROM mcr.microsoft.com/dotnet/aspnet:9.0                                                                                                            0.0s
  => CACHED [stage-1 2/3] WORKDIR /app                                                                                                                                 0.0s
  => CACHED [build 2/6] WORKDIR /src                                                                                                                                   0.0s
  => CACHED [build 3/6] COPY DateTimeApi.csproj .                                                                                                                      0.0s
@@ -265,16 +273,16 @@ ingress-nginx-controller-7f8d89bb7f-hfnbk   1/1     Running   0          66s   1
  => => writing image sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477                                                                          0.0s
  => => naming to docker.io/library/datetime-api:latest                                                                                                                0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jeqzotwqs4xz1gifip9onhvzp
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/x2yhh1ypurkawvx9y63olf75q
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview
-✓ API imajı oluşturuldu
-🔨 Web imajı build ediliyor...
-[+] Building 1.2s (9/9) FINISHED                                                                                                                      docker:desktop-linux
+    View a summary of image vulnerabilities and recommendations → docker scout quickview 
+✓ API imajı oluşturuldu 
+🔨 Web imajı build ediliyor... 
+[+] Building 1.3s (9/9) FINISHED                                                                                                                      docker:desktop-linux
  => [internal] load build definition from Dockerfile.web                                                                                                              0.0s
  => => transferring dockerfile: 197B                                                                                                                                  0.0s
- => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                       1.2s
+ => [internal] load metadata for docker.io/library/nginx:alpine                                                                                                       1.3s
  => [auth] library/nginx:pull token for registry-1.docker.io                                                                                                          0.0s
  => [internal] load .dockerignore                                                                                                                                     0.0s
  => => transferring context: 2B                                                                                                                                       0.0s
@@ -288,25 +296,25 @@ What's next:
  => => writing image sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a                                                                          0.0s
  => => naming to docker.io/library/datetime-web:latest                                                                                                                0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/z19lxtxm9y5z3x7n1dmv8lciw
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/mhoak3i8fu8okao6mi328zi3b
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview
-✓ Web imajı oluşturuldu
-🔨 API-Go imajı build ediliyor...
-[+] Building 1.1s (18/18) FINISHED                                                                                                                    docker:desktop-linux
+    View a summary of image vulnerabilities and recommendations → docker scout quickview 
+✓ Web imajı oluşturuldu 
+🔨 API-Go imajı build ediliyor... 
+[+] Building 1.2s (18/18) FINISHED                                                                                                                    docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                  0.0s
  => => transferring dockerfile: 505B                                                                                                                                  0.0s
- => [internal] load metadata for docker.io/library/alpine:latest                                                                                                      1.1s
- => [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                 1.0s
- => [auth] library/alpine:pull token for registry-1.docker.io                                                                                                         0.0s
+ => [internal] load metadata for docker.io/library/golang:1.25-alpine                                                                                                 1.2s
+ => [internal] load metadata for docker.io/library/alpine:latest                                                                                                      1.2s
  => [auth] library/golang:pull token for registry-1.docker.io                                                                                                         0.0s
+ => [auth] library/alpine:pull token for registry-1.docker.io                                                                                                         0.0s
  => [internal] load .dockerignore                                                                                                                                     0.0s
  => => transferring context: 2B                                                                                                                                       0.0s
  => [builder 1/6] FROM docker.io/library/golang:1.25-alpine@sha256:aee43c3ccbf24fdffb7295693b6e33b21e01baec1b2a55acc351fde345e9ec34                                   0.0s
+ => [stage-1 1/4] FROM docker.io/library/alpine:latest@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412                                        0.0s
  => [internal] load build context                                                                                                                                     0.0s
  => => transferring context: 721B                                                                                                                                     0.0s
- => [stage-1 1/4] FROM docker.io/library/alpine:latest@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412                                        0.0s
  => CACHED [stage-1 2/4] RUN apk --no-cache add ca-certificates tzdata                                                                                                0.0s
  => CACHED [stage-1 3/4] WORKDIR /root/                                                                                                                               0.0s
  => CACHED [builder 2/6] WORKDIR /app                                                                                                                                 0.0s
@@ -320,12 +328,12 @@ What's next:
  => => writing image sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef                                                                          0.0s
  => => naming to docker.io/library/datetime-api-go:latest                                                                                                             0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/r8p7c2u4h1yh0j2qdby0j0064
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/4d87b60dvvwlqknssctc7hmgu
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview
-✓ API-Go imajı oluşturuldu
-🔨 Web-Go imajı build ediliyor...
+    View a summary of image vulnerabilities and recommendations → docker scout quickview 
+✓ API-Go imajı oluşturuldu 
+🔨 Web-Go imajı build ediliyor... 
 [+] Building 0.3s (8/8) FINISHED                                                                                                                      docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                  0.0s
  => => transferring dockerfile: 191B                                                                                                                                  0.0s
@@ -342,87 +350,107 @@ What's next:
  => => writing image sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5                                                                          0.0s
  => => naming to docker.io/library/datetime-web-go:latest                                                                                                             0.0s
 
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jp5kxu25mhau6kh0hjpxao2my
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/8d46yehlld6x1hszawlj7m62m
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview
-✓ Web-Go imajı oluşturuldu
-✓ Tüm imajlar oluşturuldu
-📦 İmajlar Kind cluster'a yükleniyor...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker2", loading...
+    View a summary of image vulnerabilities and recommendations → docker scout quickview 
+✓ Web-Go imajı oluşturuldu 
+✓ Tüm imajlar oluşturuldu 
+📦 İmajlar Kind cluster'a yükleniyor... 
 Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker2", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker3", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker2", loading...
+Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker", loading...
 Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane", loading...
-Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker", loading...
-Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker2", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker3", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker2", loading...
+Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker", loading...
 Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane", loading...
-Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker", loading...
-Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker2", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker3", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker2", loading...
+Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker", loading...
 Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-control-plane", loading...
-✓ İmajlar yüklendi
-📦 Kubernetes kaynakları uygulanıyor...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker3", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker2", loading...
+Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker", loading...
+✓ İmajlar yüklendi 
+📦 Kubernetes kaynakları uygulanıyor... 
 deployment.apps/datetime-api created
 service/datetime-api-service created
-✓ API deployment uygulandı
+✓ API deployment uygulandı 
 deployment.apps/datetime-web created
 service/datetime-web-service created
-✓ Web deployment uygulandı
+✓ Web deployment uygulandı 
 deployment.apps/datetime-api-go created
 service/datetime-api-go-service created
-✓ API-Go deployment uygulandı
+✓ API-Go deployment uygulandı 
 deployment.apps/datetime-web-go created
 service/datetime-web-go-service created
-✓ Web-Go deployment uygulandı
+✓ Web-Go deployment uygulandı 
 ingress.networking.k8s.io/datetime-ingress created
-✓ Ingress uygulandı
+✓ Ingress uygulandı 
 
-⏳ Deployment'ların hazır olması bekleniyor...
+⏳ Deployment'ların hazır olması bekleniyor... 
 deployment.apps/datetime-api condition met
 deployment.apps/datetime-web condition met
 deployment.apps/datetime-api-go condition met
 deployment.apps/datetime-web-go condition met
-✓ Tüm deployment'lar hazır
-📝 /etc/hosts dosyası güncelleniyor...
-✓ /etc/hosts zaten güncel
+✓ Tüm deployment'lar hazır 
+⚖️  HAProxy load balancer kontrol ediliyor... 
+HAProxy load balancer başlatılıyor... 
+✓ HAProxy load balancer başlatıldı 
 
-======================================
-🎉 Deployment tamamlandı! 🎉
-======================================
+HAProxy Bilgisi: 
+  Port 80  : HTTP Traffic (HA Load Balancing)
+  Port 443 : HTTPS Traffic (HA Load Balancing)
+  Port 8404: HAProxy Stats (http://localhost:8404)
+📝 /etc/hosts dosyası güncelleniyor... 
+✓ /etc/hosts zaten güncel 
 
-⏱️  Toplam Süre: 1 dakika 57 saniye
+====================================== 
+🎉 Deployment tamamlandı! 🎉 
+====================================== 
 
-📊 Durum Bilgisi:
+⏱️  Toplam Süre: 2 dakika 55 saniye 
+
+📊 Durum Bilgisi: 
 NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
-datetime-api-5dcc57466c-6ml9n      1/1     Running   0          8s    10.244.1.2   kind-worker    <none>           <none>
-datetime-api-5dcc57466c-c685z      1/1     Running   0          8s    10.244.2.2   kind-worker2   <none>           <none>
-datetime-api-go-69d7d7c5c-8b4wf    1/1     Running   0          7s    10.244.1.4   kind-worker    <none>           <none>
-datetime-api-go-69d7d7c5c-bvm9d    1/1     Running   0          7s    10.244.2.5   kind-worker2   <none>           <none>
-datetime-api-go-69d7d7c5c-tkqtl    1/1     Running   0          7s    10.244.2.4   kind-worker2   <none>           <none>
-datetime-web-567d9789cd-6jljg      1/1     Running   0          8s    10.244.2.3   kind-worker2   <none>           <none>
-datetime-web-567d9789cd-8s6zd      1/1     Running   0          8s    10.244.1.3   kind-worker    <none>           <none>
-datetime-web-go-5c776fd996-dwrsr   1/1     Running   0          7s    10.244.2.6   kind-worker2   <none>           <none>
-datetime-web-go-5c776fd996-fncb9   1/1     Running   0          7s    10.244.1.5   kind-worker    <none>           <none>
+datetime-api-5dcc57466c-5d9sh      1/1     Running   0          10s   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-5dcc57466c-945q2      1/1     Running   0          10s   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-go-69d7d7c5c-5hn8p    1/1     Running   0          10s   10.244.3.4   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sntnc    1/1     Running   0          10s   10.244.5.3   kind-worker3   <none>           <none>
+datetime-api-go-69d7d7c5c-znzr6    1/1     Running   0          10s   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-567d9789cd-ljlzw      1/1     Running   0          10s   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-567d9789cd-p779z      1/1     Running   0          10s   10.244.4.2   kind-worker    <none>           <none>
+datetime-web-go-5c776fd996-gq9tq   1/1     Running   0          10s   10.244.4.4   kind-worker    <none>           <none>
+datetime-web-go-5c776fd996-nrfpk   1/1     Running   0          10s   10.244.5.4   kind-worker3   <none>           <none>
 
 NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-datetime-api-go-service   ClusterIP   10.96.176.236   <none>        80/TCP    7s
-datetime-api-service      ClusterIP   10.96.99.148    <none>        80/TCP    8s
-datetime-web-go-service   ClusterIP   10.96.15.170    <none>        80/TCP    7s
-datetime-web-service      ClusterIP   10.96.176.189   <none>        80/TCP    8s
-kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   107s
+datetime-api-go-service   ClusterIP   10.96.159.205   <none>        80/TCP    10s
+datetime-api-service      ClusterIP   10.96.8.181     <none>        80/TCP    10s
+datetime-web-go-service   ClusterIP   10.96.63.248    <none>        80/TCP    10s
+datetime-web-service      ClusterIP   10.96.84.28     <none>        80/TCP    10s
+kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   2m43s
 
 NAME               CLASS   HOSTS                                          ADDRESS   PORTS   AGE
-datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      7s
+datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      10s
 
-======================================
-🌐 Uygulamaya Erişim:
-======================================
-  C# Uygulamaları:
+====================================== 
+🌐 Uygulamaya Erişim: 
+====================================== 
+  C# Uygulamaları: 
     Web: http://web.local
     API: http://api.local/api/datetime
 
-  Go Uygulamaları:
+  Go Uygulamaları: 
     Web-Go: http://web-go.local
     API-Go: http://api-go.local/health
 ```
@@ -434,7 +462,7 @@ datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...         
 
 **Created Resources:**
 
-- ✅ Multi-node Kubernetes cluster (1 control-plane + 2 workers)
+- ✅ Multi-node Kubernetes cluster (3 control-planes + 3 workers - HA setup)
 - ✅ NGINX Ingress Controller (on worker nodes, 2 replicas)
 - ✅ 2x datetime-api pods (on worker nodes)
 - ✅ 2x datetime-web pods (on worker nodes)
@@ -582,7 +610,7 @@ datetime-k8s/
 
 | File                 | Function                                                 | Auto-created?                                        |
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
-| **kind-config.yaml** | Kind cluster configuration (1 control-plane + 2 workers) | ✅ Yes (with `make create-cluster` or `make deploy`) |
+| **kind-config.yaml** | Kind cluster configuration (3 control-planes + 3 workers - HA setup) | ✅ Yes (with `make create-cluster` or `make deploy`) |
 
 **Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](docs/WORKER_NODES.en.md).
 
@@ -1166,7 +1194,7 @@ For detailed troubleshooting, see [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 
 - **Image Pull Policy**: `imagePullPolicy: Never` is set for Kind
 - **Replicas**: 2 replicas run for each service by default
-- **Multi-Node Cluster**: Uses 1 control-plane + 2 worker nodes configuration by default
+- **Multi-Node Cluster**: Uses 3 control-planes + 3 worker nodes configuration by default (HA setup)
   - Control-plane: Kubernetes management components and Ingress Controller
   - Worker nodes: Application pods (datetime-api, datetime-web)
   - For details: [WORKER_NODES](docs/WORKER_NODES.en.md)

@@ -1,0 +1,95 @@
+sequenceDiagram
+    autonumber
+    title Complete Request Flow - HA Architecture (3+3 Cluster)
+
+    participant User as 👤 User<br/>(Browser)
+    participant DNS as 🌐 /etc/hosts<br/>(DNS)
+    participant HAProxy as ⚖️ HAProxy LB<br/>(Port 80)
+    participant Ingress as 🔀 NGINX Ingress<br/>(Worker Node)
+    participant K8sSvc as 🎯 Kubernetes<br/>Service
+    participant CSharpAPI as 💜 C# API<br/>(.NET 9)
+    participant Resilience as 🛡️ Resilience<br/>Layer
+    participant CoreDNS as 📡 CoreDNS<br/>(K8s DNS)
+    participant GoSvc as 🎯 Go Service<br/>(K8s)
+    participant GoAPI as 🔵 Go API<br/>(Go 1.25)
+
+    rect rgb(240, 248, 255)
+    Note over User,GoAPI: PHASE 1: External Request to C# API
+    end
+
+    User->>DNS: Resolve api.local
+    DNS-->>User: 127.0.0.1 (localhost)
+
+    User->>HAProxy: GET http://api.local/api/datetime<br/>Host: api.local
+
+    Note over HAProxy: Layer 1: Worker Selection<br/>Round-robin algorithm<br/>Health check: /healthz
+
+    HAProxy->>Ingress: Forward to Worker 2<br/>(Selected via round-robin)
+
+    Note over Ingress: Layer 2: Host-based Routing<br/>Check Host header: "api.local"<br/>Match Ingress rule
+
+    Ingress->>K8sSvc: Route to api-service<br/>(ClusterIP: 10.96.x.x)
+
+    Note over K8sSvc: Layer 3: Pod Selection<br/>kube-proxy round-robin<br/>Select from 2 replicas
+
+    K8sSvc->>CSharpAPI: Forward to C# API Pod<br/>(Replica 1 or 2)
+
+    activate CSharpAPI
+
+    Note over CSharpAPI: Endpoint: GET /api/datetime<br/>Minimal API Controller
+
+    rect rgb(255, 250, 240)
+    Note over CSharpAPI,GoAPI: PHASE 2: Service-to-Service Call (C# → Go)
+    end
+
+    CSharpAPI->>Resilience: Prepare Go API call<br/>(datetime-api-go-service)
+
+    Note over Resilience: Check Resiliency Policies:<br/>✓ Circuit Breaker: Closed<br/>✓ Rate Limit: 20 req/s<br/>✓ Timeout: 10s<br/>✓ Retry: Exponential backoff
+
+    Resilience->>CoreDNS: Resolve datetime-api-go-service
+
+    Note over CoreDNS: Service Discovery<br/>FQDN: datetime-api-go-service<br/>.default.svc.cluster.local
+
+    CoreDNS-->>Resilience: ClusterIP: 10.96.y.y
+
+    Resilience->>GoSvc: HTTP GET /health<br/>(Go API service)
+
+    Note over GoSvc: kube-proxy routing<br/>Select from 3 replicas
+
+    GoSvc->>GoAPI: Forward to Go API Pod<br/>(Replica 1, 2, or 3)
+
+    activate GoAPI
+
+    Note over GoAPI: Rate Limit Check:<br/>Token bucket: 30 req/s<br/>Circuit Breaker: Closed
+
+    GoAPI-->>GoSvc: 200 OK<br/>{"status": "healthy", "time": "..."}
+
+    deactivate GoAPI
+
+    GoSvc-->>Resilience: Response
+
+    Resilience-->>CSharpAPI: Go API response
+
+    Note over CSharpAPI: Process response<br/>Combine with local datetime<br/>Turkish formatting
+
+    rect rgb(240, 255, 240)
+    Note over CSharpAPI,User: PHASE 3: Response Flow Back to User
+    end
+
+    CSharpAPI-->>K8sSvc: 200 OK<br/>{"date": "26.10.2025", ...}
+
+    deactivate CSharpAPI
+
+    K8sSvc-->>Ingress: Response
+
+    Ingress-->>HAProxy: Response
+
+    HAProxy-->>User: HTTP 200 OK<br/>Content-Type: application/json<br/>{"date": "26.10.2025", "time": "14:30:00", ...}
+
+    rect rgb(255, 240, 240)
+    Note over User,GoAPI: Total Latency: ~20-50ms<br/>Breakdown:<br/>HAProxy→Ingress: ~2ms<br/>Ingress→Service: ~3ms<br/>Service→Pod: ~2ms<br/>C# Processing: ~5ms<br/>C#→Go API: ~8ms<br/>Response: ~5ms
+    end
+
+    rect rgb(255, 255, 240)
+    Note over HAProxy,GoAPI: HA Features Active:<br/>✓ HAProxy: 3 workers available<br/>✓ NGINX: 3 replicas (1 per worker)<br/>✓ C# API: 2 pod replicas<br/>✓ Go API: 3 pod replicas<br/>✓ Circuit Breaker: Protecting calls<br/>✓ Rate Limiting: Preventing overload
+    end

@@ -205,8 +205,8 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/component: controller
 spec:
-  # 2 replicas for high availability across both worker nodes
-  replicas: 2
+  # 3 replicas for high availability across all 3 worker nodes
+  replicas: 3
   revisionHistoryLimit: 10
 
   # ⭐ OPTIMIZASYON: Progressive rollout - bir anda sadece 1 yeni replica ayağa kalkar

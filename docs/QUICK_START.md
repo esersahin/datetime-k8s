@@ -88,7 +88,7 @@ curl http://web.local
 ```bash
 # 1. Cluster çalışıyor mu?
 kubectl get nodes
-# Beklenen: 3 node (1 control-plane + 2 workers)
+# Beklenen: 6 nodes (3 control-planes + 3 workers - HA setup)
 
 # 2. Pod'lar hazır mı?
 kubectl get pods --all-namespaces
@@ -483,7 +483,7 @@ Başarılı deployment için:
 - [ ] Docker, Kind, kubectl kurulu
 - [ ] Proje dosyaları doğru klasörlerde
 - [ ] `make deploy` çalıştırıldı
-- [ ] 3 node var (1 control + 2 worker)
+- [ ] 6 nodes var (3 control-planes + 3 workers - HA setup)
 - [ ] Ingress Controller control-plane'de
 - [ ] Tüm pod'lar Running
 - [ ] Endpoint'ler mevcut

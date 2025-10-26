@@ -192,8 +192,8 @@ All technologies used in the project and their relationships.
 
 **Cluster:**
 - Kind (Kubernetes in Docker)
-- 1 Control Plane node
-- 2 Worker nodes
+- 3 Control Plane nodes (HA setup)
+- 3 Worker nodes (HA setup)
 
 **Networking:**
 - NGINX Ingress Controller

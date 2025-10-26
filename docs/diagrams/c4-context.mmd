@@ -1,14 +1,18 @@
 C4Context
-    title System Context - DateTime Kubernetes Application
+    title System Context - DateTime Kubernetes Application (HA Setup)
 
     Person(user, "End User", "Application user accessing via browser")
     Person(developer, "Developer", "Tests APIs and monitors system")
 
-    System_Boundary(k8s, "DateTime K8s System") {
-        System(datetime_system, "DateTime Microservices", "Polyglot microservices (CSharp + Go) with resiliency patterns")
+    System_Ext(haproxy_lb, "HAProxy Load Balancer", "External LB providing HA access on port 80/443")
+
+    System_Boundary(k8s, "DateTime K8s System - HA Cluster") {
+        System(datetime_system, "DateTime Microservices", "Polyglot microservices (CSharp + Go) with resiliency patterns - 3 control-plane + 3 worker nodes")
     }
 
-    Rel(user, datetime_system, "Views date/time info", "HTTPS/HTTP")
+    Rel(user, haproxy_lb, "Accesses", "HTTP :80")
+    Rel(haproxy_lb, datetime_system, "Load balances to workers", "Round-robin + Health Check")
     Rel(developer, datetime_system, "Tests & monitors", "HTTP, kubectl")
+    Rel(developer, haproxy_lb, "Monitors LB stats", "HTTP :8404")
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

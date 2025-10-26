@@ -88,7 +88,7 @@ curl http://web.local
 ```bash
 # 1. Is cluster running?
 kubectl get nodes
-# Expected: 3 nodes (1 control-plane + 2 workers)
+# Expected: 6 nodes (3 control-planes + 3 workers - HA setup)
 
 # 2. Are pods ready?
 kubectl get pods --all-namespaces
@@ -483,7 +483,7 @@ For successful deployment:
 - [ ] Docker, Kind, kubectl installed
 - [ ] Project files in correct folders
 - [ ] `make deploy` executed
-- [ ] 3 nodes present (1 control + 2 workers)
+- [ ] 6 nodes present (3 control-planes + 3 workers - HA setup)
 - [ ] Ingress Controller on control-plane
 - [ ] All pods Running
 - [ ] Endpoints exist

@@ -96,10 +96,10 @@ load-images: build-all ## İmajları Kind cluster'a yükler
 	@kind load docker-image $(WEB_GO_IMAGE) --name $(CLUSTER_NAME)
 	@echo "$(GREEN)✓ İmajlar yüklendi$(NC)"
 
-create-cluster: ## Kind cluster oluşturur (multi-node: 1 control-plane + 2 workers)
+create-cluster: ## Kind cluster oluşturur (multi-node: 3 control-planes + 3 workers HA setup)
 	@echo "$(YELLOW)🚀 Kind cluster kontrol ediliyor...$(NC)"
 	@if ! kind get clusters | grep -q "$(CLUSTER_NAME)"; then \
-		echo "$(YELLOW)Kind cluster oluşturuluyor (1 control-plane + 2 workers)...$(NC)"; \
+		echo "$(YELLOW)Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)...$(NC)"; \
 		if [ ! -f "k8s/kind-config.yaml" ]; then \
 			echo "$(RED)❌ HATA: k8s/kind-config.yaml bulunamadı!$(NC)"; \
 			echo "$(YELLOW)Bu dosya worker node yapılandırması için gereklidir.$(NC)"; \
@@ -207,7 +207,7 @@ update-hosts: ## /etc/hosts dosyasını günceller
 deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
 	@echo "$(BLUE)⏱️  Deployment başlatılıyor...$(NC)"
 	@START_TIME=$$(date +%s); \
-	$(MAKE) create-cluster install-ingress fix-ingress fix-webhooks load-images deploy-k8s update-hosts; \
+	$(MAKE) create-cluster install-ingress fix-ingress fix-webhooks load-images deploy-k8s install-haproxy update-hosts; \
 	END_TIME=$$(date +%s); \
 	DURATION=$$((END_TIME - START_TIME)); \
 	MINUTES=$$((DURATION / 60)); \
@@ -416,7 +416,7 @@ clean-cluster: ## Kind cluster'ı siler
 	@kind delete cluster --name $(CLUSTER_NAME)
 	@echo "$(GREEN)✓ Cluster silindi$(NC)"
 
-clean-all: clean clean-cluster ## Her şeyi temizler (cluster + kaynaklar)
+clean-all: clean clean-cluster remove-haproxy ## Her şeyi temizler (cluster + kaynaklar + HAProxy)
 	@echo "$(GREEN)✓ Tüm kaynaklar temizlendi$(NC)"
 	@echo ""
 	@echo "$(YELLOW)⚠️  /etc/hosts dosyasını manuel temizlemeyi unutmayın:$(NC)"
@@ -436,3 +436,34 @@ quick-update: build-all load-images ## Sadece imajları günceller (cluster'ı d
 	@kubectl rollout status deployment datetime-api-go 2>/dev/null || true
 	@kubectl rollout status deployment datetime-web-go 2>/dev/null || true
 	@echo "$(GREEN)✓ Güncelleme tamamlandı$(NC)"
+install-haproxy: ## HAProxy load balancer kurar (Port 80 için HA)
+	@echo "$(YELLOW)⚖️  HAProxy load balancer kontrol ediliyor...$(NC)"
+	@if docker ps --format '{{.Names}}' | grep -q "^kind-http-lb$$"; then \
+		echo "$(GREEN)✓ HAProxy zaten çalışıyor$(NC)"; \
+	else \
+		echo "$(YELLOW)HAProxy load balancer başlatılıyor...$(NC)"; \
+		if [ ! -f "k8s/haproxy-lb.cfg" ]; then \
+			echo "$(RED)❌ HATA: k8s/haproxy-lb.cfg bulunamadı!$(NC)"; \
+			exit 1; \
+		fi; \
+		docker run -d \
+			--name kind-http-lb \
+			--network kind \
+			-p 80:80 \
+			-p 443:443 \
+			-p 8404:8404 \
+			-v $(PWD)/k8s/haproxy-lb.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
+			haproxy:2.8-alpine > /dev/null 2>&1; \
+		sleep 2; \
+		echo "$(GREEN)✓ HAProxy load balancer başlatıldı$(NC)"; \
+		echo ""; \
+		echo "$(BLUE)HAProxy Bilgisi:$(NC)"; \
+		echo "  Port 80  : HTTP Traffic (HA Load Balancing)"; \
+		echo "  Port 443 : HTTPS Traffic (HA Load Balancing)"; \
+		echo "  Port 8404: HAProxy Stats (http://localhost:8404)"; \
+	fi
+
+remove-haproxy: ## HAProxy load balancer'ı kaldırır
+	@echo "$(YELLOW)🗑️  HAProxy load balancer kaldırılıyor...$(NC)"
+	@docker rm -f kind-http-lb 2>/dev/null || true
+	@echo "$(GREEN)✓ HAProxy kaldırıldı$(NC)"

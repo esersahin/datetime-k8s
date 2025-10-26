@@ -39,7 +39,7 @@ Bu dokümanda yapılan tüm değişikliklerin hızlı bir özeti bulunmaktadır.
     └── Uygulama pod'ları
 ```
 
-### Sonrası (Multi-Node)
+### Ara Dönem (Multi-Node)
 
 ```
 ├── 1 Control-Plane Node
@@ -51,24 +51,63 @@ Bu dokümanda yapılan tüm değişikliklerin hızlı bir özeti bulunmaktadır.
     └── Uygulama pod'ları
 ```
 
+### Güncel (HA Setup - Yüksek Erişilebilirlik)
+
+```
+├── Control-Plane Node 1 (kind-control-plane)
+│   ├── Control plane bileşenleri
+│   └── etcd (replika 1/3)
+├── Control-Plane Node 2 (kind-control-plane2)
+│   ├── Control plane bileşenleri
+│   └── etcd (replika 2/3)
+├── Control-Plane Node 3 (kind-control-plane3)
+│   ├── Control plane bileşenleri
+│   └── etcd (replika 3/3)
+├── Worker Node 1 (kind-worker)
+│   ├── Ingress Controller
+│   └── Uygulama pod'ları
+├── Worker Node 2 (kind-worker2)
+│   ├── Ingress Controller
+│   └── Uygulama pod'ları
+└── Worker Node 3 (kind-worker3)
+    ├── Ingress Controller
+    └── Uygulama pod'ları
+```
+
 ---
 
 ## 📝 Değiştirilen Dosyalar
 
 ### 1. `kind-config.yaml` ✅
 
-**Değişiklik**: 2 worker node eklendi
+**Değişiklik**: 3 control-plane + 3 worker node (HA setup)
 
 ```yaml
 nodes:
-  - role: control-plane
-    # ... port mappings
-  - role: worker # YENİ!
+  # Control Plane Nodes - HA için 3 replika
+  - role: control-plane # Node 1
+  - role: control-plane # Node 2 - YENİ!
+  - role: control-plane # Node 3 - YENİ!
+
+  # Worker Nodes - Load balancing için 3 node
+  - role: worker # Node 1
     labels:
       worker-group: group-1
-  - role: worker # YENİ!
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+  - role: worker # Node 2
     labels:
       worker-group: group-2
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8080
+  - role: worker # Node 3 - YENİ!
+    labels:
+      worker-group: group-3
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8081
 ```
 
 ### 2. `Makefile` ✅
@@ -376,6 +415,7 @@ kind-worker2
 
 - `worker-group=group-1` (özel)
 - `worker-group=group-2` (özel)
+- `worker-group=group-3` (özel) - YENİ!
 
 ---
 
@@ -383,7 +423,7 @@ kind-worker2
 
 Değişikliklerden sonra doğrulayın:
 
-- [ ] `kubectl get nodes` → 3 node
+- [ ] `kubectl get nodes` → 6 nodes (3 control-planes + 3 workers)
 - [ ] `kubectl get pods -n ingress-nginx -o wide` → NODE=kind-control-plane
 - [ ] `kubectl get pods -o wide` → Pod'lar worker node'larda
 - [ ] `kind-config.yaml` proje kökünde mevcut
@@ -402,9 +442,10 @@ Tüm yeni dokümantasyon dosyaları:
 3. **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)** - Tüm düzeltme yöntemleri
 4. **[INGRESS_SETUP](INGRESS_SETUP.md)** - Kurulum rehberi
 5. **[LOAD_BALANCING](LOAD_BALANCING.md)** - LB stratejileri
-6. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Tam genel bakış
-7. **[TROUBLESHOOTING](TROUBLESHOOTING.md)** - Tüm sorunlar ve çözümler
-8. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya
+6. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** - HAProxy HA Load Balancer rehberi
+7. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Tam genel bakış
+8. **[TROUBLESHOOTING](TROUBLESHOOTING.md)** - Tüm sorunlar ve çözümler
+9. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya
 
 ---
 
@@ -414,10 +455,11 @@ Tüm yeni dokümantasyon dosyaları:
 
 **Ana Başarı**: Tek komut (`make deploy`) ile canlıya benzer ortam oluşturma:
 
-- 3 node (1 control + 2 worker)
-- Ingress Controller doğru node'da
-- Load balancing çalışıyor
-- Tüm servisler erişilebilir
+- 6 node (3 control-plane + 3 worker) - HA setup
+- 3 replika Ingress Controller (her worker'da)
+- HAProxy load balancer (DNS-based, otomatik failover)
+- Port 80/443 ile standart erişim (port numarası gereksiz)
+- Worker node arıza toleransı (1 worker kapansa bile sistem çalışır)
 - Sıfır manuel yapılandırma gerekli
 
 **Deployment Süresi**: ~2-3 dakika (önceden ~15-20 dakika)

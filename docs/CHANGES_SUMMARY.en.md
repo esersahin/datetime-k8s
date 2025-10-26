@@ -39,7 +39,7 @@ This document contains a quick summary of all changes made.
     └── Application pods
 ```
 
-### After (Multi-Node)
+### Intermediate (Multi-Node)
 
 ```
 ├── 1 Control-Plane Node
@@ -51,24 +51,63 @@ This document contains a quick summary of all changes made.
     └── Application pods
 ```
 
+### Current (HA Setup - High Availability)
+
+```
+├── Control-Plane Node 1 (kind-control-plane)
+│   ├── Control plane components
+│   └── etcd (replica 1/3)
+├── Control-Plane Node 2 (kind-control-plane2)
+│   ├── Control plane components
+│   └── etcd (replica 2/3)
+├── Control-Plane Node 3 (kind-control-plane3)
+│   ├── Control plane components
+│   └── etcd (replica 3/3)
+├── Worker Node 1 (kind-worker)
+│   ├── Ingress Controller
+│   └── Application pods
+├── Worker Node 2 (kind-worker2)
+│   ├── Ingress Controller
+│   └── Application pods
+└── Worker Node 3 (kind-worker3)
+    ├── Ingress Controller
+    └── Application pods
+```
+
 ---
 
 ## 📝 Modified Files
 
 ### 1. `kind-config.yaml` ✅
 
-**Change**: Added 2 worker nodes
+**Change**: 3 control-planes + 3 worker nodes (HA setup)
 
 ```yaml
 nodes:
-  - role: control-plane
-    # ... port mappings
-  - role: worker # NEW!
+  # Control Plane Nodes - 3 replicas for HA
+  - role: control-plane # Node 1
+  - role: control-plane # Node 2 - NEW!
+  - role: control-plane # Node 3 - NEW!
+
+  # Worker Nodes - 3 nodes for load balancing
+  - role: worker # Node 1
     labels:
       worker-group: group-1
-  - role: worker # NEW!
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+  - role: worker # Node 2
     labels:
       worker-group: group-2
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8080
+  - role: worker # Node 3 - NEW!
+    labels:
+      worker-group: group-3
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 8081
 ```
 
 ### 2. `Makefile` ✅
@@ -376,6 +415,7 @@ kind-worker2
 
 - `worker-group=group-1` (custom)
 - `worker-group=group-2` (custom)
+- `worker-group=group-3` (custom) - NEW!
 
 ---
 
@@ -383,7 +423,7 @@ kind-worker2
 
 After changes, verify:
 
-- [ ] `kubectl get nodes` → 3 nodes
+- [ ] `kubectl get nodes` → 6 nodes (3 control-planes + 3 workers)
 - [ ] `kubectl get pods -n ingress-nginx -o wide` → NODE=kind-control-plane
 - [ ] `kubectl get pods -o wide` → Pods on worker nodes
 - [ ] `kind-config.yaml` exists in project root
@@ -402,9 +442,10 @@ All new documentation files:
 3. **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** - All fix methods
 4. **[INGRESS_SETUP](INGRESS_SETUP.en.md)** - Setup guide
 5. **[LOAD_BALANCING](LOAD_BALANCING.en.md)** - LB strategies
-6. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Complete overview
-7. **[TROUBLESHOOTING](TROUBLESHOOTING.en.md)** - All issues and solutions
-8. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file
+6. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** - HAProxy HA Load Balancer guide
+7. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Complete overview
+8. **[TROUBLESHOOTING](TROUBLESHOOTING.en.md)** - All issues and solutions
+9. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file
 
 ---
 
@@ -414,10 +455,11 @@ All new documentation files:
 
 **Key Achievement**: One command (`make deploy`) creates a production-like environment with:
 
-- 3 nodes (1 control + 2 worker)
-- Ingress Controller on correct node
-- Load balancing working
-- All services accessible
+- 6 nodes (3 control-plane + 3 worker) - HA setup
+- 3 replica Ingress Controller (on each worker)
+- HAProxy load balancer (DNS-based, automatic failover)
+- Standard port 80/443 access (no port numbers needed)
+- Worker node fault tolerance (system continues even if 1 worker is down)
 - Zero manual configuration needed
 
 **Time to Deploy**: ~2-3 minutes (was ~15-20 minutes)

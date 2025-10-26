@@ -1,0 +1,115 @@
+graph TB
+    subgraph Infrastructure["🏗️ Infrastructure & Orchestration"]
+        subgraph Docker["Docker Engine"]
+            Kind["Kind v1.34<br/>Kubernetes in Docker"]
+        end
+
+        subgraph K8s["Kubernetes Cluster - HA Setup"]
+            subgraph ControlPlane["Control Plane (3 Nodes)"]
+                API["API Server<br/>kube-apiserver"]
+                Scheduler["Scheduler<br/>kube-scheduler"]
+                Controller["Controller Manager<br/>kube-controller"]
+                etcd["etcd v3.5<br/>Distributed KV Store<br/>3-node cluster"]
+            end
+
+            subgraph Workers["Worker Nodes (3 Nodes)"]
+                Kubelet["Kubelet"]
+                KubeProxy["kube-proxy<br/>Service Load Balancing"]
+                ContainerRuntime["containerd"]
+            end
+
+            CoreDNS["CoreDNS<br/>DNS Service Discovery"]
+        end
+
+        HAProxy["HAProxy 2.8<br/>External Load Balancer<br/>Port 80/443/8404"]
+        Ingress["NGINX Ingress Controller<br/>v1.13.3<br/>3 Replicas - hostNetwork"]
+    end
+
+    subgraph Applications["🚀 Applications"]
+        subgraph CSharpStack["C# Stack (.NET 9)"]
+            CSharpAPI["API - Minimal API<br/>ASP.NET Core 9.0<br/>2 Replicas"]
+            CSharpWeb["Web UI<br/>NGINX + HTML/JS<br/>2 Replicas"]
+        end
+
+        subgraph GoStack["Go Stack (Go 1.25)"]
+            GoAPI["API - net/http<br/>Go 1.25<br/>3 Replicas"]
+            GoWeb["Web UI<br/>NGINX + HTML/JS<br/>2 Replicas"]
+        end
+    end
+
+    subgraph Resiliency["🛡️ Resiliency Patterns"]
+        subgraph CSharpResilience["C# (.NET Resilience)"]
+            CB1["Circuit Breaker<br/>Microsoft.Extensions.Http.Resilience"]
+            Retry1["Retry Policy<br/>Exponential Backoff + Jitter"]
+            RateLimit1["Rate Limiter<br/>Token Bucket: 100 req/s"]
+            Timeout1["Timeout Handler<br/>10s request, 30s total"]
+        end
+
+        subgraph GoResilience["Go (Custom Resilience)"]
+            CB2["Circuit Breaker<br/>sony/gobreaker"]
+            RateLimit2["Rate Limiter<br/>golang.org/x/time/rate<br/>150 req/s"]
+        end
+    end
+
+    subgraph Observability["📊 Observability & Monitoring"]
+        Logging["Structured Logging<br/>Serilog (C#)<br/>zerolog (Go)"]
+        Metrics["Health Checks<br/>/health endpoints"]
+        HAProxyStats["HAProxy Stats<br/>Port 8404"]
+    end
+
+    subgraph DevTools["🛠️ Development Tools"]
+        Makefile["Makefile<br/>Automation Scripts"]
+        Docker2["Docker Desktop<br/>Container Runtime"]
+        Kubectl["kubectl<br/>Kubernetes CLI"]
+        GHCLI["GitHub CLI (gh)<br/>PR Management"]
+    end
+
+    %% Infrastructure connections
+    HAProxy -->|Round-robin + Health Check| Ingress
+    Ingress -->|Host-based Routing| CSharpAPI
+    Ingress -->|Host-based Routing| CSharpWeb
+    Ingress -->|Host-based Routing| GoAPI
+    Ingress -->|Host-based Routing| GoWeb
+
+    etcd -->|Raft Consensus| API
+    API -->|Manages| Scheduler
+    API -->|Manages| Controller
+    Kubelet -->|Reports to| API
+    KubeProxy -->|Configures| Workers
+
+    CoreDNS -->|Service Discovery| CSharpAPI
+    CoreDNS -->|Service Discovery| GoAPI
+
+    %% Application interactions
+    CSharpWeb -.->|Fetches Data| CSharpAPI
+    GoWeb -.->|Fetches Data| GoAPI
+    CSharpAPI -->|Service-to-Service| GoAPI
+
+    %% Resiliency
+    CSharpAPI -->|Protected by| CB1
+    CSharpAPI -->|Uses| Retry1
+    CSharpAPI -->|Limited by| RateLimit1
+    CSharpAPI -->|Timeout by| Timeout1
+
+    GoAPI -->|Protected by| CB2
+    GoAPI -->|Limited by| RateLimit2
+
+    %% Observability
+    CSharpAPI -.->|Logs| Logging
+    GoAPI -.->|Logs| Logging
+    CSharpAPI -.->|Exposes| Metrics
+    GoAPI -.->|Exposes| Metrics
+    HAProxy -.->|Stats| HAProxyStats
+
+    %% Styling
+    classDef infraStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef appStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef resilienceStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef obsStyle fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef devStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+
+    class HAProxy,Ingress,Kind,K8s,API,Scheduler,Controller,etcd,Kubelet,KubeProxy,ContainerRuntime,CoreDNS infraStyle
+    class CSharpAPI,CSharpWeb,GoAPI,GoWeb appStyle
+    class CB1,Retry1,RateLimit1,Timeout1,CB2,RateLimit2 resilienceStyle
+    class Logging,Metrics,HAProxyStats obsStyle
+    class Makefile,Docker2,Kubectl,GHCLI devStyle
