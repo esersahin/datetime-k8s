@@ -559,22 +559,48 @@ datetime-k8s/
 │   └── Dockerfile                     # Web-Go Docker image
 ├── k8s/                               # Kubernetes Manifests
 │   ├── api-deployment.yaml            # API (C#) Deployment + Service
-│   ├── web-deployment.yaml            # Web (C#) Deployment + Service
 │   ├── api-go-deployment.yaml         # API-Go Deployment + Service
-│   ├── web-go-deployment.yaml         # Web-Go Deployment + Service
-│   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
+│   ├── haproxy-lb.cfg                 # HAProxy Load Balancer Configuration
+│   ├── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
 │   ├── ingress.yaml                   # Ingress (api.local, web.local, api-go.local, web-go.local)
-│   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
+│   ├── kind-config.yaml               # ⚙️ Kind cluster config (3 control-plane + 3 worker HA)
+│   ├── web-deployment.yaml            # Web (C#) Deployment + Service
+│   └── web-go-deployment.yaml         # Web-Go Deployment + Service
 ├── docs/                              # Documents
-│   ├── CHANGES_SUMMARY.md             # 📄 Projede yapılan değişikliklerin özeti
+│   ├── ARCHITECTURE.en.md             # 📘 System architecture overview
+│   ├── ARCHITECTURE.md                # 📘 Sistem mimarisi genel bakış
+│   ├── ARCHITECTURE_C4.en.md          # 📘 C4 model architecture diagrams
+│   ├── ARCHITECTURE_C4.md             # 📘 C4 model mimari diyagramları
+│   ├── architecture-diagram.md        # 📘 Architecture diagram documentation
+│   ├── c4-diagrams.md                 # 📘 C4 diagram generation guide
+│   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
+│   ├── CHANGES_SUMMARY.md             # 📄 Değişikliklerin özeti
+│   ├── HAPROXY_LOADBALANCER.en.md     # 📘 HAProxy load balancer setup
+│   ├── HAPROXY_LOADBALANCER.md        # 📘 HAProxy load balancer kurulumu
+│   ├── HAPROXY_NGINX_ARCHITECTURE.en.md # 📘 HAProxy vs NGINX architecture
+│   ├── HAPROXY_NGINX_ARCHITECTURE.md  # 📘 HAProxy vs NGINX mimarisi
+│   ├── INGRESS_CONTROLLER_FIX.en.md   # 📘 Ingress fix methods
 │   ├── INGRESS_CONTROLLER_FIX.md      # 📘 Ingress düzeltme yöntemleri
+│   ├── INGRESS_ROUTING.en.md          # 📘 Ingress routing explanation
 │   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
+│   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
 │   ├── INGRESS_SETUP.md               # 📘 Ingress kurulum rehberi
+│   ├── INGRESS-WORKER-NODE-MIGRATION.en.md # 📘 Ingress worker node migration
+│   ├── INGRESS-WORKER-NODE-MIGRATION.md # 📘 Ingress worker node taşıma
+│   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
 │   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
-│   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin ve önemli noktaların özeti
-│   ├── QUICK_START.md                 # 📘 Setup, deploy, test ve diğer operasyonlar
+│   ├── MACOS_NETWORK_FIX.en.md        # 📘 macOS network troubleshooting
+│   ├── MACOS_NETWORK_FIX.md           # 📘 macOS network sorun giderme
+│   ├── PROJECT_SUMMARY.en.md          # 📘 Summary of components and key points
+│   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin özeti
+│   ├── QUICK_START.en.md              # 📘 Quick start guide
+│   ├── QUICK_START.md                 # 📘 Hızlı başlangıç rehberi
+│   ├── SERVICE_TO_SERVICE_COMMUNICATION.en.md # 📘 Service-to-service calls
+│   ├── SERVICE_TO_SERVICE_COMMUNICATION.md # 📘 Servisler arası iletişim
+│   ├── TROUBLESHOOTING.en.md          # 📘 Troubleshooting guide
 │   ├── TROUBLESHOOTING.md             # 📘 Sorun giderme rehberi
-│   └── WORKER_NODES.md                # 📘 Multi-node cluster rehberi
+│   ├── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
+│   └── WORKER_NODES.md                # 📘 Çok node cluster rehberi
 ├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
 ├── deploy.sh                          # 🚀 Deployment script
 ├── verify-deployment.sh               # 🔍 Doğrulama ve test script
