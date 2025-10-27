@@ -1345,19 +1345,35 @@ kind delete cluster
 
 - **🎯 C4 Model Diyagramlar**: [ARCHITECTURE_C4](docs/ARCHITECTURE_C4.md) - Endüstri standardı C4 Model ile mimari (Context, Container, Component, Deployment)
 - **🏗️ Detaylı Teknik Diyagramlar**: [ARCHITECTURE](docs/ARCHITECTURE.md) - Circuit breaker, rate limiting, request flow diyagramları
+- **📐 Mimari Diyagram Dokümantasyonu**: [Architecture Diagram](docs/architecture-diagram.md) - Mimari diyagramların oluşturulması ve bakımı
+- **🎨 C4 Diyagram Oluşturma Rehberi**: [C4 Diagrams](docs/c4-diagrams.md) - C4 model diyagramlarını oluşturma ve yönetme
 
 ### Geliştirme
 
-- Hızlı Başlangıç: [QUICK_START](docs/QUICK_START.md)
-- **🔗 Service-to-Service Communication**: [SERVICE_TO_SERVICE_COMMUNICATION](docs/SERVICE_TO_SERVICE_COMMUNICATION.md) - Servisler arası iletişim, resiliency ve rate limiting
+- **🚀 Hızlı Başlangıç**: [QUICK_START](docs/QUICK_START.md) - Projeyi hızlıca başlatma rehberi
+- **🔗 Servisler Arası İletişim**: [SERVICE_TO_SERVICE_COMMUNICATION](docs/SERVICE_TO_SERVICE_COMMUNICATION.md) - Servisler arası iletişim, resiliency ve rate limiting
+- **📋 Proje Özeti**: [PROJECT_SUMMARY](docs/PROJECT_SUMMARY.md) - Proje bileşenlerinin özeti ve önemli noktalar
+
+### Deployment ve Stratejiler
+
+- **🎯 Deployment Stratejileri**: [DEPLOYMENT_STRATEGIES](docs/DEPLOYMENT_STRATEGIES.md) - Rolling Update, Canary, Blue-Green deployment karşılaştırması ve öneriler
+- **📝 Değişiklik Özeti**: [CHANGES_SUMMARY](docs/CHANGES_SUMMARY.md) - Proje değişikliklerinin özeti
 
 ### Sorun Giderme & Yapılandırma
 
-- Sorun Giderme: [TROUBLESHOOTING](docs/TROUBLESHOOTING.md)
-- Ağ: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md)
-- Multi-node: [WORKER_NODES](docs/WORKER_NODES.md)
-- **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü
+- **🔧 Sorun Giderme**: [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) - Genel sorun giderme rehberi
+- **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md) - Ingress routing açıklaması ve yapılandırması
+- **📦 Ingress Kurulumu**: [INGRESS_SETUP](docs/INGRESS_SETUP.md) - NGINX Ingress Controller kurulum rehberi
+- **🔨 Ingress Controller Düzeltme**: [INGRESS_CONTROLLER_FIX](docs/INGRESS_CONTROLLER_FIX.md) - Ingress sorunlarını düzeltme yöntemleri
 - **🔄 Ingress Controller Migration**: [INGRESS_WORKER_NODE_MIGRATION](docs/INGRESS-WORKER-NODE-MIGRATION.md) - Ingress controller'ı worker node'lara taşıma, deployment optimizasyonu ve troubleshooting rehberi
+- **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü
+- **👥 Multi-node Cluster**: [WORKER_NODES](docs/WORKER_NODES.md) - Çok node cluster kurulum ve yönetim rehberi
+
+### Load Balancing
+
+- **⚖️ Yük Dengeleme Stratejileri**: [LOAD_BALANCING](docs/LOAD_BALANCING.md) - Kubernetes load balancing stratejileri ve best practices
+- **🔀 HAProxy Load Balancer**: [HAPROXY_LOADBALANCER](docs/HAPROXY_LOADBALANCER.md) - HAProxy load balancer kurulumu ve yapılandırması
+- **🔄 HAProxy vs NGINX Mimarisi**: [HAPROXY_NGINX_ARCHITECTURE](docs/HAPROXY_NGINX_ARCHITECTURE.md) - HAProxy ve NGINX mimarisi karşılaştırması
 
 ## 🤝 Katkı
 

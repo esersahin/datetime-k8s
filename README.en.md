@@ -1343,19 +1343,35 @@ kind delete cluster
 
 - **🎯 C4 Model Diagrams**: [ARCHITECTURE_C4](docs/ARCHITECTURE_C4.en.md) - Industry-standard C4 Model architecture (Context, Container, Component, Deployment)
 - **🏗️ Detailed Technical Diagrams**: [ARCHITECTURE](docs/ARCHITECTURE.en.md) - Circuit breaker, rate limiting, request flow diagrams
+- **📐 Architecture Diagram Documentation**: [Architecture Diagram](docs/architecture-diagram.md) - Creating and maintaining architecture diagrams
+- **🎨 C4 Diagram Generation Guide**: [C4 Diagrams](docs/c4-diagrams.md) - Creating and managing C4 model diagrams
 
 ### Development
 
-- Quick Start: [QUICK_START](docs/QUICK_START.en.md)
+- **🚀 Quick Start**: [QUICK_START](docs/QUICK_START.en.md) - Quick start guide for the project
 - **🔗 Service-to-Service Communication**: [SERVICE_TO_SERVICE_COMMUNICATION](docs/SERVICE_TO_SERVICE_COMMUNICATION.en.md) - Inter-service communication, resiliency, and rate limiting
+- **📋 Project Summary**: [PROJECT_SUMMARY](docs/PROJECT_SUMMARY.en.md) - Summary of project components and key points
+
+### Deployment and Strategies
+
+- **🎯 Deployment Strategies**: [DEPLOYMENT_STRATEGIES](docs/DEPLOYMENT_STRATEGIES.en.md) - Comparison of Rolling Update, Canary, and Blue-Green deployments with recommendations
+- **📝 Changes Summary**: [CHANGES_SUMMARY](docs/CHANGES_SUMMARY.en.md) - Summary of project changes
 
 ### Troubleshooting & Configuration
 
-- Troubleshooting: [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
-- Network: [INGRESS_ROUTING](docs/INGRESS_ROUTING.en.md)
-- Multi-node: [WORKER_NODES](docs/WORKER_NODES.en.md)
-- **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.en.md) - 5 second delay issue fix
+- **🔧 Troubleshooting**: [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md) - General troubleshooting guide
+- **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.en.md) - Ingress routing explanation and configuration
+- **📦 Ingress Setup**: [INGRESS_SETUP](docs/INGRESS_SETUP.en.md) - NGINX Ingress Controller setup guide
+- **🔨 Ingress Controller Fix**: [INGRESS_CONTROLLER_FIX](docs/INGRESS_CONTROLLER_FIX.en.md) - Methods to fix Ingress issues
 - **🔄 Ingress Controller Migration**: [INGRESS_WORKER_NODE_MIGRATION](docs/INGRESS-WORKER-NODE-MIGRATION.en.md) - Guide for migrating Ingress controller to worker nodes, deployment optimization and troubleshooting
+- **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.en.md) - 5 second delay issue fix
+- **👥 Multi-node Cluster**: [WORKER_NODES](docs/WORKER_NODES.en.md) - Multi-node cluster setup and management guide
+
+### Load Balancing
+
+- **⚖️ Load Balancing Strategies**: [LOAD_BALANCING](docs/LOAD_BALANCING.en.md) - Kubernetes load balancing strategies and best practices
+- **🔀 HAProxy Load Balancer**: [HAPROXY_LOADBALANCER](docs/HAPROXY_LOADBALANCER.en.md) - HAProxy load balancer setup and configuration
+- **🔄 HAProxy vs NGINX Architecture**: [HAPROXY_NGINX_ARCHITECTURE](docs/HAPROXY_NGINX_ARCHITECTURE.en.md) - Comparison of HAProxy and NGINX architecture
 
 ## 🤝 Contributing
 
