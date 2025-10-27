@@ -1,156 +1,77 @@
 graph TB
-    subgraph External["🌐 External Access Layer"]
-        User["👤 User<br/>Browser"]
-        DNS["📝 /etc/hosts<br/>DNS Mapping"]
-    end
+    %% External Layer
+    User["👤 User Browser"]
+    HAProxy["⚖️ HAProxy LB<br/>Port 80/443"]
 
-    subgraph LoadBalancer["⚖️ External Load Balancer Layer"]
-        HAProxy["HAProxy 2.8<br/>Port 80/443/8404<br/>Round-robin + Health Checks"]
-    end
+    %% Kubernetes Cluster
+    subgraph K8s["☸️ Kubernetes Cluster - 3 Control Plane + 3 Worker (HA)"]
 
-    subgraph K8sCluster["☸️ Kubernetes Cluster (Kind) - 3+3 HA Setup"]
+        %% Ingress Layer
+        Ingress["🔀 NGINX Ingress<br/>3 replicas<br/>hostNetwork: true"]
 
-        subgraph ControlPlane["🎛️ Control Plane (3 Nodes)"]
-            CP["API Server + Scheduler<br/>Controller Manager<br/>etcd Cluster (3 nodes)<br/>Raft Consensus"]
+        %% Service Discovery
+        CoreDNS["📡 CoreDNS<br/>Service Discovery"]
+
+        %% Services
+        subgraph Services["🎯 ClusterIP Services"]
+            APISvc["C# API Service"]
+            WebSvc["C# Web Service"]
+            APIGoSvc["Go API Service"]
+            WebGoSvc["Go Web Service"]
         end
 
-        subgraph IngressLayer["🔀 Ingress Layer (NGINX - 3 Replicas)"]
-            direction LR
-            NGINX1["NGINX Ingress 1/3<br/>Worker 1<br/>hostNetwork:true"]
-            NGINX2["NGINX Ingress 2/3<br/>Worker 2<br/>hostNetwork:true"]
-            NGINX3["NGINX Ingress 3/3<br/>Worker 3<br/>hostNetwork:true"]
+        %% C# Microservice
+        subgraph CSharp["💜 C# Microservice (.NET 9)"]
+            CSAPI["🔷 API Pods (x2)<br/>🛡️ Circuit Breaker<br/>🔁 Retry + Backoff<br/>⏱️ Rate Limit: 100/s<br/>⏰ Timeout: 10s"]
+            CSWeb["🔷 Web Pods (x2)<br/>NGINX + JS"]
         end
 
-        subgraph ServiceLayer["🎯 Service Discovery Layer"]
-            CoreDNS["📡 CoreDNS<br/>Service Discovery<br/>*.svc.cluster.local"]
-
-            subgraph Services["Kubernetes Services"]
-                APISvc["api-service<br/>ClusterIP"]
-                WebSvc["web-service<br/>ClusterIP"]
-                APIGoSvc["datetime-api-go-service<br/>ClusterIP"]
-                WebGoSvc["web-go-service<br/>ClusterIP"]
-            end
-        end
-
-        subgraph AppLayer["🚀 Application Layer"]
-            subgraph CSharpService["💜 C# Microservice (.NET 9)"]
-                subgraph CSharpPods["C# API Pods (2 Replicas)"]
-                    CSharpPod1["C# API Pod 1<br/>Port 8080"]
-                    CSharpPod2["C# API Pod 2<br/>Port 8080"]
-                end
-
-                subgraph CSharpResilience["🛡️ C# Resiliency"]
-                    CB1["Circuit Breaker<br/>3 States"]
-                    Retry1["Retry Policy<br/>Exponential Backoff"]
-                    RL1["Rate Limiter<br/>100 req/s global<br/>20 req/s to Go API"]
-                    Timeout1["Timeout Handler<br/>10s per request"]
-                end
-
-                subgraph CSharpWeb["C# Web UI (2 Replicas)"]
-                    WebPod1["Web Pod 1"]
-                    WebPod2["Web Pod 2"]
-                end
-            end
-
-            subgraph GoService["🔵 Go Microservice (Go 1.25)"]
-                subgraph GoPods["Go API Pods (3 Replicas)"]
-                    GoPod1["Go API Pod 1<br/>Port 8080"]
-                    GoPod2["Go API Pod 2<br/>Port 8080"]
-                    GoPod3["Go API Pod 3<br/>Port 8080"]
-                end
-
-                subgraph GoResilience["🛡️ Go Resiliency"]
-                    CB2["Circuit Breaker<br/>sony/gobreaker"]
-                    RL2["Rate Limiter<br/>150 req/s global<br/>30 req/s from C# API"]
-                end
-
-                subgraph GoWeb["Go Web UI (2 Replicas)"]
-                    WebGoPod1["Web Pod 1"]
-                    WebGoPod2["Web Pod 2"]
-                end
-            end
+        %% Go Microservice
+        subgraph Go["🔵 Go Microservice (Go 1.25)"]
+            GoAPI["🔹 API Pods (x3)<br/>🛡️ Circuit Breaker<br/>⏱️ Rate Limit: 150/s"]
+            GoWeb["🔹 Web Pods (x2)<br/>NGINX + JS"]
         end
     end
 
-    %% External connections
-    User -->|"http://api.local<br/>http://web.local<br/>http://api-go.local<br/>http://web-go.local"| DNS
-    DNS -->|"127.0.0.1"| HAProxy
+    %% Main Flow - External Access
+    User -->|"api.local<br/>web.local<br/>api-go.local<br/>web-go.local"| HAProxy
+    HAProxy -->|"Round-robin"| Ingress
 
-    %% HAProxy to NGINX Ingress (Layer 1 LB)
-    HAProxy -->|"Round-robin<br/>to Workers"| NGINX1
-    HAProxy -.->|"Round-robin<br/>to Workers"| NGINX2
-    HAProxy -.->|"Round-robin<br/>to Workers"| NGINX3
+    %% Ingress to Services (Host-based routing)
+    Ingress -->|"api.local"| APISvc
+    Ingress -->|"web.local"| WebSvc
+    Ingress -->|"api-go.local"| APIGoSvc
+    Ingress -->|"web-go.local"| WebGoSvc
 
-    %% Control Plane management
-    CP -.->|"Manages"| IngressLayer
-    CP -.->|"Manages"| ServiceLayer
-    CP -.->|"Manages"| AppLayer
+    %% Service to Pods
+    APISvc --> CSAPI
+    WebSvc --> CSWeb
+    APIGoSvc --> GoAPI
+    WebGoSvc --> GoWeb
 
-    %% NGINX to Services (Layer 2 - Host-based Routing)
-    NGINX1 -->|"Host: api.local"| APISvc
-    NGINX1 -.->|"Host: web.local"| WebSvc
-    NGINX2 -->|"Host: api-go.local"| APIGoSvc
-    NGINX2 -.->|"Host: web-go.local"| WebGoSvc
-    NGINX3 -.->|"Host routing"| Services
+    %% Web to API Communication (Same microservice)
+    CSWeb -->|"Fetch from<br/>C# API"| APISvc
+    GoWeb -->|"Fetch from<br/>Go API"| APIGoSvc
 
-    %% Services to Pods (Layer 3 - kube-proxy LB)
-    APISvc -->|"kube-proxy<br/>round-robin"| CSharpPod1
-    APISvc -.->|"kube-proxy<br/>round-robin"| CSharpPod2
-
-    WebSvc -->|"kube-proxy<br/>round-robin"| WebPod1
-    WebSvc -.->|"kube-proxy<br/>round-robin"| WebPod2
-
-    APIGoSvc -->|"kube-proxy<br/>round-robin"| GoPod1
-    APIGoSvc -.->|"kube-proxy<br/>round-robin"| GoPod2
-    APIGoSvc -.->|"kube-proxy<br/>round-robin"| GoPod3
-
-    WebGoSvc -->|"kube-proxy<br/>round-robin"| WebGoPod1
-    WebGoSvc -.->|"kube-proxy<br/>round-robin"| WebGoPod2
-
-    %% Resiliency layers
-    CSharpPod1 -->|"Uses"| CB1
-    CSharpPod1 -->|"Uses"| Retry1
-    CSharpPod1 -->|"Uses"| RL1
-    CSharpPod1 -->|"Uses"| Timeout1
-
-    CSharpPod2 -->|"Uses"| CB1
-    CSharpPod2 -->|"Uses"| Retry1
-    CSharpPod2 -->|"Uses"| RL1
-    CSharpPod2 -->|"Uses"| Timeout1
-
-    GoPod1 -->|"Uses"| CB2
-    GoPod1 -->|"Uses"| RL2
-    GoPod2 -->|"Uses"| CB2
-    GoPod2 -->|"Uses"| RL2
-    GoPod3 -->|"Uses"| CB2
-    GoPod3 -->|"Uses"| RL2
-
-    %% Service-to-Service Communication (C# -> Go)
-    CSharpPod1 -.->|"HTTP Call<br/>via CoreDNS"| CoreDNS
-    CSharpPod2 -.->|"HTTP Call<br/>via CoreDNS"| CoreDNS
-    CoreDNS -.->|"Resolve FQDN<br/>datetime-api-go-service"| APIGoSvc
-
-    %% Web UI to API calls
-    WebPod1 -.->|"Fetch Data"| APISvc
-    WebPod2 -.->|"Fetch Data"| APISvc
-    WebGoPod1 -.->|"Fetch Data"| APIGoSvc
-    WebGoPod2 -.->|"Fetch Data"| APIGoSvc
+    %% Inter-service Communication (Microservice to Microservice)
+    CSAPI -.->|"C# calls Go API<br/>via CoreDNS"| CoreDNS
+    GoAPI -.->|"Go calls C# API<br/>via CoreDNS"| CoreDNS
+    CoreDNS -.->|"Service Discovery"| APIGoSvc
+    CoreDNS -.->|"Service Discovery"| APISvc
 
     %% Styling
-    classDef externalStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef lbStyle fill:#ffebee,stroke:#c62828,stroke-width:3px
-    classDef cpStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef userStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef lbStyle fill:#ffebee,stroke:#c62828,stroke-width:2px
     classDef ingressStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef serviceStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef csharpStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef dnsStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef svcStyle fill:#fce4ec,stroke:#880e4f,stroke-width:1px
+    classDef csStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
     classDef goStyle fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
-    classDef resilienceStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px
 
-    class User,DNS externalStyle
+    class User userStyle
     class HAProxy lbStyle
-    class CP cpStyle
-    class NGINX1,NGINX2,NGINX3 ingressStyle
-    class CoreDNS,APISvc,WebSvc,APIGoSvc,WebGoSvc serviceStyle
-    class CSharpPod1,CSharpPod2,WebPod1,WebPod2 csharpStyle
-    class GoPod1,GoPod2,GoPod3,WebGoPod1,WebGoPod2 goStyle
-    class CB1,Retry1,RL1,Timeout1,CB2,RL2 resilienceStyle
+    class Ingress ingressStyle
+    class CoreDNS dnsStyle
+    class APISvc,WebSvc,APIGoSvc,WebGoSvc svcStyle
+    class CSAPI,CSWeb csStyle
+    class GoAPI,GoWeb goStyle
