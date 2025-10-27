@@ -472,46 +472,16 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 
 ## ⚡ TL;DR (Quick Start)
 
-### Using Shell Script
-
-```bash
-# 1. Create project directory
-mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
-
-# 2. Run setup script (optional - just shows directory structure)
-chmod +x setup-project.sh
-./setup-project.sh
-
-# 3. Copy all files to respective folders
-
-# 4. Enter project directory
-cd datetime-k8s
-
-# 5. Make scripts executable
-chmod +x *.sh
-
-# 6. Deploy!
-./deploy.sh
-
-# 7. Test (optional)
-./verify-deployment.sh
-
-# 8. Open in browser
-open http://web-csharp.local
-```
-
-### Using Makefile (Recommended! 🎯)
-
 ```bash
 # 1. Create project directory and place files
 mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 
 # 2. Copy all files to respective folders:
 #    - Makefile -> datetime-k8s/
-#    - api-csharp/* -> datetime-k8s/api/
-#    - web-csharp/* -> datetime-k8s/web/
+#    - api-csharp/* -> datetime-k8s/api-csharp/
+#    - web-csharp/* -> datetime-k8s/web-csharp/
 #    - k8s/* -> datetime-k8s/k8s/
-#    - *.yaml, *.sh -> datetime-k8s/
+#    - *.yaml -> datetime-k8s/
 
 # 3. Enter project directory
 cd datetime-k8s
@@ -602,35 +572,9 @@ datetime-k8s/
 │   ├── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
 │   └── WORKER_NODES.md                # 📘 Multi-node cluster guide (TR)
 ├── Makefile                           # 🎯 Main automation (RECOMMENDED!)
-├── deploy.sh                          # 🚀 Deployment script
-├── verify-deployment.sh               # 🔍 Verification and test script
-├── fix-ingress.sh                     # 🔧 hostNetwork fix
-├── fix-webhooks.sh                    # 🔧 Webhook cleanup
-├── patch-ingress-controller.sh        # 🔧 Ingress patch
-├── setup-project.sh                   # 📁 Directory structure creation
-├── CONTRIBUTING.en.md                 # 📖 How to contribute?
-└── README.en.md                       # 📖 Main documentation
+├── CONTRIBUTING.md                    # 📖 How to contribute?
+└── README.md                          # 📖 Main documentation
 ```
-
-### 📜 Script and Makefile Comparison
-
-| Feature           | Makefile                         | Shell Scripts             |
-| ----------------- | -------------------------------- | ------------------------- |
-| Ease of Use       | ⭐⭐⭐⭐⭐ `make deploy`         | ⭐⭐⭐⭐ `./deploy.sh`    |
-| Modularity        | ⭐⭐⭐⭐⭐ Each command separate | ⭐⭐⭐ Monolithic         |
-| Error Handling    | ⭐⭐⭐⭐⭐ Automatic             | ⭐⭐⭐⭐ Manual           |
-| Advanced Features | ⭐⭐⭐⭐⭐ Scale, restart, etc.  | ⭐⭐⭐ Basic operations   |
-| Learning Curve    | ⭐⭐⭐ Makefile knowledge        | ⭐⭐⭐⭐ Bash knowledge   |
-| Multi-Node        | ✅ Auto config creation          | ✅ Manual config required |
-
-### 📜 Script Descriptions
-
-| Script                   | Function                     | Usage Frequency      |
-| ------------------------ | ---------------------------- | -------------------- |
-| **deploy.sh**            | Full deployment from scratch | Once (initial setup) |
-| **verify-deployment.sh** | Status check and test        | Always (for testing) |
-| **fix-ingress.sh**       | For hostNetwork issue        | As needed            |
-| **fix-webhooks.sh**      | For webhook issue            | As needed            |
 
 ### 📄 Configuration File
 
@@ -638,7 +582,7 @@ datetime-k8s/
 | -------------------- | -------------------------------------------------------------------- | ---------------------------------------------------- |
 | **kind-config.yaml** | Kind cluster configuration (3 control-planes + 3 workers - HA setup) | ✅ Yes (with `make create-cluster` or `make deploy`) |
 
-**Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](docs/WORKER_NODES.en.md).
+**Note**: For more info, see [WORKER_NODES](docs/WORKER_NODES.en.md).
 
 ### 🎯 Quick Reference
 
@@ -649,13 +593,6 @@ datetime-k8s/
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
 - Scaling: `make scale-api REPLICAS=3`, `make restart-api`
 - Build: `make build-all`, `make quick-update`
-
-**Shell Scripts**:
-
-- Full Deploy: `./deploy.sh`
-- Verify: `./verify-deployment.sh`
-- Fix: `./fix-ingress.sh`, `./fix-webhooks.sh`
-- Setup: `./setup-project.sh`
 
 ## 🚀 Quick Start
 
@@ -689,115 +626,6 @@ sudo mv kubectl /usr/local/bin/
 # 3. Clone the project or create files
 mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 cd datetime-k8s
-```
-
-## 📜 Script Usage Order and Descriptions
-
-The project has 4 scripts used for different purposes. Here's the usage order:
-
-### 🎯 Normal Setup Flow (First-Time Installation)
-
-```bash
-# STEP 1: Make all scripts executable
-chmod +x deploy.sh fix-ingress.sh fix-webhooks.sh verify-deployment.sh
-
-# STEP 2: Run the main deployment script (ONE COMMAND IS ENOUGH!)
-./deploy.sh
-```
-
-**What does `deploy.sh` do?**
-
-- ✅ Creates Kind cluster
-- ✅ Installs NGINX Ingress Controller
-- ✅ Automatically fixes hostNetwork setting
-- ✅ Automatically cleans admission webhooks
-- ✅ Builds Docker images
-- ✅ Loads images to Kind
-- ✅ Deploys Kubernetes resources
-- ✅ Updates /etc/hosts file
-- ✅ Verifies everything works
-
-```bash
-# STEP 3 (OPTIONAL): Verify
-./verify-deployment.sh
-```
-
-**What does `verify-deployment.sh` do?**
-
-- 🔍 Checks cluster status
-- 🔍 Tests all deployments
-- 🔍 Verifies Ingress configuration
-- 🔍 Tests endpoints
-- 🔍 Checks hostNetwork and webhook settings
-- 📊 Provides detailed report
-
-### 🔧 Troubleshooting Scenarios
-
-**Scenario 1: Only Ingress hostNetwork issue**
-
-```bash
-./fix-ingress.sh
-```
-
-**What does `fix-ingress.sh` do?**
-
-- 🔧 Only checks NGINX Ingress Controller
-- 🔧 Sets hostNetwork to true
-- 🔧 Restarts controller
-
-**Scenario 2: Only Admission Webhook issue**
-
-```bash
-./fix-webhooks.sh
-```
-
-**What does `fix-webhooks.sh` do?**
-
-- 🔧 Deletes ValidatingWebhookConfiguration
-- 🔧 Cleans webhook jobs
-- 🔧 Deletes webhook pods
-
-**Scenario 3: Start everything from scratch**
-
-```bash
-# First cleanup
-kind delete cluster
-kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission 2>/dev/null || true
-
-# Then redeploy
-./deploy.sh
-```
-
-**Scenario 4: Check if everything works**
-
-```bash
-./verify-deployment.sh
-```
-
-### 📊 Summary Table
-
-| Script                 | When to Use              | Priority     | Auto-fix                 |
-| ---------------------- | ------------------------ | ------------ | ------------------------ |
-| `deploy.sh`            | Initial setup / Redeploy | 🥇 Primary   | ✅ hostNetwork + webhook |
-| `verify-deployment.sh` | Status check / Test      | 🥈 Secondary | ❌ Report only           |
-| `fix-ingress.sh`       | Only hostNetwork issue   | 🔧 Special   | ✅ hostNetwork           |
-| `fix-webhooks.sh`      | Only webhook issue       | 🔧 Special   | ✅ Webhooks              |
-
-### ⚡ Quick Commands
-
-```bash
-# One-command full setup
-chmod +x *.sh && ./deploy.sh
-
-# Post-deployment test
-./verify-deployment.sh
-
-# Fix individual issues
-./fix-ingress.sh    # For hostNetwork
-./fix-webhooks.sh   # For Webhooks
-
-# Clean everything and start over
-kind delete cluster && ./deploy.sh
 ```
 
 ## 🎯 Deployment
@@ -849,90 +677,6 @@ make status
 | `make restart-api`          | Restarts API             |
 | `make restart-web`          | Restarts Web             |
 | `make quick-update`         | Updates only images      |
-
-### ✨ Deployment with Shell Script (Alternative)
-
-```bash
-# Make scripts executable
-chmod +x deploy.sh fix-ingress.sh fix-webhooks.sh verify-deployment.sh
-
-# Run full deployment
-./deploy.sh
-
-# Verification (optional)
-./verify-deployment.sh
-```
-
-That's it! 🎉 `deploy.sh` handles everything automatically.
-
-### 🛠️ Manual Deployment (Step by Step)
-
-If you want to do each step manually:
-
-```bash
-# 1. Create Kind cluster (using kind-config.yaml)
-kind create cluster --config=kind-config.yaml
-
-# OR with inline config:
-cat <<EOF | kind create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-  labels:
-    worker-group: group-1
-- role: worker
-  labels:
-    worker-group: group-2
-EOF
-
-# 2. Install NGINX Ingress Controller
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-
-# Wait for Ingress Controller to be ready
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
-
-# 3. Build Docker images
-cd api
-docker build -t datetime-api-csharp:latest -f Dockerfile.api .
-cd ../web
-docker build -t datetime-web-csharp:latest -f Dockerfile.web .
-cd ..
-cd api-go
-docker build -t datetime-api-go:latest .
-cd ../web-go
-docker build -t datetime-web-go:latest .
-cd ..
-
-# 4. Load images to Kind
-kind load docker-image datetime-api-csharp:latest
-kind load docker-image datetime-web-csharp:latest
-
-# 5. Apply Kubernetes resources
-kubectl apply -f k8s/api-csharp-deployment.yaml
-kubectl apply -f k8s/web-csharp-deployment.yaml
-kubectl apply -f k8s/ingress.yaml
-
-# 6. Update /etc/hosts file
-echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
-```
 
 ## 🌐 Access
 
@@ -1079,22 +823,6 @@ make clean-all
 make redeploy
 ```
 
-### Using Shell Script / Manual
-
-```bash
-# Delete resources
-kubectl delete -f k8s/api-csharp-deployment.yaml
-kubectl delete -f k8s/web-csharp-deployment.yaml
-kubectl delete -f k8s/ingress.yaml
-
-# Delete Kind cluster
-kind delete cluster
-
-# Clean /etc/hosts (manual)
-sudo nano /etc/hosts
-# Delete api-csharp.local and web-csharp.local lines
-```
-
 ## 🔧 Troubleshooting
 
 ### Quick Fixes with Makefile
@@ -1124,16 +852,8 @@ make redeploy
 ### Recreating Kind Cluster
 
 ```bash
-# Using Makefile
 make clean-cluster
 make create-cluster
-
-# Manual
-kind delete cluster
-kind create cluster --config=kind-config.yaml
-
-# OR auto-create with deploy.sh
-./deploy.sh
 ```
 
 ### Mac Ingress hostNetwork Issue
@@ -1143,10 +863,6 @@ On Mac with Kind, NGINX Ingress Controller might be configured for cloud environ
 ```bash
 # Using Makefile (Recommended)
 make fix-ingress
-
-# Using shell script
-chmod +x fix-ingress.sh
-./fix-ingress.sh
 
 # Manual check
 kubectl get deployment -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.template.spec.hostNetwork}'
@@ -1164,10 +880,6 @@ NGINX Ingress Controller's ValidatingWebhookConfiguration can cause "connection 
 # Using Makefile (Recommended)
 make fix-webhooks
 
-# Using shell script
-chmod +x fix-webhooks.sh
-./fix-webhooks.sh
-
 # Manual cleanup
 kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission
 kubectl delete jobs -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch
@@ -1176,7 +888,7 @@ kubectl delete jobs -n ingress-nginx ingress-nginx-admission-create ingress-ngin
 kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io | grep ingress
 ```
 
-**Note:** `make deploy` or `deploy.sh` automatically fixes this issue.
+**Note:** `make deploy` automatically fixes this issue.
 
 ### Pods not starting
 
@@ -1237,7 +949,7 @@ For detailed troubleshooting, see [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 
 ### Which Method to Use?
 
-#### Makefile (Recommended! 🎯)
+#### Makefile 🎯
 
 **Advantages:**
 
@@ -1255,23 +967,6 @@ make verify                # Check
 make logs-api              # Log monitoring
 make scale-api REPLICAS=3  # Scaling
 ```
-
-#### Shell Scripts (Alternative)
-
-**Advantages:**
-
-- ✅ Single file, single command
-- ✅ Bash knowledge sufficient
-- ✅ Simple and understandable
-
-**Usage:**
-
-```bash
-./deploy.sh             # Initial setup
-./verify-deployment.sh  # Check
-./fix-ingress.sh        # Fix
-```
-
 ### Scenarios
 
 **Scenario 1: Initial Setup**
@@ -1284,12 +979,6 @@ cd datetime-k8s
 make setup    # Check if files are in place
 make deploy   # Deploy
 make verify   # Verify
-
-# Shell Script
-chmod +x *.sh
-./deploy.sh
-./verify-deployment.sh
-```
 
 **Scenario 2: Code Changes**
 
@@ -1317,12 +1006,6 @@ make verify          # Identify problem
 make fix-ingress     # or make fix-webhooks
 make logs-api        # Check logs
 
-# Shell Script
-./verify-deployment.sh
-./fix-ingress.sh
-kubectl logs -l app=datetime-api-csharp -f
-```
-
 **Scenario 4: Complete Restart**
 
 ```bash
@@ -1331,10 +1014,6 @@ cd datetime-k8s
 
 # Makefile (Fastest)
 make redeploy
-
-# Manual
-kind delete cluster
-./deploy.sh
 ```
 
 ## 📚 Documentation

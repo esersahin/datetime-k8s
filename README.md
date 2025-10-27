@@ -472,36 +472,6 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 
 ## ⚡ TL;DR (Çok Hızlı Başlangıç)
 
-### Shell Script ile
-
-```bash
-# 1. Proje dizinini oluşturun
-mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
-
-# 2. setup-project.sh'i çalıştırın (opsiyonel - sadece dizin yapısını gösterir)
-chmod +x setup-project.sh
-./setup-project.sh
-
-# 3. Tüm dosyaları ilgili klasörlere kopyalayın
-
-# 4. Proje dizinine girin
-cd datetime-k8s
-
-# 5. Script'leri çalıştırılabilir yapın
-chmod +x *.sh
-
-# 6. Deploy edin!
-./deploy.sh
-
-# 7. Test edin (opsiyonel)
-./verify-deployment.sh
-
-# 8. Tarayıcıda açın
-open http://web-csharp.local
-```
-
-### Makefile ile (Önerilen! 🎯)
-
 ```bash
 # 1. Proje dizinini oluşturun ve dosyaları yerleştirin
 mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
@@ -511,7 +481,7 @@ mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 #    - api-csharp/* -> datetime-k8s/api-csharp/
 #    - web-csharp/* -> datetime-k8s/web-csharp/
 #    - k8s/* -> datetime-k8s/k8s/
-#    - *.yaml, *.sh -> datetime-k8s/
+#    - *.yaml -> datetime-k8s/
 
 # 3. Proje dizinine girin
 cd datetime-k8s
@@ -602,37 +572,9 @@ datetime-k8s/
 │   ├── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
 │   └── WORKER_NODES.md                # 📘 Çok node cluster rehberi
 ├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
-├── deploy.sh                          # 🚀 Deployment script
-├── verify-deployment.sh               # 🔍 Doğrulama ve test script
-├── fix-ingress.sh                     # 🔧 hostNetwork düzeltme
-├── fix-webhooks.sh                    # 🔧 Webhook temizleme
-├── patch-ingress-controller.sh        # 🔧 Ingress patch
-├── setup-project.sh                   # 📁 Dizin yapısı oluşturma
 ├── CONTRIBUTING.md                    # 📖 Nasıl katkıda bulunurum?
 └── README.md                          # 📖 Ana dokümantasyon
 ```
-
-### 📜 Script ve Makefile Karşılaştırması
-
-| Özellik            | Makefile                      | Shell Scripts            |
-| ------------------ | ----------------------------- | ------------------------ |
-| Kullanım Kolaylığı | ⭐⭐⭐⭐⭐ `make deploy`      | ⭐⭐⭐⭐ `./deploy.sh`   |
-| Modülerlik         | ⭐⭐⭐⭐⭐ Her komut ayrı     | ⭐⭐⭐ Monolitik         |
-| Hata Yönetimi      | ⭐⭐⭐⭐⭐ Otomatik           | ⭐⭐⭐⭐ Manuel          |
-| İleri Seviye       | ⭐⭐⭐⭐⭐ Scale, restart vb. | ⭐⭐⭐ Temel işlemler    |
-| Öğrenme Eğrisi     | ⭐⭐⭐ Makefile bilgisi       | ⭐⭐⭐⭐ Bash bilgisi    |
-| Multi-Node         | ✅ Otomatik config oluşturma  | ✅ Manuel config gerekir |
-
-**Öneri:** Makefile kullanın! Daha esnek ve güçlü. 🎯
-
-### 📜 Script Açıklamaları
-
-| Script                   | İşlevi                   | Kullanım Sıklığı      |
-| ------------------------ | ------------------------ | --------------------- |
-| **deploy.sh**            | Sıfırdan full deployment | Bir kez (başlangıç)   |
-| **verify-deployment.sh** | Durum kontrolü ve test   | Her zaman (test için) |
-| **fix-ingress.sh**       | hostNetwork sorunu için  | Gerektiğinde          |
-| **fix-webhooks.sh**      | Webhook sorunu için      | Gerektiğinde          |
 
 ### 📄 Yapılandırma Dosyası
 
@@ -640,7 +582,7 @@ datetime-k8s/
 | -------------------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
 | **kind-config.yaml** | Kind cluster yapılandırması (3 control-planes + 3 workers - HA setup) | ✅ Evet (`make create-cluster` veya `make deploy` ile) |
 
-**Not**: `kind-config.yaml` dosyası yoksa Makefile otomatik olarak oluşturur. Daha fazla bilgi için [WORKER_NODES](docs/WORKER_NODES.md) dosyasına bakın.
+**Not**: Daha fazla bilgi için [WORKER_NODES](docs/WORKER_NODES.md) dosyasına bakın.
 
 ### 🎯 Hızlı Referans
 
@@ -651,13 +593,6 @@ datetime-k8s/
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
 - Scaling: `make scale-api REPLICAS=3`, `make restart-api`
 - Build: `make build-all`, `make quick-update`
-
-**Shell Scripts**:
-
-- Full Deploy: `./deploy.sh`
-- Verify: `./verify-deployment.sh`
-- Fix: `./fix-ingress.sh`, `./fix-webhooks.sh`
-- Setup: `./setup-project.sh`
 
 ## 🚀 Hızlı Başlangıç
 
@@ -693,118 +628,7 @@ mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 cd datetime-k8s
 ```
 
-## 📜 Script Kullanım Sırası ve Açıklamaları
-
-Projedeki 4 script farklı amaçlar için kullanılır. İşte kullanım sırası:
-
-### 🎯 Normal Kurulum Akışı (İlk Kez Kurulum)
-
-```bash
-# 1. ADIM: Tüm script'leri çalıştırılabilir yapın
-chmod +x deploy.sh fix-ingress.sh fix-webhooks.sh verify-deployment.sh
-
-# 2. ADIM: Ana deployment script'ini çalıştırın (TEK KOMUT YETER!)
-./deploy.sh
-```
-
-**`deploy.sh` ne yapar?**
-
-- ✅ Kind cluster oluşturur
-- ✅ NGINX Ingress Controller kurar
-- ✅ hostNetwork ayarını otomatik düzeltir
-- ✅ Admission webhook'ları otomatik temizler
-- ✅ Docker imajlarını build eder
-- ✅ İmajları Kind'a yükler
-- ✅ Kubernetes kaynaklarını deploy eder
-- ✅ /etc/hosts dosyasını günceller
-- ✅ Her şeyin çalıştığını doğrular
-
-```bash
-# 3. ADIM (OPSİYONEL): Doğrulama yapın
-./verify-deployment.sh
-```
-
-**`verify-deployment.sh` ne yapar?**
-
-- 🔍 Cluster durumunu kontrol eder
-- 🔍 Tüm deployment'ları test eder
-- 🔍 Ingress yapılandırmasını doğrular
-- 🔍 Endpoint'leri test eder
-- 🔍 hostNetwork ve webhook ayarlarını kontrol eder
-- 📊 Detaylı rapor verir
-
-### 🔧 Sorun Giderme Senaryoları
-
-**Senaryo 1: Sadece Ingress hostNetwork sorunu var**
-
-```bash
-./fix-ingress.sh
-```
-
-**`fix-ingress.sh` ne yapar?**
-
-- 🔧 Sadece NGINX Ingress Controller'ı kontrol eder
-- 🔧 hostNetwork ayarını true yapar
-- 🔧 Controller'ı yeniden başlatır
-
-**Senaryo 2: Sadece Admission Webhook sorunu var**
-
-```bash
-./fix-webhooks.sh
-```
-
-**`fix-webhooks.sh` ne yapar?**
-
-- 🔧 ValidatingWebhookConfiguration'ı siler
-- 🔧 Webhook job'larını temizler
-- 🔧 Webhook pod'larını siler
-
-**Senaryo 3: Her şeyi sıfırdan başlat**
-
-```bash
-# Önce temizlik
-kind delete cluster
-kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission 2>/dev/null || true
-
-# Sonra yeniden deploy
-./deploy.sh
-```
-
-**Senaryo 4: Her şey çalışıyor mu kontrol et**
-
-```bash
-./verify-deployment.sh
-```
-
-### 📊 Özet Tablo
-
-| Script                 | Ne Zaman Kullanılır              | Öncelik       | Otomatik Düzeltme        |
-| ---------------------- | -------------------------------- | ------------- | ------------------------ |
-| `deploy.sh`            | İlk kurulum / Yeniden deployment | 🥇 Birincil   | ✅ hostNetwork + webhook |
-| `verify-deployment.sh` | Durum kontrolü / Test            | 🥈 İkincil    | ❌ Sadece rapor verir    |
-| `fix-ingress.sh`       | Sadece hostNetwork sorunu        | 🔧 Özel durum | ✅ hostNetwork           |
-| `fix-webhooks.sh`      | Sadece webhook sorunu            | 🔧 Özel durum | ✅ Webhook'lar           |
-
-### ⚡ Hızlı Komutlar
-
-```bash
-# Tek komutla baştan sona kurulum
-chmod +x *.sh && ./deploy.sh
-
-# Deployment sonrası test
-./verify-deployment.sh
-
-# Sorun varsa tek tek düzelt
-./fix-ingress.sh    # hostNetwork için
-./fix-webhooks.sh   # Webhook için
-
-# Her şeyi temizle ve baştan başla
-kind delete cluster && ./deploy.sh
-```
-
 ## 🎯 Deployment
-
-### ✨ Makefile ile Deployment (Önerilen! 🎯)
 
 ```bash
 # Tüm komutları görmek için
@@ -852,90 +676,6 @@ make status
 | `make restart-web`          | Web'i yeniden başlatır            |
 | `make quick-update`         | Sadece imajları günceller         |
 
-### ✨ Shell Script ile Deployment (Alternatif)
-
-```bash
-# Script'leri çalıştırılabilir yapın
-chmod +x deploy.sh fix-ingress.sh fix-webhooks.sh verify-deployment.sh
-
-# Tüm deployment'ı çalıştırın
-./deploy.sh
-
-# Doğrulama (opsiyonel)
-./verify-deployment.sh
-```
-
-Bu kadar! 🎉 `deploy.sh` her şeyi otomatik halleder.
-
-### 🛠️ Manuel Deployment (Adım Adım)
-
-Eğer her adımı manuel yapmak isterseniz:
-
-```bash
-# 1. Kind cluster oluştur (kind-config.yaml kullanarak)
-kind create cluster --config=kind-config.yaml
-
-# VEYA inline config ile:
-cat <<EOF | kind create cluster --config=-
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-  labels:
-    worker-group: group-1
-- role: worker
-  labels:
-    worker-group: group-2
-EOF
-
-# 2. NGINX Ingress Controller kur
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-
-# Ingress Controller'ın hazır olmasını bekle
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
-
-# 3. Docker imajlarını build et
-cd api
-docker build -t datetime-api-csharp:latest -f Dockerfile.api .
-cd ../web
-docker build -t datetime-web-csharp:latest -f Dockerfile.web .
-cd ..
-cd api-go
-docker build -t datetime-api-go:latest .
-cd ../web-go
-docker build -t datetime-web-go:latest .
-cd ..
-
-# 4. İmajları Kind'a yükle
-kind load docker-image datetime-api-csharp:latest
-kind load docker-image datetime-web-csharp:latest
-
-# 5. Kubernetes kaynaklarını uygula
-kubectl apply -f k8s/api-csharp-deployment.yaml
-kubectl apply -f k8s/web-csharp-deployment.yaml
-kubectl apply -f k8s/ingress.yaml
-
-# 6. /etc/hosts dosyasını güncelle
-echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
-```
-
 ## 🌐 Erişim
 
 ### C# Uygulamaları
@@ -956,8 +696,6 @@ echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
   - Business Days: http://api-go.local/api/businessdays
 
 ### 📊 Monitoring ve Debug
-
-#### Makefile ile (Önerilen)
 
 ```bash
 # Logları görüntüleme
@@ -994,15 +732,9 @@ kubectl describe service datetime-web-service
 # Ingress Durumu
 kubectl get ingress
 kubectl describe ingress datetime-ingress
-
-# Port Forward (Test için)
-kubectl port-forward service/datetime-api-service 8080:80
-kubectl port-forward service/datetime-web-service 8081:80
 ```
 
 ## 🧪 Test Komutları
-
-### Makefile ile (Önerilen)
 
 ```bash
 # Otomatik endpoint testleri
@@ -1033,8 +765,6 @@ curl -s http://api-csharp.local/api/datetime | jq .
 
 ## 🔧 Scaling
 
-### Makefile ile (Önerilen)
-
 ```bash
 # API'yi scale et
 make scale-api REPLICAS=3
@@ -1064,8 +794,6 @@ kubectl get pods -l app=datetime-api
 ```
 
 ## 🗑️ Temizleme
-
-### Makefile ile (Önerilen)
 
 ```bash
 # Sadece Kubernetes kaynaklarını sil (cluster kalır)
@@ -1099,8 +827,6 @@ sudo nano /etc/hosts
 
 ## 🔧 Sorun Giderme
 
-### Makefile ile Hızlı Düzeltmeler
-
 ```bash
 # Tüm sistemi doğrula
 make verify
@@ -1129,13 +855,6 @@ make redeploy
 # Makefile ile
 make clean-cluster
 make create-cluster
-
-# Manuel
-kind delete cluster
-kind create cluster --config=kind-config.yaml
-
-# VEYA deploy.sh ile otomatik oluştur
-./deploy.sh
 ```
 
 ### Mac'te Ingress hostNetwork Sorunu
@@ -1145,10 +864,6 @@ Mac'te Kind kullanırken NGINX Ingress Controller bazen cloud ortamları için y
 ```bash
 # Makefile ile (Önerilen)
 make fix-ingress
-
-# Shell script ile
-chmod +x fix-ingress.sh
-./fix-ingress.sh
 
 # Manuel kontrol
 kubectl get deployment -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.template.spec.hostNetwork}'
@@ -1166,10 +881,6 @@ NGINX Ingress Controller'da ValidatingWebhookConfiguration Mac/Kind ortamında "
 # Makefile ile (Önerilen)
 make fix-webhooks
 
-# Shell script ile
-chmod +x fix-webhooks.sh
-./fix-webhooks.sh
-
 # Manuel temizleme
 kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io ingress-nginx-admission
 kubectl delete jobs -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch
@@ -1178,7 +889,7 @@ kubectl delete jobs -n ingress-nginx ingress-nginx-admission-create ingress-ngin
 kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io | grep ingress
 ```
 
-**Not:** `make deploy` veya `deploy.sh` bu sorunu otomatik olarak düzeltir.
+**Not:** `make deploy` bu sorunu otomatik olarak düzeltir.
 
 ### Pod'lar başlamıyor
 
@@ -1226,20 +937,13 @@ Ayrıntılı sorun giderme için, [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) bö
   - Control-plane: Kubernetes yönetim bileşenleri ve Ingress Controller
   - Worker nodes: Uygulama pod'ları (datetime-api, datetime-web)
   - Detaylı bilgi için: `WORKER_NODES.md`
-- **Mac Optimizasyonu**: `make deploy` veya `deploy.sh` otomatik olarak Mac/Kind sorunlarını düzeltir:
+- **Mac Optimizasyonu**: `make deploy` otomatik olarak Mac/Kind sorunlarını düzeltir:
   - hostNetwork ayarını true yapar
   - Problematic admission webhook'ları temizler
-- **Makefile vs Shell Scripts**:
-  - **Makefile önerilir**: Daha modüler, esnek ve güçlü
-  - **kind-config.yaml otomatik oluşturur**: Dosya yoksa `make create-cluster` komutu oluşturur
-  - Shell scripts: Alternatif yöntem, monolitik yaklaşım
-- **Komut Önceliği**: `make deploy` > `deploy.sh`
 
 ## 🎓 Kullanım Kılavuzu
 
-### Hangi Yöntem Kullanılmalı?
-
-#### Makefile (Önerilen! 🎯)
+#### Makefile 🎯
 
 **Avantajlar:**
 
@@ -1258,22 +962,6 @@ make logs-api    # Log izleme
 make scale-api REPLICAS=3  # Scaling
 ```
 
-#### Shell Scripts (Alternatif)
-
-**Avantajlar:**
-
-- ✅ Tek dosya, tek komut
-- ✅ Bash bilgisi yeterli
-- ✅ Basit ve anlaşılır
-
-**Kullanım:**
-
-```bash
-./deploy.sh           # İlk kurulum
-./verify-deployment.sh  # Kontrol
-./fix-ingress.sh      # Düzeltme
-```
-
 ### Senaryolar
 
 **Senaryo 1: İlk Kurulum**
@@ -1286,11 +974,6 @@ cd datetime-k8s
 make setup    # Dosyaların yerinde olup olmadığını kontrol et
 make deploy   # Deploy et
 make verify   # Doğrula
-
-# Shell Script
-chmod +x *.sh
-./deploy.sh
-./verify-deployment.sh
 ```
 
 **Senaryo 2: Kod Değişikliği**
@@ -1301,11 +984,6 @@ cd datetime-k8s
 
 # Makefile (Hızlı)
 make quick-update
-
-# Manuel
-cd api && docker build -t datetime-api:latest -f Dockerfile.api . && cd ..
-kind load docker-image datetime-api:latest
-kubectl rollout restart deployment datetime-api
 ```
 
 **Senaryo 3: Sorun Giderme**
@@ -1318,11 +996,6 @@ cd datetime-k8s
 make verify          # Problemi tespit et
 make fix-ingress     # veya make fix-webhooks
 make logs-api        # Logları kontrol et
-
-# Shell Script
-./verify-deployment.sh
-./fix-ingress.sh
-kubectl logs -l app=datetime-api-csharp -f
 ```
 
 **Senaryo 4: Tamamen Yeniden Başlat**
@@ -1333,10 +1006,6 @@ cd datetime-k8s
 
 # Makefile (En Hızlı)
 make redeploy
-
-# Manuel
-kind delete cluster
-./deploy.sh
 ```
 
 ## 📚 Dokümantasyon
