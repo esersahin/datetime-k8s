@@ -129,7 +129,7 @@ kubectl get deployment -n ingress-nginx ingress-nginx-controller -o jsonpath='{.
 # Beklenen: true
 
 # 4. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ## 📋 Değişiklikler

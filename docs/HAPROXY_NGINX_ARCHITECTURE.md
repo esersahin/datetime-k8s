@@ -186,7 +186,7 @@ kubectl get ingress -A
 **Çıktı**:
 ```
 NAMESPACE   NAME               CLASS   HOSTS                                          ADDRESS     PORTS   AGE
-default     datetime-ingress   nginx   api.local,api-go.local,web.local,web-go.local  localhost   80      10m
+default     datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local,web-go.local  localhost   80      10m
 ```
 
 **Ingress Detaylarını Görüntüle**:
@@ -198,20 +198,20 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 **Çıktı**:
 ```yaml
   rules:
-  - host: api.local
+  - host: api-csharp.local
     http:
       paths:
       - backend:
           service:
-            name: api-service
+            name: datetime-api-csharp-service
             port:
               number: 80
-  - host: web.local
+  - host: web-csharp.local
     http:
       paths:
       - backend:
           service:
-            name: web-service
+            name: datetime-web-csharp-service
 ```
 
 ---
@@ -225,13 +225,13 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 **Görevi**: Host'tan gelen trafiği worker node'lara dağıtmak
 
 ```
-┌──────────────────────────────────────────┐
-│  MacBook (Host Machine)                  │
-│                                          │
-│  curl http://api.local/api/datetime      │
-│           ↓                              │
-│  localhost:80 (HAProxy dinliyor)         │
-└──────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│  MacBook (Host Machine)                    │
+│                                            │
+│  curl http://api-csharp.local/api/datetime │
+│           ↓                                │
+│  localhost:80 (HAProxy dinliyor)           │
+└────────────────────────────────────────────┘
            ↓
 ┌──────────────────────────────────────────┐
 │  HAProxy Container (kind-http-lb)        │
@@ -279,11 +279,11 @@ Worker Node (örnek: kind-worker)
 │  │                                      │  │
 │  │ Host header kontrolü:                │  │
 │  │                                      │  │
-│  │ IF Host == "api.local"               │  │
-│  │    → api-service:80                  │  │
+│  │ IF Host == "api-csharp.local"        │  │
+│  │    → api-csharp-service:80           │  │
 │  │                                      │  │
-│  │ IF Host == "web.local"               │  │
-│  │    → web-service:80                  │  │
+│  │ IF Host == "web-csharp.local"        │  │
+│  │    → web-csharp-service:80           │  │
 │  │                                      │  │
 │  │ IF Host == "api-go.local"            │  │
 │  │    → api-go-service:80               │  │
@@ -294,16 +294,16 @@ Worker Node (örnek: kind-worker)
 │           ↓                                │
 │  ┌──────────────────────────────────────┐  │
 │  │ Kubernetes Services                  │  │
-│  │  ├─ api-service                      │  │
-│  │  ├─ web-service                      │  │
+│  │  ├─ api-csharp-service               │  │
+│  │  ├─ web-csharp-service               │  │
 │  │  ├─ api-go-service                   │  │
 │  │  └─ web-go-service                   │  │
 │  └──────────────────────────────────────┘  │
 │           ↓                                │
 │  ┌──────────────────────────────────────┐  │
 │  │ Application Pods                     │  │
-│  │  ├─ api-deployment-xxx               │  │
-│  │  ├─ web-deployment-xxx               │  │
+│  │  ├─ api-csharp-deployment-xxx        │  │
+│  │  ├─ web-csharp-deployment-xxx        │  │
 │  │  ├─ api-go-deployment-xxx            │  │
 │  │  └─ web-go-deployment-xxx            │  │
 │  └──────────────────────────────────────┘  │
@@ -312,7 +312,7 @@ Worker Node (örnek: kind-worker)
 ```
 
 **NGINX Ingress Ne Yapar?**
-- ✅ **Host-based Routing**: HTTP Host header'ına bakar (`api.local`, `web.local`, vb.)
+- ✅ **Host-based Routing**: HTTP Host header'ına bakar (`api-csharp.local`, `web-csharp.local`, vb.)
 - ✅ **Service Mapping**: Doğru Kubernetes Service'e yönlendirir
 - ✅ **SSL Termination**: HTTPS trafiğini decrypt eder (443 için)
 - ✅ **Path-based Routing**: Aynı host için farklı path'lere farklı service'ler atanabilir
@@ -321,14 +321,14 @@ Worker Node (örnek: kind-worker)
 
 ## 📊 Detaylı Traffic Flow
 
-### Tam Request Akışı: `curl http://api.local/api/datetime`
+### Tam Request Akışı: `curl http://api-csharp.local/api/datetime`
 
 ```
 ═══════════════════════════════════════════════════════════════════
           COMPLETE TRAFFIC FLOW EXAMPLE
 ═══════════════════════════════════════════════════════════════════
 
-Request: curl http://api.local/api/datetime
+Request: curl http://api-csharp.local/api/datetime
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ STEP 1: Client → HAProxy (External Load Balancer)               │
@@ -336,7 +336,7 @@ Request: curl http://api.local/api/datetime
 
   Client (curl)
     │
-    │ DNS: api.local → 127.0.0.1 (via /etc/hosts)
+    │ DNS: api-csharp.local → 127.0.0.1 (via /etc/hosts)
     │
     ↓
   localhost:80
@@ -372,15 +372,15 @@ Request: curl http://api.local/api/datetime
     │ Görevi: HTTP Host header'ına bak ve route et
     │
     │ HTTP Headers:
-    │   Host: api.local
+    │   Host: api-csharp.local
     │   GET /api/datetime
     │
     │ Ingress Rules Check:
-    │   IF Host == "api.local" THEN
-    │     backend: api-service:80  ← MATCH!
+    │   IF Host == "api-csharp.local" THEN
+    │     backend: api-csharp-service:80  ← MATCH!
     │
     ↓
-  Kubernetes Service: api-service
+  Kubernetes Service: api-csharp-service
     │
     │ Type: ClusterIP
     │ Cluster IP: 10.96.xxx.xxx
@@ -393,22 +393,22 @@ Request: curl http://api.local/api/datetime
 │ STEP 3: Service → Application Pod (Pod Load Balancing)          │
 └─────────────────────────────────────────────────────────────────┘
 
-  api-service (Kubernetes Service)
+  datetime-api-csharp-service (Kubernetes Service)
     │
     │ Görevi: Endpoint'lerden birini seç (kube-proxy)
     │
     │ Endpoints:
-    │   - api-deployment-xxx-pod1 (10.244.1.5:8080)
-    │   - api-deployment-xxx-pod2 (10.244.2.7:8080) ← Diyelim bu seçildi
-    │   - api-deployment-xxx-pod3 (10.244.3.9:8080)
+    │   - api-csharp-deployment-xxx-pod1 (10.244.1.5:8080)
+    │   - api-csharp-deployment-xxx-pod2 (10.244.2.7:8080) ← Diyelim bu seçildi
+    │   - api-csharp-deployment-xxx-pod3 (10.244.3.9:8080)
     │
     ↓
-  Application Pod: api-deployment-xxx-pod2
+  Application Pod: api-csharp-deployment-xxx-pod2
     │
     │ Container: ASP.NET Core API
     │ Port: 8080
     │
-    │ Controller: DateTimeController
+    │ MinimalAPI Endpoint: 
     │   GET /api/datetime
     │
     ↓
@@ -427,7 +427,7 @@ Request: curl http://api.local/api/datetime
 
   Application Pod
     ↓
-  api-service
+  api-csharp-service
     ↓
   NGINX Ingress Controller (kind-worker2)
     ↓
@@ -439,13 +439,13 @@ Request: curl http://api.local/api/datetime
 **Test Komutu**:
 
 ```bash
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 ```
 
 **Çıktı Analizi**:
 ```
-* Connected to api.local (::1) port 80        ← HAProxy'ye bağlandı
-> Host: api.local                             ← NGINX Ingress bunu kullanacak
+* Connected to api-csharp.local (::1) port 80        ← HAProxy'ye bağlandı
+> Host: api-csharp.local                             ← NGINX Ingress bunu kullanacak
 < HTTP/1.1 200 OK
 {"date":"26.10.2025","time":"13:32:36",...}  ← Application pod'dan gelen response
 ```
@@ -540,10 +540,10 @@ Stats: http://localhost:8404
 **Bizim Kullanımımız (Ingress Controller Olarak):**
 ```
 NGINX Ingress → Service Routing
-- api.local → api-service
-- web.local → web-service
+- api-csharp.local → datetime-api-csharp-service
+- web-csharp.local → datetime-web-csharp-service
 - api-go.local → datetime-api-go-service
-- web-go.local → web-go-service
+- web-go.local → datetime-web-go-service
 
 Yöntem: Host header matching
 Lokasyon: Kubernetes pod (3 replica)
@@ -689,12 +689,12 @@ HAProxy, NGINX'in önünde **external load balancer** rolünde, NGINX ise arkas�
 | ------------------- | ----------------------------------------- | -------------------------------------- |
 | **Lokasyon**        | Docker container (Kubernetes dışı)        | Kubernetes pod (Her worker'da)         |
 | **Ana Görev**       | Worker node seçimi (load balancing)       | Service routing (host-based)           |
-| **Routing Kriteri** | Round-robin (worker1,2,3)                 | HTTP Host header (api.local, etc.)     |
+| **Routing Kriteri** | Round-robin (worker1,2,3)                 | HTTP Host header (api-csharp.local, etc.)     |
 | **Layer**           | Layer 4/7                                 | Layer 7                                |
 | **Health Check**    | GET /healthz (her 2 saniye)               | Kubernetes readinessProbe              |
 | **Failover**        | Evet (worker DOWN ise diğerlerine)        | Evet (pod DOWN ise diğer pod'a)        |
 | **SSL Termination** | Evet (443 için)                           | Evet (443 için)                        |
-| **Hedef**           | Worker nodes (kind-worker:80)             | Kubernetes Services (api-service:80)   |
+| **Hedef**           | Worker nodes (kind-worker:80)             | Kubernetes Services (datetime-api-csharp-service:80)   |
 | **Configuration**   | haproxy.cfg                               | Ingress YAML                           |
 | **Stats Page**      | Evet (:8404)                              | Hayır                                  |
 | **DNS Resolution**  | Evet (Docker DNS: 127.0.0.11)             | Kubernetes CoreDNS                     |
@@ -726,7 +726,7 @@ HAProxy, NGINX'in önünde **external load balancer** rolünde, NGINX ise arkas�
 docker stop kind-worker
 
 # Hala çalışıyor mu?
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # ✅ ÇALIŞIYOR! (worker2 ve worker3 üzerinden)
 ```
 
@@ -741,7 +741,7 @@ curl http://api.local/api/datetime
 **Çözüm**:
 - HAProxy localhost:80'i tüm worker'lara dağıtıyor
 - Kullanıcı port numarası yazmadan erişebiliyor
-- Production-like: `http://api.local` (port yok!)
+- Production-like: `http://api-csharp.local` (port yok!)
 
 **Karşılaştırma**:
 ```bash
@@ -751,7 +751,7 @@ curl http://localhost:8081/api/datetime  # worker2
 curl http://localhost:8082/api/datetime  # worker3
 
 # HAProxy İLE (şimdiki yöntem):
-curl http://api.local/api/datetime       # HAProxy route ediyor ✅
+curl http://api-csharp.local/api/datetime       # HAProxy route ediyor ✅
 ```
 
 ---
@@ -854,10 +854,10 @@ Services & Pods
 ✅ NGINX Ingress her worker'da çalışıyor
 
 Test:
-  $ curl http://api.local/api/datetime
+  $ curl http://api-csharp.local/api/datetime
   → HAProxy: worker1 seçildi
-  → NGINX (worker1): api.local → api-service
-  → api-service: pod-1 seçildi
+  → NGINX (worker1): api-csharp.local → datetime-api-csharp-service
+  → datetime-api-csharp-service: pod-1 seçildi
   → Response: 200 OK
 ```
 
@@ -865,7 +865,7 @@ Test:
 ```bash
 for i in {1..6}; do
   echo "Request $i:";
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
 done
 ```
 
@@ -901,7 +901,7 @@ curl -s http://localhost:8404 | grep -A 2 "workers_http/worker1"
 # Çıktı: worker1 DOWN
 
 # Servis hala çalışıyor mu?
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # ✅ ÇALIŞIYOR! (worker2 veya worker3 üzerinden)
 
 # Worker1'i tekrar başlat
@@ -942,7 +942,7 @@ docker stop kind-worker kind-worker2
 
 # Servis hala çalışıyor mu?
 for i in {1..5}; do
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
 done
 # ✅ ÇALIŞIYOR! (sadece worker3 üzerinden)
 
@@ -1084,7 +1084,7 @@ POD_NAME=$(kubectl get pods -n ingress-nginx -l app.kubernetes.io/component=cont
 kubectl exec -it -n ingress-nginx $POD_NAME -- /bin/bash
 
 # İçeride:
-nginx -T | grep "server_name api.local"
+nginx -T | grep "server_name api-csharp.local"
 ```
 
 ---
@@ -1095,13 +1095,13 @@ nginx -T | grep "server_name api.local"
 
 ```bash
 # GET request
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # JSON çıktısı
-curl -s http://api.local/api/datetime | jq
+curl -s http://api-csharp.local/api/datetime | jq
 
 # Verbose (header'ları göster)
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 ```
 
 #### 2. Round-robin Testi
@@ -1110,7 +1110,7 @@ curl -v http://api.local/api/datetime
 # 10 request gönder ve timing'i ölç
 for i in {1..10}; do
   echo -n "Request $i: ";
-  time curl -s http://api.local/api/datetime > /dev/null;
+  time curl -s http://api-csharp.local/api/datetime > /dev/null;
 done
 ```
 
@@ -1118,23 +1118,23 @@ done
 
 ```bash
 # Apache Bench (100 request, 10 concurrent)
-ab -n 100 -c 10 http://api.local/api/datetime
+ab -n 100 -c 10 http://api-csharp.local/api/datetime
 
 # Veya hey (https://github.com/rakyll/hey)
-hey -n 100 -c 10 http://api.local/api/datetime
+hey -n 100 -c 10 http://api-csharp.local/api/datetime
 ```
 
 #### 4. Farklı Host'lar
 
 ```bash
-# api.local
-curl -s http://api.local/api/datetime | jq -r '.time'
+# api-csharp.local
+curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 
 # api-go.local
 curl -s http://api-go.local/health | jq
 
-# web.local
-curl -s http://web.local | grep "<title>"
+# web-csharp.local
+curl -s http://web-csharp.local | grep "<title>"
 
 # web-go.local
 curl -s http://web-go.local | grep "<title>"
@@ -1145,7 +1145,7 @@ curl -s http://web-go.local | grep "<title>"
 ```bash
 # Terminal 1: Sürekli request gönder
 while true; do
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
   sleep 1;
 done
 
@@ -1200,18 +1200,18 @@ Müşteri 7: Kasa 2'ye git
 
 - **Görev**: Müşterinin siparişini doğru bölüme yönlendirmek
 - **Sipariş Türleri**:
-  - Pizza siparişi → Pizzacı'ya (api-service)
-  - Hamburger siparişi → Burger'ci'ye (web-service)
-  - İçecek siparişi → Bar'a (api-go-service)
-  - Tatlı siparişi → Pastane'ye (web-go-service)
+  - Pizza siparişi → Pizzacı'ya (datetime-api-csharp-service)
+  - Hamburger siparişi → Burger'ci'ye (datetime-web-csharp-service)
+  - İçecek siparişi → Bar'a (datetime-api-go-service)
+  - Tatlı siparişi → Pastane'ye (datetime-web-go-service)
 
 **Örnek**:
 ```
-Müşteri: "Pizza istiyorum" (Host: api.local)
-Kasa: "Pizzacı'ya yönlendiriyorum" (api-service)
+Müşteri: "Pizza istiyorum" (Host: api-csharp.local)
+Kasa: "Pizzacı'ya yönlendiriyorum" (datetime-api-csharp-service)
 
-Müşteri: "Hamburger istiyorum" (Host: web.local)
-Kasa: "Burger'ci'ye yönlendiriyorum" (web-service)
+Müşteri: "Hamburger istiyorum" (Host: web-csharp.local)
+Kasa: "Burger'ci'ye yönlendiriyorum" (datetime-web-csharp-service)
 ```
 
 ---
@@ -1220,7 +1220,7 @@ Kasa: "Burger'ci'ye yönlendiriyorum" (web-service)
 
 ```
 1. Müşteri restoran kapısına gelir
-   → curl http://api.local/api/datetime
+   → curl http://api-csharp.local/api/datetime
 
 2. Hostess müşteriyi Kasa 2'ye yönlendirir
    → HAProxy: kind-worker2 seçildi (round-robin)
@@ -1229,13 +1229,13 @@ Kasa: "Burger'ci'ye yönlendiriyorum" (web-service)
    → Request worker2:80'e ulaşır
 
 4. Kasa çalışanı siparişe bakar: "Pizza istiyorsunuz"
-   → NGINX Ingress: Host header'ı kontrol ediyor (api.local)
+   → NGINX Ingress: Host header'ı kontrol ediyor (api-csharp.local)
 
 5. Kasa çalışanı "Pizzacı'ya yönlendiriyorum" der
-   → NGINX Ingress: api-service'e route ediyor
+   → NGINX Ingress: datetime-api-csharp-service'e route ediyor
 
 6. Pizzacı siparişi hazırlar
-   → api-service → api-deployment pod'u response döndürür
+   → datetime-api-csharp-service → api-csharp-deployment pod'u response döndürür
 
 7. Pizza müşteriye ulaşır
    → Response client'a döner
@@ -1263,7 +1263,7 @@ Kasa: "Burger'ci'ye yönlendiriyorum" (web-service)
 ┌─────────────────────────────────────────────────────────────────┐
 │ KATMAN 2: NGINX Ingress Controller (L7)                         │
 ├─────────────────────────────────────────────────────────────────┤
-│ • Ne Yapar: Host-based routing (api.local → api-service)        │
+│ • Ne Yapar: Host-based routing (api-csharp.local → datetime-api-csharp-service) │
 │ • Algoritma: Ingress rules (host matching)                      │
 │ • SSL Termination: Evet (HTTPS → HTTP)                          │
 │ • Lokasyon: Kubernetes pod (her worker'da 1 tane)               │
@@ -1326,15 +1326,15 @@ open http://localhost:8404
 kubectl get pods -n ingress-nginx -o wide
 
 # 4. Traffic test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # 5. Failover test
 docker stop kind-worker
-curl http://api.local/api/datetime  # Hala çalışmalı!
+curl http://api-csharp.local/api/datetime  # Hala çalışmalı!
 docker start kind-worker
 
 # 6. Round-robin test
-for i in {1..6}; do curl -s http://api.local/api/datetime | jq -r '.time'; done
+for i in {1..6}; do curl -s http://api-csharp.local/api/datetime | jq -r '.time'; done
 ```
 
 ---

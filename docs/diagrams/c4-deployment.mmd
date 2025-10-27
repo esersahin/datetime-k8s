@@ -54,8 +54,8 @@ C4Deployment
     Rel(haproxy, ingress_ctrl2, "Round-robin LB", "HTTP/HTTPS + Health Check")
     Rel(haproxy, ingress_ctrl3, "Round-robin LB", "HTTP/HTTPS + Health Check")
 
-    Rel(ingress_ctrl1, csharp_api_pod1, "Routes traffic", "Host: api.local")
-    Rel(ingress_ctrl2, csharp_api_pod2, "Routes traffic", "Host: api.local")
+    Rel(ingress_ctrl1, csharp_api_pod1, "Routes traffic", "Host: api-csharp.local")
+    Rel(ingress_ctrl2, csharp_api_pod2, "Routes traffic", "Host: api-csharp.local")
     Rel(ingress_ctrl1, go_api_pod1, "Routes traffic", "Host: api-go.local")
 
     Rel(etcd1, etcd2, "Raft consensus", "etcd cluster")

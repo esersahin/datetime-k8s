@@ -679,10 +679,10 @@ kubectl delete pod -n ingress-nginx <old-pod-name>
 #### Symptoms
 
 ```bash
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # No response or "Connection reset by peer"
 
-curl http://web.local
+curl http://web-csharp.local
 # No response or timeout
 ```
 
@@ -768,13 +768,13 @@ make deploy
 
 ```bash
 # C# API
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Go API
 curl http://api-go.local/health
 
 # C# Web
-curl http://web.local
+curl http://web-csharp.local
 
 # Go Web
 curl http://web-go.local

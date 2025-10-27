@@ -9,7 +9,7 @@ Kind Kubernetes cluster'ına **standart port 80/443** üzerinden **yüksek eriş
 ```
 ┌─────────────────────────────────────────┐
 │         Kullanıcı (Browser/curl)        │
-│     http://api.local (port 80)          │
+│     http://api-csharp.local (port 80)   │
 └──────────────┬──────────────────────────┘
                │
                ▼
@@ -93,8 +93,8 @@ server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker
 ### Standart Port 80 (HAProxy ile HA)
 ```bash
 # C# Uygulamaları
-http://api.local/api/datetime
-http://web.local
+http://api-csharp.local/api/datetime
+http://web-csharp.local
 
 # Go Uygulamaları  
 http://api-go.local/health
@@ -133,7 +133,7 @@ HAProxy, Docker'ın built-in DNS'ini kullanır (`127.0.0.11:53`). Bu sayede work
 docker stop kind-worker
 
 # Servisler hala erişilebilir (worker2 & worker3)
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ### HAProxy Stats Kontrolü
@@ -175,7 +175,7 @@ docker start kind-worker
 ### Standart Port Kullanımı
 - ✅ Port 80 - Standart HTTP
 - ✅ Port 443 - Standart HTTPS
-- ✅ `:80` yazmaya gerek yok - `http://api.local` yeterli
+- ✅ `:80` yazmaya gerek yok - `http://api-csharp.local` yeterli
 
 ## 🛠️ Sorun Giderme
 
@@ -243,7 +243,7 @@ Başarılı kurulum için:
 - [ ] HAProxy container çalışıyor (`docker ps | grep kind-http-lb`)
 - [ ] Worker node'lar Ready (`kubectl get nodes`)
 - [ ] Ingress pods Running (`kubectl get pods -n ingress-nginx`)
-- [ ] http://api.local erişilebilir
+- [ ] http://api-csharp.local erişilebilir
 - [ ] http://localhost:8404 stats sayfası açılıyor
 - [ ] Worker node durdurulduğunda sistem çalışmaya devam ediyor
 

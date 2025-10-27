@@ -132,7 +132,7 @@ Bir client request'in sistemde nasıl ilerlediğini adım adım gösterir.
 
 ### Normal Akış (Başarılı):
 
-1. Client → `GET http://api.local/api/go-time`
+1. Client → `GET http://api-csharp.local/api/go-time`
 2. Ingress → C# API'ye yönlendir
 3. C# API → Rate limiter kontrol (20 req/sec)
 4. Rate Limiter → ✅ İzin ver

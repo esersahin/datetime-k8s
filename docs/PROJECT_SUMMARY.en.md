@@ -42,7 +42,7 @@ This document summarizes all components, files, and important points of the proj
 - ⚡ Automatic deployment (single command)
 - 🔧 Mac optimized (hostNetwork, webhook fix)
 - 📦 Docker build + Kind integration
-- 🌐 Ingress (http://api.local, http://web.local)
+- 🌐 Ingress (http://api-csharp.local, http://web-csharp.local)
 - 🎯 25+ Makefile commands
 - 📊 Monitoring and testing tools
 - 🔄 Load balancing and scaling
@@ -51,19 +51,19 @@ This document summarizes all components, files, and important points of the proj
 
 ```
 datetime-k8s/
-├── api/                               # .NET 9 API
+├── api-csharp/                        # .NET 9 API
 │   ├── Program.cs                     # .NET 9 Minimal API
 │   ├── DateTimeApi.csproj             # Project file
 │   └── Dockerfile.api                 # API Docker image
-├── web/                               # Nginx Web App
+├── web-csharp/                        # Nginx Web App
 │   ├── index.html                     # Web UI (Vanilla JS)
 │   ├── nginx.conf                     # Nginx configuration
 │   └── Dockerfile.web                 # Web Docker image
 ├── k8s/                               # Kubernetes Manifests
-│   ├── api-deployment.yaml            # API Deployment + Service
-│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── api-csharp-deployment.yaml     # API Deployment + Service
+│   ├── web-csharp-deployment.yaml     # Web Deployment + Service
 │   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml                   # Ingress (api.local, web.local)
+│   ├── ingress.yaml                   # Ingress (api-csharp.local, web-csharp.local)
 │   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
 ├── docs/                              # Documents
 │   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
@@ -88,7 +88,7 @@ datetime-k8s/
 cd datetime-k8s
 make deploy
 make verify
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ### Troubleshooting
@@ -315,12 +315,12 @@ make deploy
     │      └─ kind load docker-image
     │
     ├─► 7. Deploy K8s Resources
-    │      ├─ api-deployment.yaml
-    │      ├─ web-deployment.yaml
+    │      ├─ api-csharp-deployment.yaml
+    │      ├─ web-csharp-deployment.yaml
     │      └─ ingress.yaml
     │
     ├─► 8. Update /etc/hosts
-    │      └─ 127.0.0.1 api.local web.local
+    │      └─ 127.0.0.1 api-csharp.local web-csharp.local
     │
     └─► 9. Verify
            └─ make verify (15 tests)
@@ -334,8 +334,8 @@ Deployment successful if:
 2. ✅ `kubectl get pods -n ingress-nginx -o wide` → NODE=kind-control-plane
 3. ✅ `kubectl get endpoints` → Each service has 2 endpoints
 4. ✅ `kubectl get pods` → All Running
-5. ✅ `curl http://api.local/api/datetime` → JSON response
-6. ✅ `curl http://web.local` → HTML response
+5. ✅ `curl http://api-csharp.local/api/datetime` → JSON response
+6. ✅ `curl http://web-csharp.local` → HTML response
 7. ✅ `make verify` → 15/15 tests passing
 
 ## 🚀 Advanced Usage
@@ -344,7 +344,7 @@ Deployment successful if:
 
 ```bash
 make scale-api REPLICAS=10
-for i in {1..1000}; do curl -s http://api.local/api/datetime & done
+for i in {1..1000}; do curl -s http://api-csharp.local/api/datetime & done
 ```
 
 ### Node Failure Simulation

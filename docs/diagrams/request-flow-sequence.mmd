@@ -17,16 +17,16 @@ sequenceDiagram
     Note over User,GoAPI: PHASE 1: External Request to C# API
     end
 
-    User->>DNS: Resolve api.local
+    User->>DNS: Resolve api-csharp.local
     DNS-->>User: 127.0.0.1 (localhost)
 
-    User->>HAProxy: GET http://api.local/api/datetime<br/>Host: api.local
+    User->>HAProxy: GET http://api-csharp.local/api/datetime<br/>Host: api-csharp.local
 
     Note over HAProxy: Layer 1: Worker Selection<br/>Round-robin algorithm<br/>Health check: /healthz
 
     HAProxy->>Ingress: Forward to Worker 2<br/>(Selected via round-robin)
 
-    Note over Ingress: Layer 2: Host-based Routing<br/>Check Host header: "api.local"<br/>Match Ingress rule
+    Note over Ingress: Layer 2: Host-based Routing<br/>Check Host header: "api-csharp.local"<br/>Match Ingress rule
 
     Ingress->>K8sSvc: Route to api-service<br/>(ClusterIP: 10.96.x.x)
 

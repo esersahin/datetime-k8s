@@ -28,14 +28,14 @@ spec:
   ingressClassName: nginx
   rules:
     # API Ingress - C# API (worker node'lardaki pod'lara yönlendirir)
-    - host: api.local
+    - host: api-csharp.local
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: datetime-api-service
+                name: datetime-api-csharp-service
                 port:
                   number: 80
     # API Go Ingress - Go API (worker node'lardaki pod'lara yönlendirir)
@@ -50,14 +50,14 @@ spec:
                 port:
                   number: 80
     # Web Ingress - C# Web (worker node'lardaki pod'lara yönlendirir)
-    - host: web.local
+    - host: web-csharp.local
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: datetime-web-service
+                name: datetime-web-csharp-service
                 port:
                   number: 80
     # Web Go Ingress - Go Web (worker node'lardaki pod'lara yönlendirir)

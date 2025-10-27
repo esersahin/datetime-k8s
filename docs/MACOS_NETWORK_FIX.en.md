@@ -51,8 +51,8 @@ make deploy
 Adds these lines to `/etc/hosts`:
 
 ```
-127.0.0.1 api.local web.local api-go.local web-go.local
-::1 api.local web.local api-go.local web-go.local  # ← This IPv6 entry fixes the 5 second issue
+127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local
+::1 api-csharp.local web-csharp.local api-go.local web-go.local  # ← This IPv6 entry fixes the 5 second issue
 ```
 
 ### Manual Fix
@@ -60,7 +60,7 @@ Adds these lines to `/etc/hosts`:
 If not using Makefile:
 
 ```bash
-sudo sh -c 'echo "::1 api.local web.local api-go.local web-go.local" >> /etc/hosts'
+sudo sh -c 'echo "::1 api-csharp.local web-csharp.local api-go.local web-go.local" >> /etc/hosts'
 ```
 
 ## 🧪 Test
@@ -113,11 +113,11 @@ This is a known macOS issue:
 
 ```bash
 # Problem
-127.0.0.1 api.local  # ← 5 second delay
+127.0.0.1 api-csharp.local  # ← 5 second delay
 
 # Solution
-127.0.0.1 api.local  # IPv4
-::1 api.local        # IPv6 ← This line fixes the 5 second issue!
+127.0.0.1 api-csharp.local  # IPv4
+::1 api-csharp.local        # IPv6 ← This line fixes the 5 second issue!
 ```
 
 When using `.local` domains on macOS, **always add IPv6 (::1) entry**!

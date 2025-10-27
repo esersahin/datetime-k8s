@@ -325,7 +325,7 @@ Your current deployments don't contain any node affinity, so pods will be automa
 
 If you want to run specific pods on specific nodes:
 
-#### Add Node Affinity to api-deployment.yaml
+#### Add Node Affinity to api-csharp-deployment.yaml
 
 ```yaml
 apiVersion: apps/v1
@@ -352,7 +352,7 @@ spec:
           # ... rest of config
 ```
 
-#### Add Node Affinity to web-deployment.yaml
+#### Add Node Affinity to web-csharp-deployment.yaml
 
 ```yaml
 apiVersion: apps/v1

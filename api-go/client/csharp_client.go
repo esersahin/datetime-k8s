@@ -30,15 +30,15 @@ type CSharpDateTimeResponse struct {
 func NewCSharpAPIClient() *CSharpAPIClient {
 	baseURL := os.Getenv("CSHARP_API_URL")
 	if baseURL == "" {
-		baseURL = "http://datetime-api-service"
+		baseURL = "http://datetime-api-csharp-service"
 	}
 
 	// Circuit breaker settings
 	settings := gobreaker.Settings{
 		Name:        "CSharpAPI",
-		MaxRequests: 3,                    // Max requests in half-open state
-		Interval:    10 * time.Second,     // Interval to clear counts
-		Timeout:     30 * time.Second,     // Time to stay in open state
+		MaxRequests: 3,                // Max requests in half-open state
+		Interval:    10 * time.Second, // Interval to clear counts
+		Timeout:     30 * time.Second, // Time to stay in open state
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
 			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
 			return counts.Requests >= 5 && failureRatio >= 0.5

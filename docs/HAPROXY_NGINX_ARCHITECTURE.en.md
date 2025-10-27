@@ -3,7 +3,7 @@
 ### 🌐 Read in Other Languages
 
 | 🇬🇧 [English](HAPROXY_NGINX_ARCHITECTURE.en.md) | 🇹🇷 [Türkçe](HAPROXY_NGINX_ARCHITECTURE.md) |
-| :----------------------------------------------: | :------------------------------------------: |
+| :--------------------------------------------: | :----------------------------------------: |
 
 </div>
 
@@ -49,6 +49,7 @@ docker ps --filter name=kind-http-lb --format 'table {{.Names}}\t{{.Image}}\t{{.
 ```
 
 **Output**:
+
 ```
 NAMES          IMAGE                PORTS
 kind-http-lb   haproxy:2.8-alpine   0.0.0.0:80->80/tcp, [::]:80->80/tcp,
@@ -63,6 +64,7 @@ docker exec kind-http-lb haproxy -v
 ```
 
 **Output**:
+
 ```
 HAProxy version 2.8.16-3a5d368 2025/10/03 - https://haproxy.org/
 Status: long-term supported branch - will stop receiving fixes around Q2 2028.
@@ -75,6 +77,7 @@ docker exec kind-http-lb cat /usr/local/etc/haproxy/haproxy.cfg | head -40
 ```
 
 **Config Content**:
+
 ```haproxy
 # HAProxy Load Balancer Configuration for Kind Cluster
 # Automatically distributes traffic to all worker nodes
@@ -128,6 +131,7 @@ docker ps --filter name=kind-worker --format 'table {{.Names}}\t{{.Status}}\t{{.
 ```
 
 **Output**:
+
 ```
 NAMES          STATUS          PORTS
 kind-worker3   Up 15 minutes
@@ -136,6 +140,7 @@ kind-worker2   Up 15 minutes
 ```
 
 **Note**: Worker nodes have **no port mapping**! (extraPortMappings removed)
+
 - Access is provided through HAProxy
 - hostNetwork: true allows worker containers to listen on port 80
 
@@ -150,6 +155,7 @@ kubectl get pods -n ingress-nginx -o wide
 ```
 
 **Output**:
+
 ```
 NAME                                        READY   STATUS    NODE
 ingress-nginx-controller-7f8d89bb7f-brb6k   1/1     Running   kind-worker2
@@ -164,6 +170,7 @@ kubectl get pods -n ingress-nginx -o custom-columns=NAME:.metadata.name,NODE:.sp
 ```
 
 **Output**:
+
 ```
 NAME                                        NODE           HOST-NETWORK
 ingress-nginx-controller-7f8d89bb7f-brb6k   kind-worker2   true
@@ -184,9 +191,10 @@ kubectl get ingress -A
 ```
 
 **Output**:
+
 ```
 NAMESPACE   NAME               CLASS   HOSTS                                          ADDRESS     PORTS   AGE
-default     datetime-ingress   nginx   api.local,api-go.local,web.local,web-go.local  localhost   80      10m
+default     datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local,web-go.local  localhost   80      10m
 ```
 
 **View Ingress Details**:
@@ -196,22 +204,23 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 ```
 
 **Output**:
+
 ```yaml
-  rules:
-  - host: api.local
+rules:
+  - host: api-csharp.local
     http:
       paths:
-      - backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-  - host: web.local
+        - backend:
+            service:
+              name: datetime-api-csharp-service
+              port:
+                number: 80
+  - host: web-csharp.local
     http:
       paths:
-      - backend:
-          service:
-            name: web-service
+        - backend:
+            service:
+              name: datetime-web-csharp-service
 ```
 
 ---
@@ -225,13 +234,13 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 **Purpose**: Distribute traffic from host to worker nodes
 
 ```
-┌──────────────────────────────────────────┐
-│  MacBook (Host Machine)                  │
-│                                          │
-│  curl http://api.local/api/datetime      │
-│           ↓                              │
-│  localhost:80 (HAProxy listening)        │
-└──────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│  MacBook (Host Machine)                    │
+│                                            │
+│  curl http://api-csharp.local/api/datetime │
+│           ↓                                │
+│  localhost:80 (HAProxy listening)          │
+└────────────────────────────────────────────┘
            ↓
 ┌──────────────────────────────────────────┐
 │  HAProxy Container (kind-http-lb)        │
@@ -255,6 +264,7 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 ```
 
 **What Does HAProxy Do?**
+
 - ✅ **Selection**: Chooses one of 3 workers (round-robin)
 - ✅ **Failover**: If one worker is DOWN, routes to others
 - ✅ **Health Check**: Checks `/healthz` endpoint every 2 seconds
@@ -279,11 +289,11 @@ Worker Node (example: kind-worker)
 │  │                                      │  │
 │  │ Host header check:                   │  │
 │  │                                      │  │
-│  │ IF Host == "api.local"               │  │
-│  │    → api-service:80                  │  │
+│  │ IF Host == "api-csharp.local"        │  │
+│  │    → api-csharp-service:80           │  │
 │  │                                      │  │
-│  │ IF Host == "web.local"               │  │
-│  │    → web-service:80                  │  │
+│  │ IF Host == "web-csharp.local"        │  │
+│  │    → web-csharp-service:80                  │  │
 │  │                                      │  │
 │  │ IF Host == "api-go.local"            │  │
 │  │    → api-go-service:80               │  │
@@ -294,16 +304,16 @@ Worker Node (example: kind-worker)
 │           ↓                                │
 │  ┌──────────────────────────────────────┐  │
 │  │ Kubernetes Services                  │  │
-│  │  ├─ api-service                      │  │
-│  │  ├─ web-service                      │  │
+│  │  ├─ api-csharp-service               │  │
+│  │  ├─ web-csharp-service               │  │
 │  │  ├─ api-go-service                   │  │
 │  │  └─ web-go-service                   │  │
 │  └──────────────────────────────────────┘  │
 │           ↓                                │
 │  ┌──────────────────────────────────────┐  │
 │  │ Application Pods                     │  │
-│  │  ├─ api-deployment-xxx               │  │
-│  │  ├─ web-deployment-xxx               │  │
+│  │  ├─ api-csharp-deployment-xxx        │  │
+│  │  ├─ web-csharp-deployment-xxx        │  │
 │  │  ├─ api-go-deployment-xxx            │  │
 │  │  └─ web-go-deployment-xxx            │  │
 │  └──────────────────────────────────────┘  │
@@ -312,7 +322,8 @@ Worker Node (example: kind-worker)
 ```
 
 **What Does NGINX Ingress Do?**
-- ✅ **Host-based Routing**: Looks at HTTP Host header (`api.local`, `web.local`, etc.)
+
+- ✅ **Host-based Routing**: Looks at HTTP Host header (`api-csharp.local`, `web-csharp.local`, etc.)
 - ✅ **Service Mapping**: Routes to correct Kubernetes Service
 - ✅ **SSL Termination**: Decrypts HTTPS traffic (for 443)
 - ✅ **Path-based Routing**: Different paths can route to different services for same host
@@ -321,14 +332,14 @@ Worker Node (example: kind-worker)
 
 ## 📊 Detailed Traffic Flow
 
-### Complete Request Flow: `curl http://api.local/api/datetime`
+### Complete Request Flow: `curl http://api-csharp.local/api/datetime`
 
 ```
 ═══════════════════════════════════════════════════════════════════
           COMPLETE TRAFFIC FLOW EXAMPLE
 ═══════════════════════════════════════════════════════════════════
 
-Request: curl http://api.local/api/datetime
+Request: curl http://api-csharp.local/api/datetime
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ STEP 1: Client → HAProxy (External Load Balancer)               │
@@ -336,7 +347,7 @@ Request: curl http://api.local/api/datetime
 
   Client (curl)
     │
-    │ DNS: api.local → 127.0.0.1 (via /etc/hosts)
+    │ DNS: api-csharp.local → 127.0.0.1 (via /etc/hosts)
     │
     ↓
   localhost:80
@@ -372,15 +383,15 @@ Request: curl http://api.local/api/datetime
     │ Task: Check HTTP Host header and route
     │
     │ HTTP Headers:
-    │   Host: api.local
+    │   Host: api-csharp.local
     │   GET /api/datetime
     │
     │ Ingress Rules Check:
-    │   IF Host == "api.local" THEN
-    │     backend: api-service:80  ← MATCH!
+    │   IF Host == "api-csharp.local" THEN
+    │     backend: api-csharp-service:80  ← MATCH!
     │
     ↓
-  Kubernetes Service: api-service
+  Kubernetes Service: api-csharp-service
     │
     │ Type: ClusterIP
     │ Cluster IP: 10.96.xxx.xxx
@@ -393,7 +404,7 @@ Request: curl http://api.local/api/datetime
 │ STEP 3: Service → Application Pod (Pod Load Balancing)          │
 └─────────────────────────────────────────────────────────────────┘
 
-  api-service (Kubernetes Service)
+  api-csharp-service (Kubernetes Service)
     │
     │ Task: Select one of endpoints (kube-proxy)
     │
@@ -408,7 +419,7 @@ Request: curl http://api.local/api/datetime
     │ Container: ASP.NET Core API
     │ Port: 8080
     │
-    │ Controller: DateTimeController
+    │ MinimalAPI Endpoint:
     │   GET /api/datetime
     │
     ↓
@@ -427,7 +438,7 @@ Request: curl http://api.local/api/datetime
 
   Application Pod
     ↓
-  api-service
+  api-csharp-service
     ↓
   NGINX Ingress Controller (kind-worker2)
     ↓
@@ -439,13 +450,14 @@ Request: curl http://api.local/api/datetime
 **Test Command**:
 
 ```bash
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 ```
 
 **Output Analysis**:
+
 ```
-* Connected to api.local (::1) port 80        ← Connected to HAProxy
-> Host: api.local                             ← NGINX Ingress will use this
+* Connected to api-csharp.local (::1) port 80        ← Connected to HAProxy
+> Host: api-csharp.local                             ← NGINX Ingress will use this
 < HTTP/1.1 200 OK
 {"date":"26.10.2025","time":"13:32:36",...}  ← Response from application pod
 ```
@@ -463,6 +475,7 @@ curl -v http://api.local/api/datetime
 ### HAProxy - Dedicated Load Balancer
 
 **Technology Details:**
+
 - **Written In**: C (for high performance)
 - **Engine**: Own custom event-driven engine
 - **First Release**: 2000 (by Willy Tarreau)
@@ -470,11 +483,13 @@ curl -v http://api.local/api/datetime
 - **License**: GPLv2
 
 **Focus:**
+
 - Layer 4 (TCP) and Layer 7 (HTTP/HTTPS) load balancing
 - Maximum performance and minimum latency
 - Production-grade HA (High Availability)
 
 **Strengths:**
+
 - ✅ **Very High Performance**: Millions of connections per second
 - ✅ **Advanced Health Checks**: Layer 4, Layer 7, custom health checks
 - ✅ **Session Persistence**: Sticky sessions, source IP tracking
@@ -484,6 +499,7 @@ curl -v http://api.local/api/datetime
 - ✅ **Low Resource Usage**: Minimal memory and CPU consumption
 
 **Use Cases:**
+
 - External load balancing (like Cloud LB)
 - TCP/HTTP traffic distribution
 - High-traffic websites (GitHub, Reddit, Stack Overflow)
@@ -491,6 +507,7 @@ curl -v http://api.local/api/datetime
 - API gateway load balancing
 
 **Our Usage:**
+
 ```
 HAProxy → Worker Node Selection
 - kind-worker:80
@@ -508,6 +525,7 @@ Stats: http://localhost:8404
 ### NGINX - Web Server + Reverse Proxy
 
 **Technology Details:**
+
 - **Written In**: C (event-driven architecture)
 - **Engine**: Own asynchronous, event-driven engine
 - **First Release**: 2004 (by Igor Sysoev)
@@ -515,12 +533,14 @@ Stats: http://localhost:8404
 - **License**: 2-clause BSD
 
 **Focus:**
+
 - Web server (static content serving)
 - Reverse proxy and HTTP routing
 - Content caching and compression
 - SSL/TLS termination
 
 **Strengths:**
+
 - ✅ **Host-based Routing**: Virtual hosts, server_name matching
 - ✅ **Path-based Routing**: Location blocks, regex matching
 - ✅ **SSL/TLS**: Advanced SSL configuration, SNI support
@@ -530,6 +550,7 @@ Stats: http://localhost:8404
 - ✅ **HTTP/2 and HTTP/3**: Modern protocol support
 
 **Use Cases:**
+
 - Web serving (static files)
 - Reverse proxy (HTTP routing)
 - API gateway (HTTP layer)
@@ -538,12 +559,13 @@ Stats: http://localhost:8404
 - Microservices routing
 
 **Our Usage (As Ingress Controller):**
+
 ```
 NGINX Ingress → Service Routing
-- api.local → api-service
-- web.local → web-service
+- api-csharp.local → datetime-api-csharp-service
+- web-csharp.local → datetime-web-csharp-service
 - api-go.local → datetime-api-go-service
-- web-go.local → web-go-service
+- web-go.local → datetime-web-go-service
 
 Method: Host header matching
 Location: Kubernetes pod (3 replicas)
@@ -554,27 +576,27 @@ SSL: Termination support
 
 ### Comparison Table
 
-| **FEATURE** | **HAProxy** | **NGINX** |
-|-------------|-------------|-----------|
-| **Primary Purpose** | Load Balancer | Web Server + Reverse Proxy |
-| **Written In** | C | C |
-| **Engine** | Event-driven (custom) | Event-driven (async) |
-| **Layer 4 (TCP)** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ Good |
-| **Layer 7 (HTTP)** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐⭐⭐ Excellent |
-| **Web Serving** | ❌ None | ⭐⭐⭐⭐⭐ Excellent |
-| **Static Files** | ❌ None | ⭐⭐⭐⭐⭐ Very fast |
-| **Caching** | ❌ None | ⭐⭐⭐⭐⭐ Advanced |
-| **Load Balancing** | ⭐⭐⭐⭐⭐ Specialized | ⭐⭐⭐⭐ Good |
-| **Health Checks** | ⭐⭐⭐⭐⭐ Very advanced | ⭐⭐⭐ Basic |
-| **Session Persistence** | ⭐⭐⭐⭐⭐ Advanced | ⭐⭐⭐ Good |
-| **Stats/Monitoring** | ⭐⭐⭐⭐⭐ Built-in (:8404) | ⭐⭐ Stub status |
-| **SSL/TLS** | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Very advanced |
-| **URL Rewriting** | ⭐⭐ Limited | ⭐⭐⭐⭐⭐ Very powerful |
-| **Performance** | ⭐⭐⭐⭐⭐ Very high | ⭐⭐⭐⭐⭐ Very high |
-| **Resource Usage** | ⭐⭐⭐⭐⭐ Minimal | ⭐⭐⭐⭐ Low |
-| **Configuration** | haproxy.cfg | nginx.conf |
-| **Community** | Active | Very active |
-| **Commercial** | HAProxy Enterprise | NGINX Plus |
+| **FEATURE**             | **HAProxy**                 | **NGINX**                  |
+| ----------------------- | --------------------------- | -------------------------- |
+| **Primary Purpose**     | Load Balancer               | Web Server + Reverse Proxy |
+| **Written In**          | C                           | C                          |
+| **Engine**              | Event-driven (custom)       | Event-driven (async)       |
+| **Layer 4 (TCP)**       | ⭐⭐⭐⭐⭐ Excellent        | ⭐⭐⭐ Good                |
+| **Layer 7 (HTTP)**      | ⭐⭐⭐⭐⭐ Excellent        | ⭐⭐⭐⭐⭐ Excellent       |
+| **Web Serving**         | ❌ None                     | ⭐⭐⭐⭐⭐ Excellent       |
+| **Static Files**        | ❌ None                     | ⭐⭐⭐⭐⭐ Very fast       |
+| **Caching**             | ❌ None                     | ⭐⭐⭐⭐⭐ Advanced        |
+| **Load Balancing**      | ⭐⭐⭐⭐⭐ Specialized      | ⭐⭐⭐⭐ Good              |
+| **Health Checks**       | ⭐⭐⭐⭐⭐ Very advanced    | ⭐⭐⭐ Basic               |
+| **Session Persistence** | ⭐⭐⭐⭐⭐ Advanced         | ⭐⭐⭐ Good                |
+| **Stats/Monitoring**    | ⭐⭐⭐⭐⭐ Built-in (:8404) | ⭐⭐ Stub status           |
+| **SSL/TLS**             | ⭐⭐⭐⭐ Good               | ⭐⭐⭐⭐⭐ Very advanced   |
+| **URL Rewriting**       | ⭐⭐ Limited                | ⭐⭐⭐⭐⭐ Very powerful   |
+| **Performance**         | ⭐⭐⭐⭐⭐ Very high        | ⭐⭐⭐⭐⭐ Very high       |
+| **Resource Usage**      | ⭐⭐⭐⭐⭐ Minimal          | ⭐⭐⭐⭐ Low               |
+| **Configuration**       | haproxy.cfg                 | nginx.conf                 |
+| **Community**           | Active                      | Very active                |
+| **Commercial**          | HAProxy Enterprise          | NGINX Plus                 |
 
 ---
 
@@ -583,24 +605,28 @@ SSL: Termination support
 #### Real-World Scenarios:
 
 **Cloud Provider Architecture:**
+
 ```
 User → Cloud Load Balancer → Kubernetes → NGINX Ingress → Services
         (HAProxy-like)                     (HTTP routing)
 ```
 
 **AWS:**
+
 ```
 User → ALB/ELB → Kubernetes → NGINX Ingress → Services
       (Layer 7 LB)           (Host routing)
 ```
 
 **GCP:**
+
 ```
 User → Cloud Load Balancing → Kubernetes → NGINX Ingress → Services
       (Global LB)                          (Ingress rules)
 ```
 
 **On-Premise (Our Architecture):**
+
 ```
 User → HAProxy → Kubernetes → NGINX Ingress → Services
       (External LB)          (Internal Router)
@@ -609,6 +635,7 @@ User → HAProxy → Kubernetes → NGINX Ingress → Services
 #### Each Works at a Different Layer:
 
 **Layer 1 - HAProxy (Infrastructure Level)**:
+
 - **Task**: Traffic distribution across worker nodes
 - **Level**: Infrastructure/Network level
 - **Decision**: "Which worker node should I send to?"
@@ -616,6 +643,7 @@ User → HAProxy → Kubernetes → NGINX Ingress → Services
 - **Doesn't Know**: Kubernetes Services, Pods, Ingress rules
 
 **Layer 2 - NGINX Ingress (Application Level)**:
+
 - **Task**: HTTP host/path-based routing
 - **Level**: Application/HTTP level
 - **Decision**: "Which Service does this Host header go to?"
@@ -623,6 +651,7 @@ User → HAProxy → Kubernetes → NGINX Ingress → Services
 - **Doesn't Know**: Worker node status
 
 **Analogy:**
+
 ```
 HAProxy = Airport Shuttle Service
   → Decides which terminal to go to
@@ -638,30 +667,39 @@ NGINX Ingress = Terminal Directional Signs
 ### Alternative Scenarios
 
 #### Scenario 1: HAProxy Only
+
 ```
 User → HAProxy → Services (ExternalIP)
 ```
+
 ❌ **Issues:**
+
 - Not Kubernetes-native
 - Cannot use Ingress resources
 - Host-based routing requires manual config
 - Service discovery becomes difficult
 
 #### Scenario 2: NGINX Ingress Only
+
 ```
 User → NGINX Ingress (NodePort) → Services
 ```
+
 ❌ **Issues:**
+
 - No worker node failover
 - Port mapping confusion (8080, 8081, 8082)
 - No HA
 - Not production-like
 
 #### Scenario 3: Two Layers (Our Method) ✅
+
 ```
 User → HAProxy → NGINX Ingress → Services
 ```
+
 ✅ **Advantages:**
+
 - Worker-level HA (HAProxy)
 - Application-level routing (NGINX)
 - Kubernetes-native (Ingress resources)
@@ -673,6 +711,7 @@ User → HAProxy → NGINX Ingress → Services
 ### Summary: Independent but Complementary
 
 HAProxy and NGINX:
+
 - ✅ **Completely different** software
 - ✅ **Independent** engines and algorithms
 - ✅ **Complementary** features
@@ -685,20 +724,20 @@ HAProxy works as an **external load balancer** in front of NGINX, while NGINX wo
 
 ## 🔍 HAProxy vs NGINX Ingress Comparison
 
-| **FEATURE**         | **HAProxy**                               | **NGINX Ingress**                      |
-| ------------------- | ----------------------------------------- | -------------------------------------- |
-| **Location**        | Docker container (outside Kubernetes)     | Kubernetes pod (on each worker)        |
-| **Main Task**       | Worker node selection (load balancing)    | Service routing (host-based)           |
-| **Routing Criteria**| Round-robin (worker1,2,3)                 | HTTP Host header (api.local, etc.)     |
-| **Layer**           | Layer 4/7                                 | Layer 7                                |
-| **Health Check**    | GET /healthz (every 2 seconds)            | Kubernetes readinessProbe              |
-| **Failover**        | Yes (routes to others if worker DOWN)     | Yes (routes to other pod if pod DOWN)  |
-| **SSL Termination** | Yes (for 443)                             | Yes (for 443)                          |
-| **Target**          | Worker nodes (kind-worker:80)             | Kubernetes Services (api-service:80)   |
-| **Configuration**   | haproxy.cfg                               | Ingress YAML                           |
-| **Stats Page**      | Yes (:8404)                               | No                                     |
-| **DNS Resolution**  | Yes (Docker DNS: 127.0.0.11)              | Kubernetes CoreDNS                     |
-| **Replica Count**   | 1 (Single point, but external)            | 3 (1 on each worker)                   |
+| **FEATURE**          | **HAProxy**                            | **NGINX Ingress**                         |
+| -------------------- | -------------------------------------- | ----------------------------------------- |
+| **Location**         | Docker container (outside Kubernetes)  | Kubernetes pod (on each worker)           |
+| **Main Task**        | Worker node selection (load balancing) | Service routing (host-based)              |
+| **Routing Criteria** | Round-robin (worker1,2,3)              | HTTP Host header (api-csharp.local, etc.) |
+| **Layer**            | Layer 4/7                              | Layer 7                                   |
+| **Health Check**     | GET /healthz (every 2 seconds)         | Kubernetes readinessProbe                 |
+| **Failover**         | Yes (routes to others if worker DOWN)  | Yes (routes to other pod if pod DOWN)     |
+| **SSL Termination**  | Yes (for 443)                          | Yes (for 443)                             |
+| **Target**           | Worker nodes (kind-worker:80)          | Kubernetes Services (datetime-api-csharp-service:80) |
+| **Configuration**    | haproxy.cfg                            | Ingress YAML                              |
+| **Stats Page**       | Yes (:8404)                            | No                                        |
+| **DNS Resolution**   | Yes (Docker DNS: 127.0.0.11)           | Kubernetes CoreDNS                        |
+| **Replica Count**    | 1 (Single point, but external)         | 3 (1 on each worker)                      |
 
 ---
 
@@ -711,22 +750,25 @@ HAProxy works as an **external load balancer** in front of NGINX, while NGINX wo
 #### 1️⃣ Worker Node Failover
 
 **Problem**:
+
 - NGINX Ingress has 1 pod per worker (hostNetwork: true)
 - If worker1 crashes, worker1:80 port is unreachable
 - Worker nodes have no port mapping (extraPortMappings removed)
 
 **Solution**:
+
 - HAProxy sees worker1 is DOWN
 - HAProxy routes to worker2/3
 - Service continues without interruption
 
 **Test**:
+
 ```bash
 # Stop worker1
 docker stop kind-worker
 
 # Still working?
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # ✅ WORKING! (via worker2 and worker3)
 ```
 
@@ -735,15 +777,18 @@ curl http://api.local/api/datetime
 #### 2️⃣ Standard Port Access (80/443)
 
 **Problem**:
+
 - Worker nodes have no port mapping
 - Users would need to use ports like `http://localhost:8080`, `http://localhost:8081`
 
 **Solution**:
+
 - HAProxy distributes localhost:80 to all workers
 - Users can access without port numbers
-- Production-like: `http://api.local` (no port!)
+- Production-like: `http://api-csharp.local` (no port!)
 
 **Comparison**:
+
 ```bash
 # WITHOUT HAProxy (old method):
 curl http://localhost:8080/api/datetime  # worker1
@@ -751,7 +796,7 @@ curl http://localhost:8081/api/datetime  # worker2
 curl http://localhost:8082/api/datetime  # worker3
 
 # WITH HAProxy (current method):
-curl http://api.local/api/datetime       # HAProxy routes ✅
+curl http://api-csharp.local/api/datetime       # HAProxy routes ✅
 ```
 
 ---
@@ -792,6 +837,7 @@ open http://localhost:8404
 ```
 
 **Stats Output** (when worker1 is DOWN):
+
 ```
 Backend: workers_http
 ├─ worker1  ❌ DOWN      (Last check: Connection refused)
@@ -854,22 +900,24 @@ Services & Pods
 ✅ NGINX Ingress running on each worker
 
 Test:
-  $ curl http://api.local/api/datetime
+  $ curl http://api-csharp.local/api/datetime
   → HAProxy: worker1 selected
-  → NGINX (worker1): api.local → api-service
-  → api-service: pod-1 selected
+  → NGINX (worker1): api-csharp.local → datetime-api-csharp-service
+  → datetime-api-csharp-service: pod-1 selected
   → Response: 200 OK
 ```
 
 **Command**:
+
 ```bash
 for i in {1..6}; do
   echo "Request $i:";
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
 done
 ```
 
 **Output** (HAProxy round-robin):
+
 ```
 Request 1: 13:45:10  ← worker1
 Request 2: 13:45:11  ← worker2
@@ -901,7 +949,7 @@ curl -s http://localhost:8404 | grep -A 2 "workers_http/worker1"
 # Output: worker1 DOWN
 
 # Service still working?
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # ✅ WORKING! (via worker2 or worker3)
 
 # Start worker1 again
@@ -913,11 +961,13 @@ curl -s http://localhost:8404 | grep -A 2 "workers_http/worker1"
 ```
 
 **HAProxy Logs**:
+
 ```bash
 docker logs kind-http-lb --tail 20
 ```
 
 **Example Log**:
+
 ```
 [WARNING]  Server workers_http/worker1 is DOWN, reason: Layer7 wrong status, code: 502
 [INFO]     Server workers_http/worker1 is UP, reason: Layer7 check passed
@@ -942,7 +992,7 @@ docker stop kind-worker kind-worker2
 
 # Service still working?
 for i in {1..5}; do
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
 done
 # ✅ WORKING! (only via worker3)
 
@@ -1084,7 +1134,7 @@ POD_NAME=$(kubectl get pods -n ingress-nginx -l app.kubernetes.io/component=cont
 kubectl exec -it -n ingress-nginx $POD_NAME -- /bin/bash
 
 # Inside:
-nginx -T | grep "server_name api.local"
+nginx -T | grep "server_name api-csharp.local"
 ```
 
 ---
@@ -1095,13 +1145,13 @@ nginx -T | grep "server_name api.local"
 
 ```bash
 # GET request
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # JSON output
-curl -s http://api.local/api/datetime | jq
+curl -s http://api-csharp.local/api/datetime | jq
 
 # Verbose (show headers)
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 ```
 
 #### 2. Round-robin Test
@@ -1110,7 +1160,7 @@ curl -v http://api.local/api/datetime
 # Send 10 requests and measure timing
 for i in {1..10}; do
   echo -n "Request $i: ";
-  time curl -s http://api.local/api/datetime > /dev/null;
+  time curl -s http://api-csharp.local/api/datetime > /dev/null;
 done
 ```
 
@@ -1118,23 +1168,23 @@ done
 
 ```bash
 # Apache Bench (100 requests, 10 concurrent)
-ab -n 100 -c 10 http://api.local/api/datetime
+ab -n 100 -c 10 http://api-csharp.local/api/datetime
 
 # Or hey (https://github.com/rakyll/hey)
-hey -n 100 -c 10 http://api.local/api/datetime
+hey -n 100 -c 10 http://api-csharp.local/api/datetime
 ```
 
 #### 4. Different Hosts
 
 ```bash
-# api.local
-curl -s http://api.local/api/datetime | jq -r '.time'
+# api-csharp.local
+curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 
 # api-go.local
 curl -s http://api-go.local/health | jq
 
-# web.local
-curl -s http://web.local | grep "<title>"
+# web-csharp.local
+curl -s http://web-csharp.local | grep "<title>"
 
 # web-go.local
 curl -s http://web-go.local | grep "<title>"
@@ -1145,7 +1195,7 @@ curl -s http://web-go.local | grep "<title>"
 ```bash
 # Terminal 1: Continuous requests
 while true; do
-  curl -s http://api.local/api/datetime | jq -r '.time';
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time';
   sleep 1;
 done
 
@@ -1180,6 +1230,7 @@ Think of a restaurant:
 - **Failover**: If one cashier is closed, direct to another cashier
 
 **Example**:
+
 ```
 Customer 1: Go to Cashier 1
 Customer 2: Go to Cashier 2
@@ -1200,18 +1251,19 @@ Customer 7: Go to Cashier 2
 
 - **Task**: Route customer's order to correct department
 - **Order Types**:
-  - Pizza order → Pizza chef (api-service)
-  - Burger order → Burger chef (web-service)
-  - Drink order → Bar (api-go-service)
-  - Dessert order → Pastry (web-go-service)
+  - Pizza order → Pizza chef (datetime-api-csharp-service)
+  - Burger order → Burger chef (datetime-web-csharp-service)
+  - Drink order → Bar (datetime-api-go-service)
+  - Dessert order → Pastry (datetime-web-go-service)
 
 **Example**:
-```
-Customer: "I want pizza" (Host: api.local)
-Cashier: "Routing to pizza chef" (api-service)
 
-Customer: "I want burger" (Host: web.local)
-Cashier: "Routing to burger chef" (web-service)
+```
+Customer: "I want pizza" (Host: api-csharp.local)
+Cashier: "Routing to pizza chef" (datetime-api-csharp-service)
+
+Customer: "I want burger" (Host: web-csharp.local)
+Cashier: "Routing to burger chef" (datetime-web-csharp-service)
 ```
 
 ---
@@ -1220,7 +1272,7 @@ Cashier: "Routing to burger chef" (web-service)
 
 ```
 1. Customer arrives at restaurant entrance
-   → curl http://api.local/api/datetime
+   → curl http://api-csharp.local/api/datetime
 
 2. Host directs customer to Cashier 2
    → HAProxy: kind-worker2 selected (round-robin)
@@ -1229,13 +1281,13 @@ Cashier: "Routing to burger chef" (web-service)
    → Request reaches worker2:80
 
 4. Cashier checks order: "You want pizza"
-   → NGINX Ingress: Checking Host header (api.local)
+   → NGINX Ingress: Checking Host header (api-csharp.local)
 
 5. Cashier says "Routing to pizza chef"
-   → NGINX Ingress: Routing to api-service
+   → NGINX Ingress: Routing to datetime-api-csharp-service
 
 6. Pizza chef prepares the order
-   → api-service → api-deployment pod returns response
+   → datetime-api-csharp-service → api-csharp-deployment pod returns response
 
 7. Pizza reaches customer
    → Response returns to client
@@ -1263,7 +1315,7 @@ Cashier: "Routing to burger chef" (web-service)
 ┌─────────────────────────────────────────────────────────────────┐
 │ LAYER 2: NGINX Ingress Controller (L7)                          │
 ├─────────────────────────────────────────────────────────────────┤
-│ • What it does: Host-based routing (api.local → api-service)    │
+│ • What it does: Host-based routing (api-csharp.local → datetime-api-csharp-service) │
 │ • Algorithm: Ingress rules (host matching)                      │
 │ • SSL Termination: Yes (HTTPS → HTTP)                           │
 │ • Location: Kubernetes pod (1 on each worker)                   │
@@ -1288,28 +1340,36 @@ Cashier: "Routing to burger chef" (web-service)
 ### Answers to Main Questions
 
 #### ❓ Are we using HAProxy?
+
 ✅ **Yes!** `kind-http-lb` container runs HAProxy 2.8.
 
 #### ❓ Where is NGINX Ingress?
+
 ✅ **As Kubernetes pods!** 1 NGINX Ingress pod runs on each worker node (3 replicas).
 
 #### ❓ How do they work together?
+
 ✅ **Two-layer structure:**
-   1. HAProxy: Worker selection (External LB)
-   2. NGINX: Service routing (Internal Router)
+
+1.  HAProxy: Worker selection (External LB)
+2.  NGINX: Service routing (Internal Router)
 
 #### ❓ Why two layers?
+
 ✅ **4 Main Reasons:**
-   1. Worker node failover
-   2. Standard port access (80/443)
-   3. High availability
-   4. Production-like setup
+
+1.  Worker node failover
+2.  Standard port access (80/443)
+3.  High availability
+4.  Production-like setup
 
 #### ❓ Which one does load balancing?
+
 ✅ **Both!**
-   - HAProxy: Between worker nodes
-   - NGINX Ingress: Routing to Kubernetes Services
-   - Kubernetes Service: Between pods
+
+- HAProxy: Between worker nodes
+- NGINX Ingress: Routing to Kubernetes Services
+- Kubernetes Service: Between pods
 
 ---
 
@@ -1326,15 +1386,15 @@ open http://localhost:8404
 kubectl get pods -n ingress-nginx -o wide
 
 # 4. Traffic test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # 5. Failover test
 docker stop kind-worker
-curl http://api.local/api/datetime  # Should still work!
+curl http://api-csharp.local/api/datetime  # Should still work!
 docker start kind-worker
 
 # 6. Round-robin test
-for i in {1..6}; do curl -s http://api.local/api/datetime | jq -r '.time'; done
+for i in {1..6}; do curl -s http://api-csharp.local/api/datetime | jq -r '.time'; done
 ```
 
 ---
@@ -1354,4 +1414,4 @@ With this architecture:
 
 **Happy Learning! 🚀**
 
-*This document was created to understand the differences between HAProxy and NGINX Ingress Controller and how they work together.*
+_This document was created to understand the differences between HAProxy and NGINX Ingress Controller and how they work together._

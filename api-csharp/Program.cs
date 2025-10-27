@@ -114,7 +114,7 @@ app.MapGet("/health", () =>
         status = "healthy",
         pod = podName,
         node = nodeName,
-        service = "datetime-api"
+        service = "datetime-api-csharp"
     });
 });
 

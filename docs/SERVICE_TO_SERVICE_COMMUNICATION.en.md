@@ -538,7 +538,7 @@ Features:
 
 ### Environment Variables
 
-**File:** `k8s/api-deployment.yaml`
+**File:** `k8s/api-csharp-deployment.yaml`
 
 ```yaml
 env:
@@ -568,7 +568,7 @@ env:
 
 ```bash
 # C# API → Go API
-curl http://api.local/api/go-time
+curl http://api-csharp.local/api/go-time
 ```
 
 **Expected:**
@@ -590,7 +590,7 @@ kubectl scale deployment datetime-api-go --replicas=0
 
 # Make requests from C# API
 for i in {1..10}; do
-  curl http://api.local/api/go-time
+  curl http://api-csharp.local/api/go-time
 done
 ```
 
@@ -612,7 +612,7 @@ Request 11: Testing
 ```bash
 # 25 requests at once (limit: 20 req/sec)
 for i in {1..25}; do
-  curl -s http://api.local/api/go-time -o /dev/null -w "Request $i: %{http_code}\n"
+  curl -s http://api-csharp.local/api/go-time -o /dev/null -w "Request $i: %{http_code}\n"
 done
 ```
 
@@ -664,7 +664,7 @@ kubectl run -it --rm debug --image=busybox --restart=Never -- sh
 nslookup datetime-api-go-service
 
 # Check environment variable
-kubectl exec deployment/datetime-api -- env | grep GO_API_URL
+kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ```
 
 ---

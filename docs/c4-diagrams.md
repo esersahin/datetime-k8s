@@ -50,8 +50,8 @@ C4Container
     }
 
     Rel(user, ingress, "Accesses", "HTTP :80")
-    Rel(ingress, csharp_web, "Routes /web.local", "HTTP")
-    Rel(ingress, csharp_api, "Routes /api.local", "HTTP")
+    Rel(ingress, csharp_web, "Routes /web-csharp.local", "HTTP")
+    Rel(ingress, csharp_api, "Routes /api-csharp.local", "HTTP")
     Rel(ingress, go_web, "Routes /web-go.local", "HTTP")
     Rel(ingress, go_api, "Routes /api-go.local", "HTTP")
 
@@ -113,7 +113,7 @@ C4Component
     title Component Diagram - Go API (Go 1.25)
 
     Container_Boundary(go_api_boundary, "Go API Container") {
-        Component(router, "HTTP Router", "net/http", "Routes: /health, /api/*, /api/worldclock")
+        Component(router, "HTTP Router", "net/http", "Routes: /health, /api/*, /api/worldclock, /api/csharp-datetime")
         Component(handlers, "HTTP Handlers", "handlers package", "Business logic handlers")
 
         Component(go_circuit_breaker, "Circuit Breaker", "sony/gobreaker", "Failure tracking & protection")
@@ -134,7 +134,7 @@ C4Component
     Rel(handlers, models, "Uses", "Data structures")
     Rel(timezone_service, utils, "Uses", "Helper functions")
 
-    Rel(handlers, k8s_dns_ext2, "Resolves CSharp API", "DNS: datetime-api-service")
+    Rel(handlers, k8s_dns_ext2, "Resolves CSharp API", "DNS: datetime-api-csharp-service")
     Rel(handlers, csharp_api_ext, "Calls (optional)", "HTTP with resiliency")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

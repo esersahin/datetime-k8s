@@ -45,8 +45,8 @@ graph TB
     CP2 <-->|"etcd Raft<br/>consensus"| CP3
     CP3 <-->|"etcd Raft<br/>consensus"| CP1
 
-    NGINX1 -->|"Host: api.local"| APISvc
-    NGINX2 -.->|"Host: web.local"| WebSvc
+    NGINX1 -->|"Host: api-csharp.local"| APISvc
+    NGINX2 -.->|"Host: web-csharp.local"| WebSvc
     NGINX3 -.->|"Host: api-go.local"| APIGoSvc
 
     APISvc --> Pods1

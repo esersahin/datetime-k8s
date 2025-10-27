@@ -34,12 +34,12 @@ graph TB
     end
 
     %% Main Flow - External Access
-    User -->|"api.local<br/>web.local<br/>api-go.local<br/>web-go.local"| HAProxy
+    User -->|"api-csharp.local<br/>web-csharp.local<br/>api-go.local<br/>web-go.local"| HAProxy
     HAProxy -->|"Round-robin"| Ingress
 
     %% Ingress to Services (Host-based routing)
-    Ingress -->|"api.local"| APISvc
-    Ingress -->|"web.local"| WebSvc
+    Ingress -->|"api-csharp.local"| APISvc
+    Ingress -->|"web-csharp.local"| WebSvc
     Ingress -->|"api-go.local"| APIGoSvc
     Ingress -->|"web-go.local"| WebGoSvc
 

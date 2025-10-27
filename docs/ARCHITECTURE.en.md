@@ -132,7 +132,7 @@ Shows step-by-step how a client request progresses through the system.
 
 ### Normal Flow (Success):
 
-1. Client → `GET http://api.local/api/go-time`
+1. Client → `GET http://api-csharp.local/api/go-time`
 2. Ingress → Route to C# API
 3. C# API → Check rate limiter (20 req/sec)
 4. Rate Limiter → ✅ Allow

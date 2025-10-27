@@ -677,7 +677,7 @@ kubectl get pods -A -o wide | grep control-plane | grep ingress
 curl -s http://api-go.local/health | jq .
 
 # C# API'yi test edin
-curl -s http://api.local/api/datetime | jq .
+curl -s http://api-csharp.local/api/datetime | jq .
 ```
 
 **Beklenen Çıktılar:**
@@ -920,10 +920,10 @@ kubectl exec -n ingress-nginx <pod-name> -- curl localhost:10254/healthz
 #### Semptomlar
 
 ```bash
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 # Yanıt yok veya "Connection reset by peer"
 
-curl http://web.local
+curl http://web-csharp.local
 # Yanıt yok veya timeout
 ```
 
@@ -1030,13 +1030,13 @@ make deploy
 
 ```bash
 # C# API
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Go API
 curl http://api-go.local/health
 
 # C# Web
-curl http://web.local
+curl http://web-csharp.local
 
 # Go Web
 curl http://web-go.local
@@ -1055,7 +1055,7 @@ Doğru yapılandırmayla cluster yeniden oluşturulduğunda:
 
 ```bash
 # C# API
-curl -s http://api.local/api/datetime
+curl -s http://api-csharp.local/api/datetime
 # {"date":"19.10.2025","time":"12:26:02","dayOfWeek":"Pazar",...}
 
 # Go API
@@ -1063,7 +1063,7 @@ curl -s http://api-go.local/health
 # {"status":"healthy","service":"datetime-api-go","pod":"...","node":"kind-worker"}
 
 # Web uygulamaları
-curl -s http://web.local | head -5
+curl -s http://web-csharp.local | head -5
 curl -s http://web-go.local | head -5
 # HTML içeriği başarıyla döner
 ```
@@ -1078,7 +1078,7 @@ Eğer web sitelerine erişilmiyorsa şu adımları sırayla kontrol edin:
 - [ ] Worker node'larda port mapping var mı? (`docker port kind-worker`)
 - [ ] Ingress kaynağı oluşturulmuş mu? (`kubectl get ingress`)
 - [ ] Service'ler mevcut mu? (`kubectl get svc`)
-- [ ] /etc/hosts dosyası güncel mi? (`grep "api.local" /etc/hosts`)
+- [ ] /etc/hosts dosyası güncel mi? (`grep "api-csharp.local" /etc/hosts`)
 
 Tüm kontroller başarılıysa ancak hala erişilemiyorsa:
 

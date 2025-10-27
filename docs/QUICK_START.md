@@ -45,7 +45,7 @@ kubectl version --client
 
 ```bash
 # Dizinleri oluştur
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 cd datetime-k8s
 
 # Tüm artifact dosyalarını ilgili klasörlere kopyala
@@ -71,10 +71,10 @@ make status
 make verify
 
 # API test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Web test
-curl http://web.local
+curl http://web-csharp.local
 ```
 
 **Hepsi bu kadar!** 🎉
@@ -109,7 +109,7 @@ kubectl get endpoints
 | -------------------- | ---------------------------------------------------------------------------------- |
 | **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                           |
 | **Endpoint yok**     | `kubectl apply -f k8s/`                                                            |
-| **Erişim yok**       | `echo "127.0.0.1 api.local web.local" \| sudo tee -a /etc/hosts`                   |
+| **Erişim yok**       | `echo "127.0.0.1 api-csharp.local web-csharp.local" \| sudo tee -a /etc/hosts`                   |
 | **Pod Pending**      | `kubectl describe pod <pod-name>` → [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bakın |
 
 ### Detaylı Sorun Giderme
@@ -187,13 +187,13 @@ datetime-web-service   ClusterIP   10.96.240.159   80/TCP
 
 Ingress:
 NAME               CLASS   HOSTS                 ADDRESS     PORTS
-datetime-ingress   nginx   api.local,web.local   localhost   80
+datetime-ingress   nginx   api-csharp.local,web-csharp.local   localhost   80
 ```
 
 ### Test Sonuçları
 
 ```bash
-$ curl http://api.local/api/datetime
+$ curl http://api-csharp.local/api/datetime
 {
   "date": "05.10.2025",
   "time": "15:45:30",
@@ -201,7 +201,7 @@ $ curl http://api.local/api/datetime
   "timestamp": "2025-10-05T15:45:30+03:00"
 }
 
-$ curl http://web.local
+$ curl http://web-csharp.local
 <!DOCTYPE html>
 <html>
   <head><title>Tarih ve Saat Uygulaması</title></head>
@@ -248,17 +248,17 @@ Toplam: 15 | Başarılı: 15 | Başarısız: 0 | Oran: 100%
 
 ```
 datetime-k8s/
-├── api/
+├── api-csharp/
 │   ├── Program.cs
 │   ├── DateTimeApi.csproj
 │   └── Dockerfile.api
-├── web/
+├── web-csharp/
 │   ├── index.html
 │   ├── nginx.conf
 │   └── Dockerfile.web
 ├── k8s/
-│   ├── api-deployment.yaml
-│   ├── web-deployment.yaml
+│   ├── api-csharp-deployment.yaml
+│   ├── web-csharp-deployment.yaml
 │   ├── kind-config.yaml
 │   ├── ingress.yaml
 │   └── ingress-nginx-deployment.yaml   # ⭐ ÖNEMLİ!
@@ -315,7 +315,7 @@ Worker node'daysa **erişim çalışmaz**!
 
 ```bash
 # Otomatik eklenir (sudo gerekir)
-127.0.0.1 api.local web.local
+127.0.0.1 api-csharp.local web-csharp.local
 
 # Kontrol
 cat /etc/hosts | grep local
@@ -336,8 +336,8 @@ Kind'da admission webhook'lar gereksiz ve sorun çıkarır. Projemizde devre dı
 **Çözüm**:
 
 ```bash
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/web-deployment.yaml
+kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/web-csharp-deployment.yaml
 kubectl get endpoints  # Kontrol et
 ```
 
@@ -352,7 +352,7 @@ kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 ```
 
-### Hata 3: "Failed to connect to api.local"
+### Hata 3: "Failed to connect to api-csharp.local"
 
 **Neden**: /etc/hosts eksik veya Ingress Controller worker'da.
 
@@ -360,7 +360,7 @@ kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
 ```bash
 # /etc/hosts ekle
-echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
 
 # Ingress düzelt
 make fix-ingress
@@ -390,7 +390,7 @@ kubectl apply -f k8s/ingress-nginx-deployment.yaml
 make quick-update
 
 # 3. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ### Tam Yeniden Başlatma
@@ -431,7 +431,7 @@ make scale-api REPLICAS=5
 make scale-web REPLICAS=5
 
 # 2. Test
-for i in {1..100}; do curl -s http://api.local/api/datetime; done
+for i in {1..100}; do curl -s http://api-csharp.local/api/datetime; done
 
 # 3. Scale down
 make scale-api REPLICAS=2
@@ -488,8 +488,8 @@ Başarılı deployment için:
 - [ ] Tüm pod'lar Running
 - [ ] Endpoint'ler mevcut
 - [ ] /etc/hosts güncel
-- [ ] `curl http://api.local/api/datetime` çalışıyor
-- [ ] `curl http://web.local` çalışıyor
+- [ ] `curl http://api-csharp.local/api/datetime` çalışıyor
+- [ ] `curl http://web-csharp.local` çalışıyor
 - [ ] `make verify` başarılı
 
 ---

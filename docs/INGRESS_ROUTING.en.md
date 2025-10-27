@@ -29,45 +29,45 @@ This document explains how the Ingress Controller routes traffic to pods on work
 ## 🔄 Traffic Flow
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Requests (HTTP/HTTPS)                    │
-│              http://api.local, http://web.local             │
-└────────────────────────┬────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                Requests (HTTP/HTTPS)                      │
+│     http://api-csharp.local, http://web-csharp.local      │
+└────────────────────────┬──────────────────────────────────┘
                          │
                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Kind Cluster (localhost:80)                    │
-└────────────────────────┬────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│              Kind Cluster (localhost:80)                  │
+└────────────────────────┬──────────────────────────────────┘
                          │
                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│          🎛️  CONTROL-PLANE NODE (kind-control-plane)        │
-│                                                             │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │     NGINX Ingress Controller Pod                      │  │
-│  │  - Host Network: true                                 │  │
-│  │  - Port 80/443 listening                              │  │
-│  │  - Rules: api.local → datetime-api-service            │  │
-│  │           web.local → datetime-web-service            │  │
-│  └───────────────────────┬───────────────────────────────┘  │
-└──────────────────────────┼──────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│          🎛️  CONTROL-PLANE NODE (kind-control-plane)           │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │     NGINX Ingress Controller Pod                         │  │
+│  │  - Host Network: true                                    │  │
+│  │  - Port 80/443 listening                                 │  │
+│  │  - Rules: api-csharp.local → datetime-api-csharp-service │  │
+│  │           web-csharp.local → datetime-web-csharp-service │  │
+│  └───────────────────────┬──────────────────────────────────┘  │
+└──────────────────────────┼─────────────────────────────────────┘
                            │
                            ▼
           ┌────────────────┴─────────────────┐
           │                                  │
           ▼                                  ▼
-┌──────────────────────┐          ┌──────────────────────┐
-│ datetime-api-service │          │ datetime-web-service │
-│  Type: ClusterIP     │          │  Type: ClusterIP     │
-│  Port: 80            │          │  Port: 80            │
-│  Selector:           │          │  Selector:           │
-│    app=datetime-api  │          │    app=datetime-web  │
-└──────────┬───────────┘          └──────────┬───────────┘
-           │                                 │
-           │                                 │
-   ┌───────┴──────────┐              ┌───────┴──────────┐
-   │                  │              │                  │
-   ▼                  ▼              ▼                  ▼
+┌──────────────────────────────┐   ┌──────────────────────────────┐
+│ datetime-api-csharp-service. │   │ datetime-web-csharp-service  │
+│  Type: ClusterIP             │   │  Type: ClusterIP             │
+│  Port: 80                    │   │  Port: 80                    │
+│  Selector:                   │   │  Selector:                   │
+│    app=datetime-api-csharp   │   │    app=datetime-web-csharp   │
+└──────────┬───────────────────┘   └──────────┬───────────────────┘
+           │                                  │
+           │                                  │
+   ┌───────┴──────────┐               ┌───────┴──────────┐
+   │                  │               │                  │
+   ▼                  ▼               ▼                  ▼
 ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
 │ 💼 WORKER 1 │  │ 💼 WORKER 2 │  │ 💼 WORKER 1 │  │ 💼 WORKER 2 │
 │ kind-worker │  │kind-worker2 │  │ kind-worker │  │kind-worker2 │
@@ -106,10 +106,10 @@ nodes:
 Services find pods using **label selector**:
 
 ```yaml
-# datetime-api-service
+# datetime-api-csharp-service
 spec:
   selector:
-    app: datetime-api # Finds ALL pods with this label
+    app: datetime-api-csharp # Finds ALL pods with this label
 ```
 
 Service automatically finds all pods with this label **regardless of which node they're on**.
@@ -121,13 +121,13 @@ Ingress routes based on Service names:
 ```yaml
 # ingress.yaml
 rules:
-  - host: api.local
+  - host: api-csharp.local
     http:
       paths:
         - path: /
           backend:
             service:
-              name: datetime-api-service # Route to Service
+              name: datetime-api-csharp-service # Route to Service
 ```
 
 ### 4. Load Balancing
@@ -152,14 +152,14 @@ Control-Plane Node:
     └── Translates Service to pod IPs on worker nodes
 
 Worker Node 1:
-├── datetime-api Pod (10.244.1.2)
-├── datetime-web Pod (10.244.1.3)
+├── datetime-api-csharp Pod (10.244.1.2)
+├── datetime-web-csharp Pod (10.244.1.3)
 └── kube-proxy
     └── Manages network rules
 
 Worker Node 2:
-├── datetime-api Pod (10.244.2.2)
-├── datetime-web Pod (10.244.2.3)
+├── datetime-api-csharp Pod (10.244.2.2)
+├── datetime-web-csharp Pod (10.244.2.3)
 └── kube-proxy
     └── Manages network rules
 ```
@@ -172,18 +172,18 @@ type: ClusterIP # Accessible from within cluster
 
 Service gets a **virtual IP**:
 
-- `datetime-api-service`: 10.96.xxx.xxx:80
+- `datetime-api-csharp-service`: 10.96.xxx.xxx:80
 - This IP is in front of all pod IPs
 - kube-proxy routes this IP to pod IPs
 
 ### Network Flow
 
 ```
-1. Request arrives: http://api.local/api/datetime
+1. Request arrives: http://api-csharp.local/api/datetime
 
 2. Ingress Controller (control-plane):
-   - Check host header: api.local ✓
-   - Find Service: datetime-api-service
+   - Check host header: api-csharp.local ✓
+   - Find Service: datetime-api-csharp-service
    - Forward to Service IP: 10.96.xxx.xxx:80
 
 3. kube-proxy (on every node):
@@ -257,13 +257,13 @@ kubectl get pods -o wide
 
 ```bash
 # Which pods is Service routing to?
-kubectl get endpoints datetime-api-service
-kubectl get endpoints datetime-web-service
+kubectl get endpoints datetime-api-csharp-service
+kubectl get endpoints datetime-web-csharp-service
 
 # Output:
-# NAME                    ENDPOINTS
-# datetime-api-service    10.244.1.2:5000,10.244.2.2:5000
-# datetime-web-service    10.244.1.3:80,10.244.2.3:80
+# NAME                             ENDPOINTS
+# datetime-api-csharp-service      10.244.1.2:5000,10.244.2.2:5000
+# datetime-web-csharp-service      10.244.1.3:80,10.244.2.3:80
 ```
 
 ### 4. Traffic Test
@@ -271,7 +271,7 @@ kubectl get endpoints datetime-web-service
 ```bash
 # Send requests to API
 for i in {1..10}; do
-  curl -s http://api.local/api/datetime | jq .time
+  curl -s http://api-csharp.local/api/datetime | jq .time
 done
 
 # Different pods may respond each time (round-robin)
@@ -281,13 +281,13 @@ done
 
 ```bash
 # Terminal 1: API Pod 1 logs
-kubectl logs -f datetime-api-xxx-pod1
+kubectl logs -f datetime-api-csharp-xxx-pod1
 
 # Terminal 2: API Pod 2 logs
-kubectl logs -f datetime-api-xxx-pod2
+kubectl logs -f datetime-api-csharp-xxx-pod2
 
 # Terminal 3: Send request
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Whichever terminal shows log, that pod responded
 ```
@@ -296,11 +296,11 @@ curl http://api.local/api/datetime
 
 ```bash
 # Service DNS resolution
-kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup datetime-api-service
+kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup datetime-api-csharp-service
 
 # Direct access to Service (from inside cluster)
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
-  curl http://datetime-api-service/api/datetime
+  curl http://datetime-api-csharp-service/api/datetime
 ```
 
 ## 📊 Load Balancing Strategies
@@ -344,10 +344,10 @@ Client IP based sticky session (5 minutes).
 kubectl get pods
 
 # Do Service endpoints exist?
-kubectl get endpoints datetime-api-service
+kubectl get endpoints datetime-api-csharp-service
 
 # Solution: Wait for pods to be Ready
-kubectl wait --for=condition=ready pod -l app=datetime-api
+kubectl wait --for=condition=ready pod -l app=datetime-api-csharp
 ```
 
 ### Issue 2: Ingress Running on Worker Node
@@ -371,7 +371,7 @@ make deploy
 kubectl describe ingress datetime-ingress
 
 # Is session affinity off?
-kubectl get service datetime-api-service -o yaml | grep sessionAffinity
+kubectl get service datetime-api-csharp-service -o yaml | grep sessionAffinity
 
 # Solution: Remove session affinity or lower timeout
 ```

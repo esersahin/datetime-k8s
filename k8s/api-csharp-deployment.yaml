@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-api
+  name: datetime-api-csharp
   labels:
-    app: datetime-api
+    app: datetime-api-csharp
 spec:
   replicas: 2
   strategy:
@@ -13,15 +13,15 @@ spec:
       maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
-      app: datetime-api
+      app: datetime-api-csharp
   template:
     metadata:
       labels:
-        app: datetime-api
+        app: datetime-api-csharp
     spec:
       containers:
         - name: api
-          image: datetime-api:latest
+          image: datetime-api-csharp:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 5000
@@ -60,11 +60,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: datetime-api-service
+  name: datetime-api-csharp-service
   labels:
-    app: datetime-api
+    app: datetime-api-csharp
   annotations:
-    description: "API Service - Routes traffic to worker nodes"
+    description: "C# API Service - Routes traffic to worker nodes"
 spec:
   type: ClusterIP
   ports:
@@ -74,7 +74,7 @@ spec:
       name: http
   # IMPORTANT: selector MUST match pod labels
   selector:
-    app: datetime-api
+    app: datetime-api-csharp
   # Session affinity: None = Round Robin load balancing
   # Stateless API için en iyi seçenek
   sessionAffinity: None

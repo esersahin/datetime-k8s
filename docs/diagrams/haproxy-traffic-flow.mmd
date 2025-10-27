@@ -13,12 +13,12 @@ sequenceDiagram
     participant Service as 🎯 api-service<br/>(Kubernetes)
     participant Pod as 📦 API Pod
 
-    Note over User,Pod: Request: curl http://api.local/api/datetime
+    Note over User,Pod: Request: curl http://api-csharp.local/api/datetime
 
-    User->>DNS: Resolve api.local
+    User->>DNS: Resolve api-csharp.local
     DNS-->>User: 127.0.0.1
 
-    User->>HAProxy: HTTP GET /api/datetime<br/>Host: api.local
+    User->>HAProxy: HTTP GET /api/datetime<br/>Host: api-csharp.local
 
     Note over HAProxy: Layer 1: Worker Selection<br/>Algorithm: Round-robin<br/>Health Check: /healthz
 
@@ -28,7 +28,7 @@ sequenceDiagram
 
     Worker2->>NGINX2: Request arrives at<br/>NGINX Ingress Pod
 
-    Note over NGINX2: Layer 2: Service Routing<br/>Check Host Header:<br/>"api.local"
+    Note over NGINX2: Layer 2: Service Routing<br/>Check Host Header:<br/>"api-csharp.local"
 
     NGINX2->>Service: Route to api-service<br/>(Host match)
 

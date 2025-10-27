@@ -11,8 +11,8 @@ BLUE := \033[0;34m
 NC := \033[0m # No Color
 
 # Değişkenler
-API_IMAGE := datetime-api:latest
-WEB_IMAGE := datetime-web:latest
+API_IMAGE := datetime-api-csharp:latest
+WEB_IMAGE := datetime-web-csharp:latest
 API_GO_IMAGE := datetime-api-go:latest
 WEB_GO_IMAGE := datetime-web-go:latest
 CLUSTER_NAME := kind
@@ -33,31 +33,31 @@ help: ## Tüm komutları gösterir
 
 setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	@echo "$(YELLOW)📁 Proje dizin yapısı kontrol ediliyor...$(NC)"
-	@mkdir -p api web k8s
+	@mkdir -p api-csharp web-csharp k8s
 	@echo "$(GREEN)✓ Dizinler hazır$(NC)"
 	@echo ""
 	@echo "$(BLUE)Dosya yerleşimi kontrolü:$(NC)"
 	@echo ""
-	@if [ ! -d "api" ] || [ -z "$(ls -A api 2>/dev/null)" ]; then \
-		echo "$(YELLOW)⚠ api/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
+	@if [ ! -d "api-csharp" ] || [ -z "$(ls -A api-csharp 2>/dev/null)" ]; then \
+		echo "$(YELLOW)⚠ api-csharp/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
 		echo "  - Program.cs"; \
 		echo "  - DateTimeApi.csproj"; \
 		echo "  - Dockerfile.api"; \
 	else \
-		echo "$(GREEN)✓ api/ dizini dolu$(NC)"; \
+		echo "$(GREEN)✓ api-csharp/ dizini dolu$(NC)"; \
 	fi
-	@if [ ! -d "web" ] || [ -z "$(ls -A web 2>/dev/null)" ]; then \
-		echo "$(YELLOW)⚠ web/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
+	@if [ ! -d "web-csharp" ] || [ -z "$(ls -A web-csharp 2>/dev/null)" ]; then \
+		echo "$(YELLOW)⚠ web-csharp/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
 		echo "  - index.html"; \
 		echo "  - nginx.conf"; \
 		echo "  - Dockerfile.web"; \
 	else \
-		echo "$(GREEN)✓ web/ dizini dolu$(NC)"; \
+		echo "$(GREEN)✓ web-csharp/ dizini dolu$(NC)"; \
 	fi
 	@if [ ! -d "k8s" ] || [ -z "$(ls -A k8s 2>/dev/null)" ]; then \
 		echo "$(YELLOW)⚠ k8s/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
-		echo "  - api-deployment.yaml"; \
-		echo "  - web-deployment.yaml"; \
+		echo "  - api-csharp-deployment.yaml"; \
+		echo "  - web-csharp-deployment.yaml"; \
 		echo "  - ingress.yaml"; \
 	else \
 		echo "$(GREEN)✓ k8s/ dizini dolu$(NC)"; \
@@ -67,12 +67,12 @@ setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 
 build-api: ## API Docker imajını build eder
 	@echo "$(YELLOW)🔨 API imajı build ediliyor...$(NC)"
-	@cd api && docker build -t $(API_IMAGE) -f Dockerfile.api .
+	@cd api-csharp && docker build -t $(API_IMAGE) -f Dockerfile.api .
 	@echo "$(GREEN)✓ API imajı oluşturuldu$(NC)"
 
 build-web: ## Web Docker imajını build eder
 	@echo "$(YELLOW)🔨 Web imajı build ediliyor...$(NC)"
-	@cd web && docker build -t $(WEB_IMAGE) -f Dockerfile.web .
+	@cd web-csharp && docker build -t $(WEB_IMAGE) -f Dockerfile.web .
 	@echo "$(GREEN)✓ Web imajı oluşturuldu$(NC)"
 
 build-api-go: ## API-Go Docker imajını build eder
@@ -169,9 +169,9 @@ fix-webhooks: ## Problematic admission webhooks'u temizler (Mac için)
 
 deploy-k8s: ## Kubernetes kaynaklarını deploy eder
 	@echo "$(YELLOW)📦 Kubernetes kaynakları uygulanıyor...$(NC)"
-	@kubectl apply -f k8s/api-deployment.yaml
+	@kubectl apply -f k8s/api-csharp-deployment.yaml
 	@echo "$(GREEN)✓ API deployment uygulandı$(NC)"
-	@kubectl apply -f k8s/web-deployment.yaml
+	@kubectl apply -f k8s/web-csharp-deployment.yaml
 	@echo "$(GREEN)✓ Web deployment uygulandı$(NC)"
 	@kubectl apply -f k8s/api-go-deployment.yaml 2>/dev/null && echo "$(GREEN)✓ API-Go deployment uygulandı$(NC)" || true
 	@kubectl apply -f k8s/web-go-deployment.yaml 2>/dev/null && echo "$(GREEN)✓ Web-Go deployment uygulandı$(NC)" || true
@@ -179,25 +179,25 @@ deploy-k8s: ## Kubernetes kaynaklarını deploy eder
 	@echo "$(GREEN)✓ Ingress uygulandı$(NC)"
 	@echo ""
 	@echo "$(YELLOW)⏳ Deployment'ların hazır olması bekleniyor...$(NC)"
-	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-api 2>/dev/null || true
-	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-web 2>/dev/null || true
+	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-api-csharp 2>/dev/null || true
+	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-web-csharp 2>/dev/null || true
 	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-api-go 2>/dev/null || true
 	@kubectl wait --for=condition=available --timeout=120s deployment/datetime-web-go 2>/dev/null || true
 	@echo "$(GREEN)✓ Tüm deployment'lar hazır$(NC)"
 
 update-hosts: ## /etc/hosts dosyasını günceller
 	@echo "$(YELLOW)📝 /etc/hosts dosyası güncelleniyor...$(NC)"
-	@if ! grep -q "api.local" /etc/hosts; then \
-		echo "127.0.0.1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
-		echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+	@if ! grep -q "api-csharp.local" /etc/hosts; then \
+		echo "127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+		echo "::1 api-csharp.local web-csharp.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
 		echo "$(GREEN)✓ /etc/hosts güncellendi (IPv4 ve IPv6)$(NC)"; \
 	else \
 		if ! grep -q "api-go.local" /etc/hosts; then \
-			sudo sed -i '' 's/api.local web.local/api.local web.local api-go.local web-go.local/' /etc/hosts; \
+			sudo sed -i '' 's/api-csharp.local web-csharp.local/api-csharp.local web-csharp.local api-go.local web-go.local/' /etc/hosts; \
 			echo "$(GREEN)✓ /etc/hosts güncellendi (api-go.local ve web-go.local eklendi)$(NC)"; \
 		fi; \
-		if ! grep -q "::1.*api.local" /etc/hosts; then \
-			echo "::1 api.local web.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
+		if ! grep -q "::1.*api-csharp.local" /etc/hosts; then \
+			echo "::1 api-csharp.local web-csharp.local api-go.local web-go.local" | sudo tee -a /etc/hosts > /dev/null; \
 			echo "$(GREEN)✓ IPv6 entries eklendi (5 saniye gecikme düzeltildi!)$(NC)"; \
 		else \
 			echo "$(GREEN)✓ /etc/hosts zaten güncel$(NC)"; \
@@ -230,8 +230,8 @@ deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
 	echo "$(BLUE)🌐 Uygulamaya Erişim:$(NC)"; \
 	echo "$(GREEN)======================================$(NC)"; \
 	echo "  $(YELLOW)C# Uygulamaları:$(NC)"; \
-	echo "    Web: http://web.local"; \
-	echo "    API: http://api.local/api/datetime"; \
+	echo "    Web: http://web-csharp.local"; \
+	echo "    API: http://api-csharp.local/api/datetime"; \
 	echo ""; \
 	echo "  $(YELLOW)Go Uygulamaları:$(NC)"; \
 	echo "    Web-Go: http://web-go.local"; \
@@ -277,14 +277,14 @@ verify: ## Deployment'ı doğrular ve test eder
 	fi; \
 	echo ""; \
 	echo "$(BLUE)3. Deployments$(NC)"; \
-	if kubectl get deployment datetime-api &> /dev/null; then \
+	if kubectl get deployment datetime-api-csharp &> /dev/null; then \
 		echo "$(GREEN)✓ API deployment mevcut$(NC)"; \
 		PASS=$$((PASS + 1)); \
 	else \
 		echo "$(RED)✗ API deployment mevcut değil$(NC)"; \
 		FAIL=$$((FAIL + 1)); \
 	fi; \
-	if kubectl get deployment datetime-web &> /dev/null; then \
+	if kubectl get deployment datetime-web-csharp &> /dev/null; then \
 		echo "$(GREEN)✓ Web deployment mevcut$(NC)"; \
 		PASS=$$((PASS + 1)); \
 	else \
@@ -293,21 +293,21 @@ verify: ## Deployment'ı doğrular ve test eder
 	fi; \
 	echo ""; \
 	echo "$(BLUE)4. Endpoint Testleri$(NC)"; \
-	if curl -s -f http://api.local/health &> /dev/null; then \
+	if curl -s -f http://api-csharp.local/health &> /dev/null; then \
 		echo "$(GREEN)✓ API health endpoint erişilebilir$(NC)"; \
 		PASS=$$((PASS + 1)); \
 	else \
 		echo "$(RED)✗ API health endpoint erişilemiyor$(NC)"; \
 		FAIL=$$((FAIL + 1)); \
 	fi; \
-	if curl -s -f http://api.local/api/datetime &> /dev/null; then \
+	if curl -s -f http://api-csharp.local/api/datetime &> /dev/null; then \
 		echo "$(GREEN)✓ API datetime endpoint erişilebilir$(NC)"; \
 		PASS=$$((PASS + 1)); \
 	else \
 		echo "$(RED)✗ API datetime endpoint erişilemiyor$(NC)"; \
 		FAIL=$$((FAIL + 1)); \
 	fi; \
-	if curl -s -f http://web.local &> /dev/null; then \
+	if curl -s -f http://web-csharp.local &> /dev/null; then \
 		echo "$(GREEN)✓ Web uygulaması erişilebilir$(NC)"; \
 		PASS=$$((PASS + 1)); \
 	else \
@@ -326,31 +326,31 @@ verify: ## Deployment'ı doğrular ve test eder
 
 logs: ## Tüm pod loglarını gösterir
 	@echo "$(YELLOW)API Logs:$(NC)"
-	@kubectl logs -l app=datetime-api --tail=50 --prefix
+	@kubectl logs -l app=datetime-api-csharp --tail=50 --prefix
 	@echo ""
 	@echo "$(YELLOW)Web Logs:$(NC)"
-	@kubectl logs -l app=datetime-web --tail=50 --prefix
+	@kubectl logs -l app=datetime-web-csharp --tail=50 --prefix
 
 logs-api: ## API loglarını takip eder
 	@echo "$(YELLOW)📋 API logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
-	@kubectl logs -l app=datetime-api -f
+	@kubectl logs -l app=datetime-api-csharp -f
 
 logs-web: ## Web loglarını takip eder
 	@echo "$(YELLOW)📋 Web logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
-	@kubectl logs -l app=datetime-web -f
+	@kubectl logs -l app=datetime-web-csharp -f
 
 test: ## API ve Web endpoint'lerini test eder
 	@echo "$(BLUE)🧪 Endpoint Testleri$(NC)"
 	@echo "===================="
 	@echo ""
 	@echo "$(YELLOW)API Health:$(NC)"
-	@curl -s http://api.local/health | jq . 2>/dev/null || curl -s http://api.local/health
+	@curl -s http://api-csharp.local/health | jq . 2>/dev/null || curl -s http://api-csharp.local/health
 	@echo ""
 	@echo "$(YELLOW)API DateTime:$(NC)"
-	@curl -s http://api.local/api/datetime | jq . 2>/dev/null || curl -s http://api.local/api/datetime
+	@curl -s http://api-csharp.local/api/datetime | jq . 2>/dev/null || curl -s http://api-csharp.local/api/datetime
 	@echo ""
 	@echo "$(YELLOW)Web (ilk 200 karakter):$(NC)"
-	@curl -s http://web.local | head -c 200
+	@curl -s http://web-csharp.local | head -c 200
 	@echo "..."
 
 status: ## Cluster durumunu gösterir
@@ -385,30 +385,30 @@ show-nodes: ## Cluster node'larını detaylı gösterir
 scale-api: ## API replica sayısını artırır (make scale-api REPLICAS=3)
 	@REPLICAS=$${REPLICAS:-3}; \
 	echo "$(YELLOW)📈 API $$REPLICAS replica'ya ölçeklendiriliyor...$(NC)"; \
-	kubectl scale deployment datetime-api --replicas=$$REPLICAS; \
+	kubectl scale deployment datetime-api-csharp --replicas=$$REPLICAS; \
 	echo "$(GREEN)✓ API ölçeklendirildi$(NC)"
 
 scale-web: ## Web replica sayısını artırır (make scale-web REPLICAS=3)
 	@REPLICAS=$${REPLICAS:-3}; \
 	echo "$(YELLOW)📈 Web $$REPLICAS replica'ya ölçeklendiriliyor...$(NC)"; \
-	kubectl scale deployment datetime-web --replicas=$$REPLICAS; \
+	kubectl scale deployment datetime-web-csharp --replicas=$$REPLICAS; \
 	echo "$(GREEN)✓ Web ölçeklendirildi$(NC)"
 
 restart-api: ## API deployment'ını yeniden başlatır
 	@echo "$(YELLOW)🔄 API yeniden başlatılıyor...$(NC)"
-	@kubectl rollout restart deployment datetime-api
+	@kubectl rollout restart deployment datetime-api-csharp
 	@echo "$(GREEN)✓ API yeniden başlatıldı$(NC)"
 
 restart-web: ## Web deployment'ını yeniden başlatır
 	@echo "$(YELLOW)🔄 Web yeniden başlatılıyor...$(NC)"
-	@kubectl rollout restart deployment datetime-web
+	@kubectl rollout restart deployment datetime-web-csharp
 	@echo "$(GREEN)✓ Web yeniden başlatıldı$(NC)"
 
 clean: ## Kubernetes kaynaklarını siler (cluster'ı silmez)
 	@echo "$(YELLOW)🧹 Kubernetes kaynakları temizleniyor...$(NC)"
 	@kubectl delete -f k8s/ingress.yaml 2>/dev/null || true
-	@kubectl delete -f k8s/web-deployment.yaml 2>/dev/null || true
-	@kubectl delete -f k8s/api-deployment.yaml 2>/dev/null || true
+	@kubectl delete -f k8s/web-csharp-deployment.yaml 2>/dev/null || true
+	@kubectl delete -f k8s/api-csharp-deployment.yaml 2>/dev/null || true
 	@echo "$(GREEN)✓ Kubernetes kaynakları temizlendi$(NC)"
 
 clean-cluster: ## Kind cluster'ı siler
@@ -421,18 +421,18 @@ clean-all: clean clean-cluster remove-haproxy ## Her şeyi temizler (cluster + k
 	@echo ""
 	@echo "$(YELLOW)⚠️  /etc/hosts dosyasını manuel temizlemeyi unutmayın:$(NC)"
 	@echo "  sudo nano /etc/hosts"
-	@echo "  # api.local ve web.local satırlarını silin"
+	@echo "  # api-csharp.local ve web-csharp.local satırlarını silin"
 
 redeploy: clean-all deploy ## Tam yeniden deployment (clean + deploy)
 
 quick-update: build-all load-images ## Sadece imajları günceller (cluster'ı değiştirmez)
 	@echo "$(YELLOW)🔄 Deployment'lar yeniden başlatılıyor...$(NC)"
-	@kubectl rollout restart deployment datetime-api
-	@kubectl rollout restart deployment datetime-web
+	@kubectl rollout restart deployment datetime-api-csharp
+	@kubectl rollout restart deployment datetime-web-csharp
 	@kubectl rollout restart deployment datetime-api-go 2>/dev/null || true
 	@kubectl rollout restart deployment datetime-web-go 2>/dev/null || true
-	@kubectl rollout status deployment datetime-api
-	@kubectl rollout status deployment datetime-web
+	@kubectl rollout status deployment datetime-api-csharp
+	@kubectl rollout status deployment datetime-web-csharp
 	@kubectl rollout status deployment datetime-api-go 2>/dev/null || true
 	@kubectl rollout status deployment datetime-web-go 2>/dev/null || true
 	@echo "$(GREEN)✓ Güncelleme tamamlandı$(NC)"

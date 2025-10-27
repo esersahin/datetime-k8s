@@ -97,7 +97,7 @@ kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o ya
 #   kubernetes.io/os: linux
 
 # 4. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ## 🔧 Troubleshooting
@@ -166,7 +166,7 @@ make deploy
 kubectl get pods -n ingress-nginx -o wide
 
 # 3. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Expected: JSON response ✅
 ```

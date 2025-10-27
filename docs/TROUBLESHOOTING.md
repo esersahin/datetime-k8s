@@ -50,7 +50,7 @@ datetime-web-service   <none>      5m
 
 ### ✅ Çözüm
 
-**api-deployment.yaml ve web-deployment.yaml** dosyalarında Service tanımını düzelttik:
+**api-csharp-deployment.yaml ve web-csharp-deployment.yaml** dosyalarında Service tanımını düzelttik:
 
 ```yaml
 # YANLIŞ ❌
@@ -75,8 +75,8 @@ spec:
 **Uygulama**:
 
 ```bash
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/web-deployment.yaml
+kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/web-csharp-deployment.yaml
 
 # Doğrulama
 kubectl get endpoints
@@ -389,8 +389,8 @@ kubectl describe pod -n ingress-nginx ingress-nginx-controller-xxx | grep "Image
 ### 🔴 Sorun
 
 ```bash
-curl http://api.local/api/datetime
-# curl: (7) Failed to connect to api.local port 80: Connection refused
+curl http://api-csharp.local/api/datetime
+# curl: (7) Failed to connect to api-csharp.local port 80: Connection refused
 ```
 
 **Belirti**: Endpoint'ler var, Ingress Controller çalışıyor ama erişim yok.
@@ -407,7 +407,7 @@ curl http://api.local/api/datetime
 
 ```bash
 # 1. /etc/hosts kontrolü
-cat /etc/hosts | grep api.local
+cat /etc/hosts | grep api-csharp.local
 # Yoksa sorun bu!
 
 # 2. Ingress Controller node
@@ -425,10 +425,10 @@ kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o ya
 
 ```bash
 # Ekle
-echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
 
 # Kontrol
-grep "api.local\|web.local" /etc/hosts
+grep "api-csharp.local\|web-csharp.local" /etc/hosts
 
 # Veya Makefile ile
 make update-hosts
@@ -460,7 +460,7 @@ kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '
 
 ```bash
 # Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 
 # Beklenen:
 {
@@ -532,25 +532,25 @@ make deploy
 make verify
 
 # 4. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ### Mevcut Cluster Sorunları
 
 ```bash
 # 1. Endpoint yoksa
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/web-deployment.yaml
+kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/web-csharp-deployment.yaml
 
 # 2. Ingress sorunluysa
 kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
 # 3. /etc/hosts
-echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
 
 # 4. Test
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ---
@@ -564,9 +564,9 @@ Tüm sorunlar çözüldükten sonra:
 - [ ] **Ingress Controller**: `kubectl get pods -n ingress-nginx -o wide` → kind-control-plane
 - [ ] **Pod Durumu**: `kubectl get pods` → Hepsi Running
 - [ ] **hostNetwork**: `kubectl get pod -n ingress-nginx -o yaml | grep hostNetwork` → true
-- [ ] **/etc/hosts**: `grep api.local /etc/hosts` → 127.0.0.1 api.local web.local
-- [ ] **API Test**: `curl http://api.local/api/datetime` → JSON response
-- [ ] **Web Test**: `curl http://web.local` → HTML response
+- [ ] **/etc/hosts**: `grep api-csharp.local /etc/hosts` → 127.0.0.1 api-csharp.local web-csharp.local
+- [ ] **API Test**: `curl http://api-csharp.local/api/datetime` → JSON response
+- [ ] **Web Test**: `curl http://web-csharp.local` → HTML response
 - [ ] **Verify**: `make verify` → Tüm testler başarılı
 
 ---

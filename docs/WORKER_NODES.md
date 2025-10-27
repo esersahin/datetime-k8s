@@ -3,13 +3,13 @@
 ### 🌐 Read in Other Languages
 
 | 🇬🇧 [English](WORKER_NODES.en.md) | 🇹🇷 [Türkçe](WORKER_NODES.md) |
-|:---:|:---:|
+| :------------------------------: | :--------------------------: |
 
 </div>
 
 ---
 
-﻿# Kubernetes Cluster'a Worker Node Ekleme Rehberi
+# Kubernetes Cluster'a Worker Node Ekleme Rehberi
 
 Bu dokümanda Kind cluster'ınıza 2 worker node ekleyerek multi-node bir cluster oluşturmayı öğreneceksiniz.
 
@@ -261,7 +261,6 @@ status: ## Cluster durumunu gösterir
 
 ---
 
-
 ## 🔍 Deployment Sonrası Kontroller
 
 ### 1. Node'ları Kontrol Etme
@@ -325,13 +324,13 @@ kubectl describe node kind-worker | grep Labels -A 10
 
 Eğer belirli pod'ları belirli node'larda çalıştırmak isterseniz:
 
-#### api-deployment.yaml'a Node Affinity Ekleme
+#### api-csharp-deployment.yaml'a Node Affinity Ekleme
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-api
+  name: datetime-api-csharp
 spec:
   replicas: 2
   template:
@@ -348,17 +347,17 @@ spec:
                       - group-1
       containers:
         - name: api
-          image: datetime-api:latest
+          image: datetime-api-csharp:latest
           # ... rest of config
 ```
 
-#### web-deployment.yaml'a Node Affinity Ekleme
+#### web-csharp-deployment.yaml'a Node Affinity Ekleme
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-web
+  name: datetime-web-csharp
 spec:
   replicas: 2
   template:
@@ -375,7 +374,7 @@ spec:
                       - group-2
       containers:
         - name: web
-          image: datetime-web:latest
+          image: datetime-web-csharp:latest
           # ... rest of config
 ```
 
@@ -395,7 +394,7 @@ spec:
                   - key: app
                     operator: In
                     values:
-                      - datetime-api
+                      - datetime-api-csharp
               topologyKey: "kubernetes.io/hostname"
 ```
 

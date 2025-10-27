@@ -89,7 +89,7 @@ Bu sayfa, DateTime Kubernetes projesinin **C4 Model** standardı kullanarak mima
 **1. NGINX Ingress Controller**
 - Trafik yönlendirme
 - Round Robin load balancing
-- Host-based routing (api.local, web.local, api-go.local, web-go.local)
+- Host-based routing (api-csharp.local, web-csharp.local, api-go.local, web-go.local)
 
 **2. CSharp Stack (.NET 9)**
 - **Web UI**: Nginx + HTML/JS (Türkçe tarih gösterimi)
@@ -183,7 +183,7 @@ Endpoints → Resiliency Layer → HTTP Client → DNS → Go API
 
 **1. HTTP Router (net/http)**
 - `/health` - Health check
-- `/api/*` - API endpoints
+- `/api-csharp/*` - API endpoints
 - `/api/worldclock` - Dünya saatleri
 
 **2. HTTP Handlers**

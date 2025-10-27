@@ -42,7 +42,7 @@ Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özet
 - ⚡ Otomatik deployment (tek komut)
 - 🔧 Mac optimized (hostNetwork, webhook fix)
 - 📦 Docker build + Kind integration
-- 🌐 Ingress (http://api.local, http://web.local)
+- 🌐 Ingress (http://api-csharp.local, http://web-csharp.local)
 - 🎯 25+ Makefile komutu
 - 📊 Monitoring ve test araçları
 - 🔄 Load balancing ve scaling
@@ -51,19 +51,19 @@ Bu dokümanda projenin tüm bileşenleri, dosyaları ve önemli noktaları özet
 
 ```
 datetime-k8s/
-├── api/                               # .NET 9 API
+├── api-csharp/                        # .NET 9 API
 │   ├── Program.cs                     # .NET 9 Minimal API
 │   ├── DateTimeApi.csproj             # Proje dosyası
 │   └── Dockerfile.api                 # API Docker image
-├── web/                               # Nginx Web App
+├── web-csharp/                        # Nginx Web App
 │   ├── index.html                     # Web UI (Vanilla JS)
 │   ├── nginx.conf                     # Nginx yapılandırması
 │   └── Dockerfile.web                 # Web Docker image
 ├── k8s/                               # Kubernetes Manifests
-│   ├── api-deployment.yaml            # API Deployment + Service
-│   ├── web-deployment.yaml            # Web Deployment + Service
+│   ├── api-csharp-deployment.yaml     # API Deployment + Service
+│   ├── web-csharp-deployment.yaml     # Web Deployment + Service
 │   ├── kind-config.yaml               # ⚙️ Kind cluster config (multi-node)
-│   ├── ingress.yaml                   # Ingress (api.local, web.local)
+│   ├── ingress.yaml                   # Ingress (api-csharp.local, web-csharp.local)
 │   └── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
 ├── docs/                              # Documents
 │   ├── CHANGES_SUMMARY.md             # 📄 Projede yapılan değişikliklerin özeti
@@ -88,7 +88,7 @@ datetime-k8s/
 cd datetime-k8s
 make deploy
 make verify
-curl http://api.local/api/datetime
+curl http://api-csharp.local/api/datetime
 ```
 
 ### Sorun Giderme
@@ -315,12 +315,12 @@ make deploy
     │      └─ kind load docker-image
     │
     ├─► 7. Deploy K8s Resources
-    │      ├─ api-deployment.yaml
-    │      ├─ web-deployment.yaml
+    │      ├─ api-csharp-deployment.yaml
+    │      ├─ web-csharp-deployment.yaml
     │      └─ ingress.yaml
     │
     ├─► 8. Update /etc/hosts
-    │      └─ 127.0.0.1 api.local web.local
+    │      └─ 127.0.0.1 api-csharp.local web-csharp.local
     │
     └─► 9. Verify
            └─ make verify (15 testler)
@@ -334,8 +334,8 @@ Deployment başarılıysa:
 2. ✅ `kubectl get pods -n ingress-nginx -o wide` → NODE=kind-control-plane
 3. ✅ `kubectl get endpoints` → Her service 2 endpoint
 4. ✅ `kubectl get pods` → Hepsi Running
-5. ✅ `curl http://api.local/api/datetime` → JSON response
-6. ✅ `curl http://web.local` → HTML response
+5. ✅ `curl http://api-csharp.local/api/datetime` → JSON response
+6. ✅ `curl http://web-csharp.local` → HTML response
 7. ✅ `make verify` → 15/15 test başarılı
 
 ## 🚀 Gelişmiş Kullanım
@@ -344,7 +344,7 @@ Deployment başarılıysa:
 
 ```bash
 make scale-api REPLICAS=10
-for i in {1..1000}; do curl -s http://api.local/api/datetime & done
+for i in {1..1000}; do curl -s http://api-csharp.local/api/datetime & done
 ```
 
 ### Node Failure Simülasyonu

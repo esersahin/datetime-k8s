@@ -26,8 +26,8 @@ C4Container
     Rel(user, haproxy, "Accesses", "HTTP :80")
     Rel(haproxy, ingress, "Load balances", "Round-robin + Health Check")
 
-    Rel(ingress, csharp_web, "Routes /web.local", "HTTP (Host header)")
-    Rel(ingress, csharp_api, "Routes /api.local", "HTTP (Host header)")
+    Rel(ingress, csharp_web, "Routes /web-csharp.local", "HTTP (Host header)")
+    Rel(ingress, csharp_api, "Routes /api-csharp.local", "HTTP (Host header)")
     Rel(ingress, go_web, "Routes /web-go.local", "HTTP (Host header)")
     Rel(ingress, go_api, "Routes /api-go.local", "HTTP (Host header)")
 

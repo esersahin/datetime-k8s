@@ -428,7 +428,7 @@ After changes, verify:
 - [ ] `kubectl get pods -o wide` → Pods on worker nodes
 - [ ] `kind-config.yaml` exists in project root
 - [ ] `k8s/ingress-nginx-deployment.yaml` exists
-- [ ] `curl http://api.local/api/datetime` → Works
+- [ ] `curl http://api-csharp.local/api/datetime` → Works
 - [ ] `make verify` → All tests pass
 
 ---

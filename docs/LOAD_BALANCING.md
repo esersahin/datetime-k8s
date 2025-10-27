@@ -178,7 +178,7 @@ metadata:
 VE Service'te:
 
 ```yaml
-# api-deployment.yaml & web-deployment.yaml
+# api-csharp-deployment.yaml & web-csharp-deployment.yaml
 spec:
   sessionAffinity: ClientIP
   sessionAffinityConfig:
@@ -283,11 +283,11 @@ make set-lb-roundrobin  # veya kubectl patch
 
 # 10 istek gönder
 for i in {1..10}; do
-  curl -s http://api.local/api/datetime | jq -r '.time'
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 done
 
 # Pod loglarını kontrol et - her iki pod da log görmeli
-kubectl logs -l app=datetime-api --tail=5
+kubectl logs -l app=datetime-api-csharp --tail=5
 ```
 
 ### Test 2: IP Hash (Sticky)
@@ -298,11 +298,11 @@ make set-lb-iphash
 
 # Aynı client'tan 10 istek
 for i in {1..10}; do
-  curl -s http://api.local/api/datetime | jq -r '.time'
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 done
 
 # Sadece 1 pod log görmeli (aynı IP → aynı pod)
-kubectl logs -l app=datetime-api --tail=5
+kubectl logs -l app=datetime-api-csharp --tail=5
 ```
 
 ### Test 3: Farklı IP'lerden Test
@@ -314,7 +314,7 @@ make set-lb-iphash
 # Farklı source IP'lerden (Docker container'lar)
 for i in {1..5}; do
   docker run --rm --network kind curlimages/curl:latest \
-    curl -s http://api.local/api/datetime
+    curl -s http://api-csharp.local/api/datetime
 done
 
 # Her container farklı IP, farklı pod'lara gidebilir
@@ -354,7 +354,7 @@ metadata:
 
 ```yaml
 # Service'lerde session affinity: None
-# api-deployment.yaml, web-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
+# api-csharp-deployment.yaml, web-csharp-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
 spec:
   selector:
     app: datetime-api  # veya datetime-web, datetime-api-go, datetime-web-go

@@ -1040,7 +1040,7 @@ Handler
 
 ### 1. Environment Variable'lar
 
-**Dosya:** `k8s/api-deployment.yaml`
+**Dosya:** `k8s/api-csharp-deployment.yaml`
 
 ```yaml
 env:
@@ -1121,7 +1121,7 @@ C# API Pod → DNS Query (datetime-api-go-service)
 
 ```bash
 # C# API → Go API
-curl http://api.local/api/go-time
+curl http://api-csharp.local/api/go-time
 ```
 
 **Beklenen:**
@@ -1156,7 +1156,7 @@ kubectl scale deployment datetime-api-go --replicas=0
 
 # C# API'den istek at
 for i in {1..10}; do
-  curl http://api.local/api/go-time
+  curl http://api-csharp.local/api/go-time
 done
 ```
 
@@ -1184,7 +1184,7 @@ Circuit Breaker 'CSharpAPI' changed from 'closed' to 'open'
 ```bash
 # 25 istek birden (limit: 20 req/sec)
 for i in {1..25}; do
-  curl -s http://api.local/api/go-time -o /dev/null -w "Request $i: %{http_code}\n"
+  curl -s http://api-csharp.local/api/go-time -o /dev/null -w "Request $i: %{http_code}\n"
 done
 ```
 
@@ -1215,7 +1215,7 @@ kubectl exec -it deployment/datetime-api-go -- sh
 # Handler'a time.Sleep(15*time.Second) ekle
 
 # C# API'den istek at
-time curl http://api.local/api/go-time
+time curl http://api-csharp.local/api/go-time
 ```
 
 **Beklenen Davranış:**
@@ -1328,7 +1328,7 @@ kubectl run -it --rm debug --image=busybox --restart=Never -- sh
 nslookup datetime-api-go-service
 
 # 3. Environment variable doğru mu?
-kubectl exec deployment/datetime-api -- env | grep GO_API_URL
+kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ```
 
 **Çözüm:**
@@ -1347,7 +1347,7 @@ Circuit breaker 'CSharpAPI' is open
 ```bash
 # 1. Hedef servis çalışıyor mu?
 kubectl get pods -l app=datetime-api
-kubectl logs -l app=datetime-api --tail=20
+kubectl logs -l app=datetime-api-csharp --tail=20
 
 # 2. Network bağlantısı var mı?
 kubectl exec deployment/datetime-api-go -- wget -O- http://datetime-api-service/health

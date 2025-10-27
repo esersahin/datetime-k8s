@@ -178,7 +178,7 @@ metadata:
 AND in Service:
 
 ```yaml
-# api-deployment.yaml & web-deployment.yaml
+# api-csharp-deployment.yaml & web-csharp-deployment.yaml
 spec:
   sessionAffinity: ClientIP
   sessionAffinityConfig:
@@ -283,11 +283,11 @@ make set-lb-roundrobin  # or kubectl patch
 
 # Send 10 requests
 for i in {1..10}; do
-  curl -s http://api.local/api/datetime | jq -r '.time'
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 done
 
 # Check pod logs - both pods should show logs
-kubectl logs -l app=datetime-api --tail=5
+kubectl logs -l app=datetime-api-csharp --tail=5
 ```
 
 ### Test 2: IP Hash (Sticky)
@@ -298,11 +298,11 @@ make set-lb-iphash
 
 # 10 requests from same client
 for i in {1..10}; do
-  curl -s http://api.local/api/datetime | jq -r '.time'
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time'
 done
 
 # Only 1 pod should show logs (same IP → same pod)
-kubectl logs -l app=datetime-api --tail=5
+kubectl logs -l app=datetime-api-csharp --tail=5
 ```
 
 ### Test 3: Test from Different IPs
@@ -314,7 +314,7 @@ make set-lb-iphash
 # From different source IPs (Docker containers)
 for i in {1..5}; do
   docker run --rm --network kind curlimages/curl:latest \
-    curl -s http://api.local/api/datetime
+    curl -s http://api-csharp.local/api/datetime
 done
 
 # Each container has different IP, can go to different pods
@@ -354,10 +354,10 @@ metadata:
 
 ```yaml
 # Service session affinity: None
-# api-deployment.yaml, web-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
+# api-csharp-deployment.yaml, web-csharp-deployment.yaml, api-go-deployment.yaml, web-go-deployment.yaml
 spec:
   selector:
-    app: datetime-api  # or datetime-web, datetime-api-go, datetime-web-go
+    app: datetime-api-csharp  # or datetime-web-csharp, datetime-api-go, datetime-web-go
   # Round Robin requires sessionAffinity: None
   sessionAffinity: None
 ```

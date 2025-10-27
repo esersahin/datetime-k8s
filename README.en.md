@@ -134,8 +134,8 @@ This project is **not production-ready**. It is designed for the following purpo
 - 📦 **Kind Integration**: Local Kubernetes cluster (running in Docker)
 - 🌐 **Ingress Support**:
   - **C# Application**
-    - **API URL:** `http://api.local`
-    - **WebUI URL:** `http://web.local`
+    - **API URL:** `http://api-csharp.local`
+    - **WebUI URL:** `http://web-csharp.local`
   - **Go Application**
     - **API URL:** `http://api-go.local`
     - **WebUI URL:** `http://web-go.local`
@@ -185,30 +185,30 @@ _Kind cluster running on Docker Desktop_
 <summary><b>🚀 Click to See Full Deployment Output</b> (all steps of make deploy command)</summary>
 
 ```bash
-⏱️  Deployment başlatılıyor... 
-🚀 Kind cluster kontrol ediliyor... 
+⏱️  Deployment başlatılıyor...
+🚀 Kind cluster kontrol ediliyor...
 No kind clusters found.
-Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)... 
-✓ k8s/kind-config.yaml mevcut, kullanılıyor 
+Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)...
+✓ k8s/kind-config.yaml mevcut, kullanılıyor
 Creating cluster "kind" ...
  ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
- ✓ Preparing nodes 📦 📦 📦 📦 📦 📦  
- ✓ Configuring the external load balancer ⚖️ 
- ✓ Writing configuration 📜 
- ✓ Starting control-plane 🕹️ 
- ✓ Installing CNI 🔌 
- ✓ Installing StorageClass 💾 
- ✓ Joining more control-plane nodes 🎮 
- ✓ Joining worker nodes 🚜 
+ ✓ Preparing nodes 📦 📦 📦 📦 📦 📦
+ ✓ Configuring the external load balancer ⚖️
+ ✓ Writing configuration 📜
+ ✓ Starting control-plane 🕹️
+ ✓ Installing CNI 🔌
+ ✓ Installing StorageClass 💾
+ ✓ Joining more control-plane nodes 🎮
+ ✓ Joining worker nodes 🚜
 Set kubectl context to "kind-kind"
 You can now use your cluster with:
 
 kubectl cluster-info --context kind-kind
 
 Thanks for using kind! 😊
-✓ Multi-node Kind cluster oluşturuldu 
+✓ Multi-node Kind cluster oluşturuldu
 
-Cluster Node'ları: 
+Cluster Node'ları:
 NAME                  STATUS     ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
 kind-control-plane    Ready      control-plane   37s   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-control-plane2   NotReady   control-plane   11s   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
@@ -216,9 +216,9 @@ kind-control-plane3   NotReady   control-plane   2s    v1.34.0   172.20.0.5    <
 kind-worker           NotReady   <none>          0s    v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker2          NotReady   <none>          1s    v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker3          NotReady   <none>          0s    v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-📥 NGINX Ingress Controller kontrol ediliyor... 
-NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)... 
-Özel ingress-nginx-deployment.yaml kullanılıyor... 
+📥 NGINX Ingress Controller kontrol ediliyor...
+NGINX Ingress Controller kuruluyor (Kind için optimize edilmiş)...
+Özel ingress-nginx-deployment.yaml kullanılıyor...
 namespace/ingress-nginx created
 serviceaccount/ingress-nginx created
 configmap/ingress-nginx-controller created
@@ -232,24 +232,24 @@ ingressclass.networking.k8s.io/nginx created
 pod/ingress-nginx-controller-7f8d89bb7f-h2927 condition met
 pod/ingress-nginx-controller-7f8d89bb7f-jjxxj condition met
 pod/ingress-nginx-controller-7f8d89bb7f-lcjkk condition met
-✓ NGINX Ingress Controller kuruldu 
-🔧 Ingress yapılandırması kontrol ediliyor... 
-hostNetwork ayarı düzeltiliyor... 
+✓ NGINX Ingress Controller kuruldu
+🔧 Ingress yapılandırması kontrol ediliyor...
+hostNetwork ayarı düzeltiliyor...
 deployment.apps/ingress-nginx-controller patched (no change)
 deployment "ingress-nginx-controller" successfully rolled out
 pod/ingress-nginx-controller-7f8d89bb7f-h2927 condition met
 pod/ingress-nginx-controller-7f8d89bb7f-jjxxj condition met
 pod/ingress-nginx-controller-7f8d89bb7f-lcjkk condition met
-✓ hostNetwork ayarı düzeltildi 
+✓ hostNetwork ayarı düzeltildi
 
-Ingress Controller Durumu: 
+Ingress Controller Durumu:
 NAME                                        READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
 ingress-nginx-controller-7f8d89bb7f-h2927   1/1     Running   0          85s   172.20.0.7   kind-worker3   <none>           <none>
 ingress-nginx-controller-7f8d89bb7f-jjxxj   1/1     Running   0          85s   172.20.0.3   kind-worker    <none>           <none>
 ingress-nginx-controller-7f8d89bb7f-lcjkk   1/1     Running   0          85s   172.20.0.4   kind-worker2   <none>           <none>
-🧹 Admission webhook'ları temizleniyor... 
-✓ Webhook'lar temizlendi 
-🔨 API imajı build ediliyor... 
+🧹 Admission webhook'ları temizleniyor...
+✓ Webhook'lar temizlendi
+🔨 API imajı build ediliyor...
 [+] Building 0.1s (15/15) FINISHED                                                                                                                    docker:desktop-linux
  => [internal] load build definition from Dockerfile.api                                                                                                              0.0s
  => => transferring dockerfile: 1.13kB                                                                                                                                0.0s
@@ -271,14 +271,14 @@ ingress-nginx-controller-7f8d89bb7f-lcjkk   1/1     Running   0          85s   1
  => exporting to image                                                                                                                                                0.0s
  => => exporting layers                                                                                                                                               0.0s
  => => writing image sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477                                                                          0.0s
- => => naming to docker.io/library/datetime-api:latest                                                                                                                0.0s
+ => => naming to docker.io/library/datetime-api-csharp:latest                                                                                                                0.0s
 
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/x2yhh1ypurkawvx9y63olf75q
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ API imajı oluşturuldu 
-🔨 Web imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ API imajı oluşturuldu
+🔨 Web imajı build ediliyor...
 [+] Building 1.3s (9/9) FINISHED                                                                                                                      docker:desktop-linux
  => [internal] load build definition from Dockerfile.web                                                                                                              0.0s
  => => transferring dockerfile: 197B                                                                                                                                  0.0s
@@ -299,9 +299,9 @@ What's next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/mhoak3i8fu8okao6mi328zi3b
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ Web imajı oluşturuldu 
-🔨 API-Go imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ Web imajı oluşturuldu
+🔨 API-Go imajı build ediliyor...
 [+] Building 1.2s (18/18) FINISHED                                                                                                                    docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                  0.0s
  => => transferring dockerfile: 505B                                                                                                                                  0.0s
@@ -331,9 +331,9 @@ What's next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/4d87b60dvvwlqknssctc7hmgu
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ API-Go imajı oluşturuldu 
-🔨 Web-Go imajı build ediliyor... 
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ API-Go imajı oluşturuldu
+🔨 Web-Go imajı build ediliyor...
 [+] Building 0.3s (8/8) FINISHED                                                                                                                      docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                  0.0s
  => => transferring dockerfile: 191B                                                                                                                                  0.0s
@@ -353,22 +353,22 @@ What's next:
 View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/8d46yehlld6x1hszawlj7m62m
 
 What's next:
-    View a summary of image vulnerabilities and recommendations → docker scout quickview 
-✓ Web-Go imajı oluşturuldu 
-✓ Tüm imajlar oluşturuldu 
-📦 İmajlar Kind cluster'a yükleniyor... 
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker3", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane3", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane2", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker2", loading...
-Image: "datetime-api:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker3", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane3", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane2", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker2", loading...
-Image: "datetime-web:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker", loading...
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+✓ Web-Go imajı oluşturuldu
+✓ Tüm imajlar oluşturuldu
+📦 İmajlar Kind cluster'a yükleniyor...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane", loading...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker3", loading...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker2", loading...
+Image: "datetime-api-csharp:latest" with ID "sha256:b0738cd9536fdc63210c05f13954a8c77673eff7f92c74014699def6a3c46477" not yet present on node "kind-worker", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker3", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane3", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-control-plane2", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker2", loading...
+Image: "datetime-web-csharp:latest" with ID "sha256:eddd34922e5346518e0edc7745bf2421d4fbeb7dfa0207b0d24d886d4ee7277a" not yet present on node "kind-worker", loading...
 Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane", loading...
 Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-worker3", loading...
 Image: "datetime-api-go:latest" with ID "sha256:a2add624fdf204057d2e49e7e11c0945cf02779a03c8cb019c24b847b7cbe9ef" not yet present on node "kind-control-plane3", loading...
@@ -381,47 +381,47 @@ Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772
 Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-control-plane2", loading...
 Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker2", loading...
 Image: "datetime-web-go:latest" with ID "sha256:064bb63a27b659ddc55d82f9a3e9c772e40861990fd90e0988d33535e17dadc5" not yet present on node "kind-worker", loading...
-✓ İmajlar yüklendi 
-📦 Kubernetes kaynakları uygulanıyor... 
-deployment.apps/datetime-api created
-service/datetime-api-service created
-✓ API deployment uygulandı 
-deployment.apps/datetime-web created
-service/datetime-web-service created
-✓ Web deployment uygulandı 
+✓ İmajlar yüklendi
+📦 Kubernetes kaynakları uygulanıyor...
+deployment.apps/datetime-api-csharp created
+service/datetime-api-csharp-service created
+✓ API deployment uygulandı
+deployment.apps/datetime-web-csharp created
+service/datetime-web-service-csharp created
+✓ Web deployment uygulandı
 deployment.apps/datetime-api-go created
 service/datetime-api-go-service created
-✓ API-Go deployment uygulandı 
+✓ API-Go deployment uygulandı
 deployment.apps/datetime-web-go created
 service/datetime-web-go-service created
-✓ Web-Go deployment uygulandı 
+✓ Web-Go deployment uygulandı
 ingress.networking.k8s.io/datetime-ingress created
-✓ Ingress uygulandı 
+✓ Ingress uygulandı
 
-⏳ Deployment'ların hazır olması bekleniyor... 
-deployment.apps/datetime-api condition met
-deployment.apps/datetime-web condition met
+⏳ Deployment'ların hazır olması bekleniyor...
+deployment.apps/datetime-api-csharp condition met
+deployment.apps/datetime-web-csharp condition met
 deployment.apps/datetime-api-go condition met
 deployment.apps/datetime-web-go condition met
-✓ Tüm deployment'lar hazır 
-⚖️  HAProxy load balancer kontrol ediliyor... 
-HAProxy load balancer başlatılıyor... 
-✓ HAProxy load balancer başlatıldı 
+✓ Tüm deployment'lar hazır
+⚖️  HAProxy load balancer kontrol ediliyor...
+HAProxy load balancer başlatılıyor...
+✓ HAProxy load balancer başlatıldı
 
-HAProxy Bilgisi: 
+HAProxy Bilgisi:
   Port 80  : HTTP Traffic (HA Load Balancing)
   Port 443 : HTTPS Traffic (HA Load Balancing)
   Port 8404: HAProxy Stats (http://localhost:8404)
-📝 /etc/hosts dosyası güncelleniyor... 
-✓ /etc/hosts zaten güncel 
+📝 /etc/hosts dosyası güncelleniyor...
+✓ /etc/hosts zaten güncel
 
-====================================== 
-🎉 Deployment tamamlandı! 🎉 
-====================================== 
+======================================
+🎉 Deployment tamamlandı! 🎉
+======================================
 
-⏱️  Toplam Süre: 2 dakika 55 saniye 
+⏱️  Toplam Süre: 2 dakika 55 saniye
 
-📊 Durum Bilgisi: 
+📊 Durum Bilgisi:
 NAME                               READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
 datetime-api-5dcc57466c-5d9sh      1/1     Running   0          10s   10.244.3.2   kind-worker2   <none>           <none>
 datetime-api-5dcc57466c-945q2      1/1     Running   0          10s   10.244.5.2   kind-worker3   <none>           <none>
@@ -441,16 +441,16 @@ datetime-web-service      ClusterIP   10.96.84.28     <none>        80/TCP    10
 kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   2m43s
 
 NAME               CLASS   HOSTS                                          ADDRESS   PORTS   AGE
-datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      10s
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...             80      10s
 
-====================================== 
-🌐 Uygulamaya Erişim: 
-====================================== 
-  C# Uygulamaları: 
-    Web: http://web.local
-    API: http://api.local/api/datetime
+======================================
+🌐 Uygulamaya Erişim:
+======================================
+  C# Uygulamaları:
+    Web: http://web-csharp.local
+    API: http://api-csharp.local/api/datetime
 
-  Go Uygulamaları: 
+  Go Uygulamaları:
     Web-Go: http://web-go.local
     API-Go: http://api-go.local/health
 ```
@@ -476,7 +476,7 @@ datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...         
 
 ```bash
 # 1. Create project directory
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 
 # 2. Run setup script (optional - just shows directory structure)
 chmod +x setup-project.sh
@@ -497,19 +497,19 @@ chmod +x *.sh
 ./verify-deployment.sh
 
 # 8. Open in browser
-open http://web.local
+open http://web-csharp.local
 ```
 
 ### Using Makefile (Recommended! 🎯)
 
 ```bash
 # 1. Create project directory and place files
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 
 # 2. Copy all files to respective folders:
 #    - Makefile -> datetime-k8s/
-#    - api/* -> datetime-k8s/api/
-#    - web/* -> datetime-k8s/web/
+#    - api-csharp/* -> datetime-k8s/api/
+#    - web-csharp/* -> datetime-k8s/web/
 #    - k8s/* -> datetime-k8s/k8s/
 #    - *.yaml, *.sh -> datetime-k8s/
 
@@ -526,7 +526,7 @@ make deploy
 make verify
 
 # 7. Open in browser
-open http://web.local
+open http://web-csharp.local
 ```
 
 **That's it!** 🎉 The application is up and running.
@@ -537,11 +537,11 @@ open http://web.local
 
 ```
 datetime-k8s/
-├── api/                               # .NET 9 API (C#)
+├── api-csharp/                        # .NET 9 API (C#)
 │   ├── Program.cs                     # .NET 9 Minimal API
 │   ├── DateTimeApi.csproj             # Project file
 │   └── Dockerfile.api                 # API Docker image
-├── web/                               # Nginx Web App (for C# API)
+├── web-csharp/                        # Nginx Web App (for C# API)
 │   ├── index.html                     # Web UI (Vanilla JS)
 │   ├── nginx.conf                     # Nginx configuration
 │   └── Dockerfile.web                 # Web Docker image
@@ -558,13 +558,13 @@ datetime-k8s/
 │   ├── nginx.conf                     # Nginx configuration
 │   └── Dockerfile                     # Web-Go Docker image
 ├── k8s/                               # Kubernetes Manifests
-│   ├── api-deployment.yaml            # API (C#) Deployment + Service
+│   ├── api-csharp-deployment.yaml     # API (C#) Deployment + Service
 │   ├── api-go-deployment.yaml         # API-Go Deployment + Service
 │   ├── haproxy-lb.cfg                 # HAProxy Load Balancer Configuration
 │   ├── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
-│   ├── ingress.yaml                   # Ingress (api.local, web.local, api-go.local, web-go.local)
+│   ├── ingress.yaml                   # Ingress (api-csharp.local, web-csharp.local, api-go.local, web-go.local)
 │   ├── kind-config.yaml               # ⚙️ Kind cluster config (3 control-plane + 3 worker HA)
-│   ├── web-deployment.yaml            # Web (C#) Deployment + Service
+│   ├── web-csharp-deployment.yaml     # Web (C#) Deployment + Service
 │   └── web-go-deployment.yaml         # Web-Go Deployment + Service
 ├── docs/                              # Documents
 │   ├── ARCHITECTURE.en.md             # 📘 System architecture overview
@@ -634,8 +634,8 @@ datetime-k8s/
 
 ### 📄 Configuration File
 
-| File                 | Function                                                 | Auto-created?                                        |
-| -------------------- | -------------------------------------------------------- | ---------------------------------------------------- |
+| File                 | Function                                                             | Auto-created?                                        |
+| -------------------- | -------------------------------------------------------------------- | ---------------------------------------------------- |
 | **kind-config.yaml** | Kind cluster configuration (3 control-planes + 3 workers - HA setup) | ✅ Yes (with `make create-cluster` or `make deploy`) |
 
 **Note**: If `kind-config.yaml` doesn't exist, Makefile will create it automatically. For more info, see [WORKER_NODES](docs/WORKER_NODES.en.md).
@@ -687,7 +687,7 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
 # 3. Clone the project or create files
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 cd datetime-k8s
 ```
 
@@ -911,9 +911,9 @@ kubectl wait --namespace ingress-nginx \
 
 # 3. Build Docker images
 cd api
-docker build -t datetime-api:latest -f Dockerfile.api .
+docker build -t datetime-api-csharp:latest -f Dockerfile.api .
 cd ../web
-docker build -t datetime-web:latest -f Dockerfile.web .
+docker build -t datetime-web-csharp:latest -f Dockerfile.web .
 cd ..
 cd api-go
 docker build -t datetime-api-go:latest .
@@ -922,25 +922,25 @@ docker build -t datetime-web-go:latest .
 cd ..
 
 # 4. Load images to Kind
-kind load docker-image datetime-api:latest
-kind load docker-image datetime-web:latest
+kind load docker-image datetime-api-csharp:latest
+kind load docker-image datetime-web-csharp:latest
 
 # 5. Apply Kubernetes resources
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/web-deployment.yaml
+kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/web-csharp-deployment.yaml
 kubectl apply -f k8s/ingress.yaml
 
 # 6. Update /etc/hosts file
-echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
 ```
 
 ## 🌐 Access
 
 ### C# Applications
 
-- **Web Application**: http://web.local
-- **API Endpoint**: http://api.local/api/datetime
-- **Health Check**: http://api.local/health
+- **Web Application**: http://web-csharp.local
+- **API Endpoint**: http://api-csharp.local/api/datetime
+- **Health Check**: http://api-csharp.local/health
 
 ### Go Applications
 
@@ -980,22 +980,22 @@ kubectl get pods -o wide
 kubectl get pods -w  # watch mode
 
 # Examine Logs
-kubectl logs -l app=datetime-api -f
-kubectl logs -l app=datetime-web -f
+kubectl logs -l app=datetime-api-csharp -f
+kubectl logs -l app=datetime-web-csharp -f
 kubectl logs <pod-name> -f
 
 # Check Services
 kubectl get services
-kubectl describe service datetime-api-service
-kubectl describe service datetime-web-service
+kubectl describe service datetime-api-csharp-service
+kubectl describe service datetime-web-csharp-service
 
 # Ingress Status
 kubectl get ingress
 kubectl describe ingress datetime-ingress
 
 # Port Forward (for testing)
-kubectl port-forward service/datetime-api-service 8080:80
-kubectl port-forward service/datetime-web-service 8081:80
+kubectl port-forward service/datetime-api-csharp-service 8080:80
+kubectl port-forward service/datetime-web-csharp-service 8081:80
 ```
 
 ## 🧪 Test Commands
@@ -1007,26 +1007,26 @@ kubectl port-forward service/datetime-web-service 8081:80
 make test
 
 # Manual tests
-curl http://api.local/api/datetime
-curl http://api.local/health
-curl http://web.local
+curl http://api-csharp.local/api/datetime
+curl http://api-csharp.local/health
+curl http://web-csharp.local
 ```
 
 ### Manual Tests
 
 ```bash
 # API test
-curl http://api.local/api/datetime
-curl http://api.local/health
+curl http://api-csharp.local/api/datetime
+curl http://api-csharp.local/health
 
 # Web test
-curl http://web.local
+curl http://web-csharp.local
 
 # Detailed test
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 
 # JSON format
-curl -s http://api.local/api/datetime | jq .
+curl -s http://api-csharp.local/api/datetime | jq .
 ```
 
 ## 🔧 Scaling
@@ -1052,13 +1052,13 @@ make status
 
 ```bash
 # Scale API
-kubectl scale deployment datetime-api --replicas=3
+kubectl scale deployment datetime-api-csharp --replicas=3
 
 # Scale Web
-kubectl scale deployment datetime-web --replicas=3
+kubectl scale deployment datetime-web-csharp --replicas=3
 
 # Check status
-kubectl get pods -l app=datetime-api
+kubectl get pods -l app=datetime-api-csharp
 ```
 
 ## 🗑️ Cleanup
@@ -1083,8 +1083,8 @@ make redeploy
 
 ```bash
 # Delete resources
-kubectl delete -f k8s/api-deployment.yaml
-kubectl delete -f k8s/web-deployment.yaml
+kubectl delete -f k8s/api-csharp-deployment.yaml
+kubectl delete -f k8s/web-csharp-deployment.yaml
 kubectl delete -f k8s/ingress.yaml
 
 # Delete Kind cluster
@@ -1092,7 +1092,7 @@ kind delete cluster
 
 # Clean /etc/hosts (manual)
 sudo nano /etc/hosts
-# Delete api.local and web.local lines
+# Delete api-csharp.local and web-csharp.local lines
 ```
 
 ## 🔧 Troubleshooting
@@ -1222,7 +1222,7 @@ For detailed troubleshooting, see [TROUBLESHOOTING](docs/TROUBLESHOOTING.en.md)
 - **Replicas**: 2 replicas run for each service by default
 - **Multi-Node Cluster**: Uses 3 control-planes + 3 worker nodes configuration by default (HA setup)
   - Control-plane: Kubernetes management components and Ingress Controller
-  - Worker nodes: Application pods (datetime-api, datetime-web)
+  - Worker nodes: Application pods (datetime-api-csharp, datetime-web-csharp)
   - For details: [WORKER_NODES](docs/WORKER_NODES.en.md)
 - **Mac Optimization**: `make deploy` or `deploy.sh` automatically fixes Mac/Kind issues:
   - Sets hostNetwork to true
@@ -1301,9 +1301,9 @@ cd datetime-k8s
 make quick-update
 
 # Manual
-cd api && docker build -t datetime-api:latest -f Dockerfile.api . && cd ..
-kind load docker-image datetime-api:latest
-kubectl rollout restart deployment datetime-api
+cd api && docker build -t datetime-api-csharp:latest -f Dockerfile.api . && cd ..
+kind load docker-image datetime-api-csharp:latest
+kubectl rollout restart deployment datetime-api-csharp
 ```
 
 **Scenario 3: Troubleshooting**
@@ -1320,7 +1320,7 @@ make logs-api        # Check logs
 # Shell Script
 ./verify-deployment.sh
 ./fix-ingress.sh
-kubectl logs -l app=datetime-api -f
+kubectl logs -l app=datetime-api-csharp -f
 ```
 
 **Scenario 4: Complete Restart**

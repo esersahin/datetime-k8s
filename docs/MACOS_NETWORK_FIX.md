@@ -51,8 +51,8 @@ make deploy
 Şu satırları `/etc/hosts`'a ekler:
 
 ```
-127.0.0.1 api.local web.local api-go.local web-go.local
-::1 api.local web.local api-go.local web-go.local  # ← Bu IPv6 kaydı 5 saniye sorununu çözer
+127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local
+::1 api-csharp.local web-csharp.local api-go.local web-go.local  # ← Bu IPv6 kaydı 5 saniye sorununu çözer
 ```
 
 ### Manuel Çözüm
@@ -60,7 +60,7 @@ make deploy
 Eğer Makefile kullanmıyorsanız:
 
 ```bash
-sudo sh -c 'echo "::1 api.local web.local api-go.local web-go.local" >> /etc/hosts'
+sudo sh -c 'echo "::1 api-csharp.local web-csharp.local api-go.local web-go.local" >> /etc/hosts'
 ```
 
 ## 🧪 Test
@@ -113,11 +113,11 @@ Bu bilinen bir macOS sorunu:
 
 ```bash
 # Sorun
-127.0.0.1 api.local  # ← 5 saniye gecikme
+127.0.0.1 api-csharp.local  # ← 5 saniye gecikme
 
 # Çözüm
-127.0.0.1 api.local  # IPv4
-::1 api.local        # IPv6 ← Bu satır 5 saniye sorununu çözer!
+127.0.0.1 api-csharp.local  # IPv4
+::1 api-csharp.local        # IPv6 ← Bu satır 5 saniye sorununu çözer!
 ```
 
 macOS'ta `.local` domain kullanırken **mutlaka IPv6 (::1) entry** ekleyin!

@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-web
+  name: datetime-web-csharp
   labels:
-    app: datetime-web
+    app: datetime-web-csharp
 spec:
   replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # Aynı anda en fazla 1 pod kapalı olabilir
-      maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
+      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı olabilir
+      maxSurge: 1 # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
-      app: datetime-web
+      app: datetime-web-csharp
   template:
     metadata:
       labels:
-        app: datetime-web
+        app: datetime-web-csharp
     spec:
       containers:
         - name: web
-          image: datetime-web:latest
+          image: datetime-web-csharp:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 80
@@ -49,11 +49,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: datetime-web-service
+  name: datetime-web-csharp-service
   labels:
-    app: datetime-web
+    app: datetime-web-csharp
   annotations:
-    description: "Web Service - Routes traffic to worker nodes"
+    description: "C# Web Service - Routes traffic to worker nodes"
 spec:
   type: ClusterIP
   ports:
@@ -63,7 +63,7 @@ spec:
       name: http
   # IMPORTANT: selector MUST match pod labels
   selector:
-    app: datetime-web
+    app: datetime-web-csharp
   # Session affinity: None = Round Robin load balancing
   # Stateless web app için en iyi seçenek
   sessionAffinity: None

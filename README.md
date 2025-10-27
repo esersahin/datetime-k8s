@@ -134,8 +134,8 @@ Bu proje **gerçek production ortamı için hazır değildir**. Aşağıdaki ama
 - 📦 **Kind Integration**: Local Kubernetes cluster (Docker içinde)
 - 🌐 **Ingress Support**:
   - **C# Uygulaması**
-    - **API URL:** `http://api.local`
-    - **WebUI URL:** `http://web.local`
+    - **API URL:** `http://api-csharp.local`
+    - **WebUI URL:** `http://web-csharp.local`
   - **Go Uygulaması**
     - **API URL:** `http://api-go.local`
     - **WebUI URL:** `http://web-go.local`
@@ -441,14 +441,14 @@ datetime-web-service      ClusterIP   10.96.84.28     <none>        80/TCP    10
 kubernetes                ClusterIP   10.96.0.1       <none>        443/TCP   2m43s
 
 NAME               CLASS   HOSTS                                          ADDRESS   PORTS   AGE
-datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...             80      10s
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...             80      10s
 
 ======================================
 🌐 Uygulamaya Erişim:
 ======================================
   C# Uygulamaları:
-    Web: http://web.local
-    API: http://api.local/api/datetime
+    Web: http://web-csharp.local
+    API: http://api-csharp.local/api/datetime
 
   Go Uygulamaları:
     Web-Go: http://web-go.local
@@ -476,7 +476,7 @@ datetime-ingress   nginx   api.local,api-go.local,web.local + 1 more...         
 
 ```bash
 # 1. Proje dizinini oluşturun
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 
 # 2. setup-project.sh'i çalıştırın (opsiyonel - sadece dizin yapısını gösterir)
 chmod +x setup-project.sh
@@ -497,19 +497,19 @@ chmod +x *.sh
 ./verify-deployment.sh
 
 # 8. Tarayıcıda açın
-open http://web.local
+open http://web-csharp.local
 ```
 
 ### Makefile ile (Önerilen! 🎯)
 
 ```bash
 # 1. Proje dizinini oluşturun ve dosyaları yerleştirin
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 
 # 2. Tüm dosyaları ilgili klasörlere kopyalayın:
 #    - Makefile -> datetime-k8s/
-#    - api/* -> datetime-k8s/api/
-#    - web/* -> datetime-k8s/web/
+#    - api-csharp/* -> datetime-k8s/api-csharp/
+#    - web-csharp/* -> datetime-k8s/web-csharp/
 #    - k8s/* -> datetime-k8s/k8s/
 #    - *.yaml, *.sh -> datetime-k8s/
 
@@ -526,7 +526,7 @@ make deploy
 make verify
 
 # 7. Tarayıcıda açın
-open http://web.local
+open http://web-csharp.local
 ```
 
 **Hepsi bu kadar!** 🎉 Uygulama çalışır durumda.
@@ -537,11 +537,11 @@ open http://web.local
 
 ```
 datetime-k8s/
-├── api/                               # .NET 9 API (C#)
+├── api-csharp/                        # .NET 9 API (C#)
 │   ├── Program.cs                     # .NET 9 Minimal API
 │   ├── DateTimeApi.csproj             # Proje dosyası
 │   └── Dockerfile.api                 # API Docker image
-├── web/                               # Nginx Web App (C# API için)
+├── web-csharp/                        # Nginx Web App (C# API için)
 │   ├── index.html                     # Web UI (Vanilla JS)
 │   ├── nginx.conf                     # Nginx yapılandırması
 │   └── Dockerfile.web                 # Web Docker image
@@ -558,13 +558,13 @@ datetime-k8s/
 │   ├── nginx.conf                     # Nginx yapılandırması
 │   └── Dockerfile                     # Web-Go Docker image
 ├── k8s/                               # Kubernetes Manifests
-│   ├── api-deployment.yaml            # API (C#) Deployment + Service
+│   ├── api-csharp-deployment.yaml     # API (C#) Deployment + Service
 │   ├── api-go-deployment.yaml         # API-Go Deployment + Service
 │   ├── haproxy-lb.cfg                 # HAProxy Load Balancer Configuration
 │   ├── ingress-nginx-deployment.yaml  # 🆕 Ingress Controller (Kind optimized)
-│   ├── ingress.yaml                   # Ingress (api.local, web.local, api-go.local, web-go.local)
+│   ├── ingress.yaml                   # Ingress (api-csharp.local, web-csharp.local, api-go.local, web-go.local)
 │   ├── kind-config.yaml               # ⚙️ Kind cluster config (3 control-plane + 3 worker HA)
-│   ├── web-deployment.yaml            # Web (C#) Deployment + Service
+│   ├── web-csharp-deployment.yaml     # Web (C#) Deployment + Service
 │   └── web-go-deployment.yaml         # Web-Go Deployment + Service
 ├── docs/                              # Documents
 │   ├── ARCHITECTURE.en.md             # 📘 System architecture overview
@@ -689,7 +689,7 @@ chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
 # 3. Projeyi klonlayın veya dosyaları oluşturun
-mkdir -p datetime-k8s/{api,web,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
 cd datetime-k8s
 ```
 
@@ -913,9 +913,9 @@ kubectl wait --namespace ingress-nginx \
 
 # 3. Docker imajlarını build et
 cd api
-docker build -t datetime-api:latest -f Dockerfile.api .
+docker build -t datetime-api-csharp:latest -f Dockerfile.api .
 cd ../web
-docker build -t datetime-web:latest -f Dockerfile.web .
+docker build -t datetime-web-csharp:latest -f Dockerfile.web .
 cd ..
 cd api-go
 docker build -t datetime-api-go:latest .
@@ -924,25 +924,25 @@ docker build -t datetime-web-go:latest .
 cd ..
 
 # 4. İmajları Kind'a yükle
-kind load docker-image datetime-api:latest
-kind load docker-image datetime-web:latest
+kind load docker-image datetime-api-csharp:latest
+kind load docker-image datetime-web-csharp:latest
 
 # 5. Kubernetes kaynaklarını uygula
-kubectl apply -f k8s/api-deployment.yaml
-kubectl apply -f k8s/web-deployment.yaml
+kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/web-csharp-deployment.yaml
 kubectl apply -f k8s/ingress.yaml
 
 # 6. /etc/hosts dosyasını güncelle
-echo "127.0.0.1 api.local web.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
 ```
 
 ## 🌐 Erişim
 
 ### C# Uygulamaları
 
-- **Web Uygulaması**: http://web.local
-- **API Endpoint**: http://api.local/api/datetime
-- **Health Check**: http://api.local/health
+- **Web Uygulaması**: http://web-csharp.local
+- **API Endpoint**: http://api-csharp.local/api/datetime
+- **Health Check**: http://api-csharp.local/health
 
 ### Go Uygulamaları
 
@@ -982,8 +982,8 @@ kubectl get pods -o wide
 kubectl get pods -w  # watch mode
 
 # Logları İnceleme
-kubectl logs -l app=datetime-api -f
-kubectl logs -l app=datetime-web -f
+kubectl logs -l app=datetime-api-csharp -f
+kubectl logs -l app=datetime-web-csharp -f
 kubectl logs <pod-name> -f
 
 # Service'leri Kontrol Etme
@@ -1009,26 +1009,26 @@ kubectl port-forward service/datetime-web-service 8081:80
 make test
 
 # Manuel testler
-curl http://api.local/api/datetime
-curl http://api.local/health
-curl http://web.local
+curl http://api-csharp.local/api/datetime
+curl http://api-csharp.local/health
+curl http://web-csharp.local
 ```
 
 ### Manuel Testler
 
 ```bash
 # API test
-curl http://api.local/api/datetime
-curl http://api.local/health
+curl http://api-csharp.local/api/datetime
+curl http://api-csharp.local/health
 
 # Web test
-curl http://web.local
+curl http://web-csharp.local
 
 # Detaylı test
-curl -v http://api.local/api/datetime
+curl -v http://api-csharp.local/api/datetime
 
 # JSON formatında
-curl -s http://api.local/api/datetime | jq .
+curl -s http://api-csharp.local/api/datetime | jq .
 ```
 
 ## 🔧 Scaling
@@ -1054,10 +1054,10 @@ make status
 
 ```bash
 # API'yi scale et
-kubectl scale deployment datetime-api --replicas=3
+kubectl scale deployment datetime-api-csharp --replicas=3
 
 # Web'i scale et
-kubectl scale deployment datetime-web --replicas=3
+kubectl scale deployment datetime-web-csharp --replicas=3
 
 # Durum kontrol
 kubectl get pods -l app=datetime-api
@@ -1085,8 +1085,8 @@ make redeploy
 
 ```bash
 # Kaynakları sil
-kubectl delete -f k8s/api-deployment.yaml
-kubectl delete -f k8s/web-deployment.yaml
+kubectl delete -f k8s/api-csharp-deployment.yaml
+kubectl delete -f k8s/web-csharp-deployment.yaml
 kubectl delete -f k8s/ingress.yaml
 
 # Kind cluster'ı sil
@@ -1094,7 +1094,7 @@ kind delete cluster
 
 # /etc/hosts temizle (manuel)
 sudo nano /etc/hosts
-# api.local ve web.local satırlarını silin
+# api-csharp.local ve web-csharp.local satırlarını silin
 ```
 
 ## 🔧 Sorun Giderme
@@ -1322,7 +1322,7 @@ make logs-api        # Logları kontrol et
 # Shell Script
 ./verify-deployment.sh
 ./fix-ingress.sh
-kubectl logs -l app=datetime-api -f
+kubectl logs -l app=datetime-api-csharp -f
 ```
 
 **Senaryo 4: Tamamen Yeniden Başlat**
