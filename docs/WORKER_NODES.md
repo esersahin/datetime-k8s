@@ -9,378 +9,435 @@
 
 ---
 
-# Kubernetes Cluster'a Worker Node Ekleme Rehberi
+# High Availability Kubernetes Cluster ile Çalışma Rehberi
 
-Bu dokümanda Kind cluster'ınıza 2 worker node ekleyerek multi-node bir cluster oluşturmayı öğreneceksiniz.
+Bu dokümantasyon, projenin 3 control-plane + 3 worker node yapısındaki **High Availability (HA)** Kubernetes cluster kurulumunu ve yönetimini açıklar.
 
 ## 📋 İçindekiler
 
-1. [Mevcut Durum](#-mevcut-durum)
-2. [Hedef Durum](#-hedef-durum)
-3. [kind-config.yaml Değişiklikleri](#-kind-configyaml-değişiklikleri)
-4. [Makefile Değişiklikleri](#-makefile-değişiklikleri)
-5. [Deployment Sonrası Kontroller](#-deployment-sonrası-kontroller)
-6. [Pod Scheduling ve Node Affinity](#-pod-scheduling-ve-node-affinity)
+1. [Cluster Mimarisi](#-cluster-mimarisi)
+2. [kind-config.yaml Yapısı](#-kind-configyaml-yapısı)
+3. [Cluster Oluşturma](#-cluster-oluşturma)
+4. [Node Yönetimi](#-node-yönetimi)
+5. [Deployment Yapılandırması](#-deployment-yapılandırması)
+6. [Pod Dağılım Stratejileri](#-pod-dağılım-stratejileri)
+7. [Monitoring ve Debugging](#-monitoring-ve-debugging)
+8. [Troubleshooting](#-troubleshooting)
 
 ---
 
-## 🔍 Mevcut Durum
+## 🏗️ Cluster Mimarisi
 
-Şu anda cluster'ınız **sadece 1 control-plane node** ile çalışıyor:
+### Mevcut Yapı
 
-```yaml
-nodes:
-  - role: control-plane
+Proje **High Availability (HA)** yapılandırması kullanır:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    KUBERNETES CLUSTER (HA)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────────────  CONTROL PLANE  ──────────────────┐    │
+│  │                                                         │    │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐  │    │
+│  │  │ Control Plane │  │ Control Plane │  │Control Plane│  │    │
+│  │  │      #1       │  │      #2       │  │     #3      │  │    │
+│  │  │ kind-control- │  │ kind-control- │  │kind-control-│  │    │
+│  │  │    plane      │  │    plane2     │  │   plane3    │  │    │
+│  │  └───────────────┘  └───────────────┘  └─────────────┘  │    │
+│  │                                                         │    │
+│  │  Kubernetes API Server Load Balanced                    │    │
+│  │  Etcd Cluster (Raft Consensus)                          │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                 │
+│  ┌──────────────────────  WORKER NODES  ────────────────────┐   │
+│  │                                                          │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │   │
+│  │  │  Worker #1  │  │  Worker #2  │  │  Worker #3  │       │   │
+│  │  │ kind-worker │  │kind-worker2 │  │kind-worker3 │       │   │
+│  │  │             │  │             │  │             │       │   │
+│  │  │ group-1     │  │ group-2     │  │ group-3     │       │   │
+│  │  │ ingress-    │  │ ingress-    │  │ ingress-    │       │   │
+│  │  │  ready      │  │  ready      │  │  ready      │       │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘       │   │
+│  │                                                          │   │
+│  │  Application Pods (API, Web, etc.)                       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-Bu yapıda:
+### Avantajları
 
-- ✅ Tüm Kubernetes control plane bileşenleri çalışıyor (API Server, Scheduler, Controller Manager)
-- ⚠️ Pod'lar control-plane node'da çalışıyor
-- ⚠️ Canlıya benzer bir ortam değil
-- ⚠️ High availability yok
+✅ **High Availability (HA)**
 
-## 🎯 Hedef Durum
+- 3 control-plane node: API server hatalarına karşı dayanıklı
+- Etcd cluster: Consensus-based data replication
+- Herhangi bir control-plane düştüğünde cluster çalışmaya devam eder
 
-**1 Control-Plane + 2 Worker Node** yapısı:
+✅ **Workload Distribution**
 
-```yaml
-nodes:
-  - role: control-plane
-  - role: worker
-  - role: worker
-```
+- 3 worker node: Pod'lar dengeli dağıtılır
+- Scaling kolaylığı
+- Resource isolation
 
-Bu yapıda:
+✅ **Production-Ready**
 
-- ✅ Control plane işlemleri ayrı node'da
-- ✅ Uygulama pod'ları worker node'larda
-- ✅ Production-like ortam
-- ✅ Load balancing ve ölçeklenebilirlik
-- ✅ Node failure senaryolarını test edebilme
+- HA setup production ortamlarına benzer
+- Failure scenarios test edilebilir
+- Load balancing stratejileri test edilebilir
 
 ---
 
-## 📝 kind-config.yaml Değişiklikleri
+## 📄 kind-config.yaml Yapısı
 
-### ❌ Eski `kind-config.yaml`
+### Tam Konfigürasyon
 
 ```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
+  # Control Plane Node 1 - HA setup için ilk control plane
   - role: control-plane
+
+  # Control Plane Node 2 - HA setup için ikinci control plane
+  - role: control-plane
+
+  # Control Plane Node 3 - HA setup için üçüncü control plane
+  - role: control-plane
+
+  # Worker Node 1 - Ingress controller burada çalışacak
+  # Port mapping yok - HAProxy üzerinden erişilecek
+  - role: worker
     kubeadmConfigPatches:
       - |
-        kind: InitConfiguration
+        kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
-```
+            node-labels: "ingress-ready=true,worker-group=group-1"
 
-### ✅ Yeni `kind-config.yaml` (Multi-Node)
-
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  # Control Plane Node
-  - role: control-plane
+  # Worker Node 2 - High availability için ikinci worker
+  # Port mapping yok - HAProxy üzerinden erişilecek
+  - role: worker
     kubeadmConfigPatches:
       - |
-        kind: InitConfiguration
+        kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
+            node-labels: "ingress-ready=true,worker-group=group-2"
 
-  # Worker Node 1
+  # Worker Node 3 - High availability için üçüncü worker
+  # Port mapping yok - HAProxy üzerinden erişilecek
   - role: worker
-    labels:
-      worker-group: group-1
-
-  # Worker Node 2
-  - role: worker
-    labels:
-      worker-group: group-2
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true,worker-group=group-3"
 ```
 
-### 🔑 Önemli Noktalar
+### Önemli Notlar
 
-1. **Control-Plane Node**:
+⚠️ **Manuel Oluşturma Zorunlu**
 
-   - `ingress-ready=true` label'ı sadece control-plane'de
-   - Port mapping'ler sadece control-plane'de
-   - Ingress controller burada çalışacak
+- `k8s/kind-config.yaml` dosyası repository'de **manuel olarak** bulunmalıdır
+- Makefile `create-cluster` komutu bu dosyayı otomatik oluşturmaz
+- Dosya yoksa cluster oluşturma HATA verir
 
-2. **Worker Node'lar**:
-   - Özel label'lar eklenebilir (`worker-group`)
-   - Uygulama pod'ları burada çalışacak
-   - Her node farklı etiketlenebilir (node affinity için)
+🏷️ **Node Labels**
+
+- `ingress-ready=true`: NGINX Ingress Controller bu node'larda çalışabilir
+- `worker-group=group-X`: Pod affinity/anti-affinity için kullanılabilir
+
+🚫 **Port Mapping Yok**
+
+- Worker node'larda port mapping kaldırıldı
+- Erişim HAProxy external load balancer üzerinden
 
 ---
 
-## 🔧 Makefile Değişiklikleri
+## 🚀 Cluster Oluşturma
 
-### Güncellenen `create-cluster` Target
-
-`Makefile` içindeki `create-cluster` target'ı önemli bir geliştirme ile güncellendi:
-
-**Önemli Özellik**: Artık `kind-config.yaml` dosyası yoksa **otomatik olarak oluşturuluyor**!
-
-```makefile
-create-cluster: ## Kind cluster oluşturur (multi-node: 1 control-plane + 2 workers)
-	@echo "$(YELLOW)🚀 Kind cluster kontrol ediliyor...$(NC)"
-	@if ! kind get clusters | grep -q "$(CLUSTER_NAME)"; then \
-		echo "$(YELLOW)Kind cluster oluşturuluyor (1 control-plane + 2 workers)...$(NC)"; \
-		if [ ! -f "kind-config.yaml" ]; then \
-			echo "$(YELLOW)kind-config.yaml bulunamadı, oluşturuluyor...$(NC)"; \
-			# printf kullanarak kind-config.yaml oluştur
-			printf 'kind: Cluster\n' > kind-config.yaml; \
-			printf 'apiVersion: kind.x-k8s.io/v1alpha4\n' >> kind-config.yaml; \
-			printf 'nodes:\n' >> kind-config.yaml; \
-			printf '# Control Plane Node\n' >> kind-config.yaml; \
-			printf -- '- role: control-plane\n' >> kind-config.yaml; \
-			printf '  kubeadmConfigPatches:\n' >> kind-config.yaml; \
-			printf '  - |\n' >> kind-config.yaml; \
-			printf '    kind: InitConfiguration\n' >> kind-config.yaml; \
-			printf '    nodeRegistration:\n' >> kind-config.yaml; \
-			printf '      kubeletExtraArgs:\n' >> kind-config.yaml; \
-			printf '        node-labels: "ingress-ready=true"\n' >> kind-config.yaml; \
-			printf '  extraPortMappings:\n' >> kind-config.yaml; \
-			printf '  - containerPort: 80\n' >> kind-config.yaml; \
-			printf '    hostPort: 80\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '  - containerPort: 443\n' >> kind-config.yaml; \
-			printf '    hostPort: 443\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 1\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-1\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 2\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-2\n' >> kind-config.yaml; \
-			echo "$(GREEN)✓ kind-config.yaml oluşturuldu$(NC)"; \
-		else \
-			echo "$(GREEN)✓ kind-config.yaml mevcut, kullanılıyor$(NC)"; \
-		fi; \
-		# Her durumda kind-config.yaml kullanılarak cluster oluştur
-		kind create cluster --config=kind-config.yaml; \
-		echo "$(GREEN)✓ Multi-node Kind cluster oluşturuldu$(NC)"; \
-		echo ""; \
-		echo "$(BLUE)Cluster Node'ları:$(NC)"; \
-		kubectl get nodes -o wide; \
-	else \
-		echo "$(GREEN)✓ Kind cluster zaten mevcut$(NC)"; \
-		echo "$(BLUE)Mevcut node'lar:$(NC)"; \
-		kubectl get nodes; \
-	fi
-```
-
-### 🎯 Akış Mantığı
-
-1. **Cluster var mı kontrol et**
-
-   - Varsa: Mevcut node'ları göster
-   - Yoksa: Devam et
-
-2. **kind-config.yaml var mı kontrol et**
-
-   - Varsa: Mevcut dosyayı kullan
-   - Yoksa: `printf` kullanarak otomatik oluştur
-
-3. **Cluster oluştur**
-
-   - Her durumda `kind create cluster --config=kind-config.yaml` kullan
-   - Inline config kullanmıyoruz, her zaman dosya kullanıyoruz
-
-4. **Node'ları göster**
-   - Oluşturulan node'ları listele
-
-### 🔑 Avantajları
-
-- ✅ **Otomatik**: Dosya yoksa otomatik oluşturuluyor
-- ✅ **Tutarlı**: Her zaman aynı dosya kullanılıyor
-- ✅ **Özelleştirilebilir**: Kullanıcı isterse `kind-config.yaml`'ı manuel düzenleyebilir
-- ✅ **Versiyon Kontrol**: `kind-config.yaml` git'e eklenebilir
-- ✅ **Tekrarlanabilir**: Aynı yapılandırma her seferinde kullanılır
-
-### Yeni Eklenen `show-nodes` Target
-
-```makefile
-show-nodes: ## Cluster node'larını detaylı gösterir
-	@echo "$(BLUE)📊 Cluster Node'ları$(NC)"
-	@echo "===================="
-	@kubectl get nodes -o wide
-	@echo ""
-	@echo "$(BLUE)Node Detayları:$(NC)"
-	@echo ""
-	@for node in $$(kubectl get nodes -o name); do \
-		echo "$(YELLOW)$$node:$(NC)"; \
-		kubectl describe $$node | grep -A 5 "Labels:"; \
-		echo ""; \
-	done
-```
-
-### Güncellenmiş `status` Target
-
-```makefile
-status: ## Cluster durumunu gösterir
-	@echo "$(BLUE)📊 Cluster Durumu$(NC)"
-	@echo "=================="
-	@echo ""
-	@echo "$(YELLOW)Nodes:$(NC)"
-	@kubectl get nodes -o wide
-	@echo ""
-	@echo "$(YELLOW)Pods (with Node placement):$(NC)"
-	@kubectl get pods -o wide
-	@echo ""
-	@echo "$(YELLOW)Services:$(NC)"
-	@kubectl get services
-	@echo ""
-	@echo "$(YELLOW)Ingress:$(NC)"
-	@kubectl get ingress
-```
-
----
-
-## 🔍 Deployment Sonrası Kontroller
-
-### 1. Node'ları Kontrol Etme
+### Adım 1: Dosya Kontrolü
 
 ```bash
-# Makefile ile
-make show-nodes
+# kind-config.yaml dosyası var mı kontrol et
+ls -la k8s/kind-config.yaml
+```
 
-# veya kubectl ile
+**Beklenen çıktı:**
+
+```
+-rw-r--r-- 1 user staff 1234 Oct 28 10:00 k8s/kind-config.yaml
+```
+
+### Adım 2: Cluster Oluştur
+
+```bash
+make create-cluster
+```
+
+**Çıktı:**
+
+```
+🚀 Kind cluster kontrol ediliyor...
+Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)...
+✓ k8s/kind-config.yaml mevcut, kullanılıyor
+
+Creating cluster "kind" ...
+ • Ensuring node image (kindest/node:v1.34.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
+ • Preparing nodes 📦 📦 📦 📦 📦 📦   ...
+ ✓ Preparing nodes 📦 📦 📦 📦 📦 📦
+ • Configuring the external load balancer ⚖️  ...
+ ✓ Configuring the external load balancer ⚖️
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Joining more control-plane nodes 🎮  ...
+ ✓ Joining more control-plane nodes 🎮
+ • Joining worker nodes 🚜  ...
+ ✓ Joining worker nodes 🚜
+Set kubectl context to "kind-kind"
+
+✓ Multi-node Kind cluster oluşturuldu
+
+Cluster Node'ları:
+NAME                  STATUS   ROLES           AGE   VERSION
+kind-control-plane    Ready    control-plane   39s   v1.34.0
+kind-control-plane2   Ready    control-plane   34s   v1.34.0
+kind-control-plane3   Ready    control-plane   17s   v1.34.0
+kind-worker           Ready    <none>          16s   v1.34.0
+kind-worker2          Ready    <none>          16s   v1.34.0
+kind-worker3          Ready    <none>          16s   v1.34.0
+```
+
+### Adım 3: Node Durumunu Kontrol Et
+
+```bash
+make show-nodes
+```
+
+**Çıktı:**
+
+```
+📊 Cluster Node'ları
+====================
+NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   14m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   13m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   13m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          13m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          13m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          13m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+```
+
+---
+
+## 🎛️ Node Yönetimi
+
+### Node Bilgilerini Görüntüleme
+
+```bash
+# Tüm node'ları listele
 kubectl get nodes
 
 # Detaylı bilgi
 kubectl get nodes -o wide
 
-# Beklenen çıktı:
-NAME                 STATUS   ROLES           AGE   VERSION
-kind-control-plane   Ready    control-plane   2m    v1.27.3
-kind-worker          Ready    <none>          2m    v1.27.3
-kind-worker2         Ready    <none>          2m    v1.27.3
-```
-
-### 2. Pod Dağılımını Kontrol Etme
-
-```bash
-# Pod'ların hangi node'da çalıştığını göster
-kubectl get pods -o wide
-
-# Makefile ile
-make status
-```
-
-**Örnek Çıktı:**
-
-```
-NAME                           READY   STATUS    NODE
-datetime-api-5d8f7b9c8-abc12   1/1     Running   kind-worker
-datetime-api-5d8f7b9c8-def34   1/1     Running   kind-worker2
-datetime-web-7c9d4b8f5-ghi56   1/1     Running   kind-worker
-datetime-web-7c9d4b8f5-jkl78   1/1     Running   kind-worker2
-```
-
-### 3. Node Label'larını Kontrol Etme
-
-```bash
-# Tüm node'ların label'larını göster
+# Node'ların label'larını göster
 kubectl get nodes --show-labels
+```
 
-# Specific node'un label'larını göster
-kubectl describe node kind-worker | grep Labels -A 10
+### Node Label'larını Kontrol Etme
+
+```bash
+# Tüm worker node label'larını göster
+kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --show-labels
+
+# Beklenen çıktı:
+NAME           STATUS   ROLES    AGE   VERSION   LABELS
+kind-worker    Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker,kubernetes.io/os=linux,worker-group=group-1
+kind-worker2   Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker2,kubernetes.io/os=linux,worker-group=group-2
+kind-worker3   Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker3,kubernetes.io/os=linux,worker-group=group-3
+```
+
+### Node Kapasitesini Görüntüleme
+
+```bash
+# Her node'un kaynaklarını göster
+kubectl describe nodes
+
+# Kısa özet
+kubectl top nodes  # (metrics-server gerekli)
 ```
 
 ---
 
-## 📦 Pod Scheduling ve Node Affinity
+## 📦 Deployment Yapılandırması
 
-### Mevcut Deployment'lar
+### C# API Deployment
 
-Şu anki deployment'larınız herhangi bir node affinity içermiyor, bu yüzden pod'lar otomatik olarak worker node'lara dağıtılacak.
-
-### Opsiyonel: Specific Node'a Pod Atama
-
-Eğer belirli pod'ları belirli node'larda çalıştırmak isterseniz:
-
-#### api-csharp-deployment.yaml'a Node Affinity Ekleme
+**Dosya:** `k8s/api-csharp-deployment.yaml`
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: datetime-api-csharp
+  labels:
+    app: datetime-api-csharp
 spec:
-  replicas: 2
+  replicas: 3 # HA için 3 replica
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı
+      maxSurge: 1 # Update sırasında +1 pod çalışabilir
+  selector:
+    matchLabels:
+      app: datetime-api-csharp
+  template:
+    metadata:
+      labels:
+        app: datetime-api-csharp
+    spec:
+      containers:
+        - name: api
+          image: datetime-api-csharp:latest
+          imagePullPolicy: Never # Local image
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: GO_API_URL
+              value: "http://datetime-api-go-service"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+```
+
+### Service Yapılandırması
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: datetime-api-csharp-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5000
+  selector:
+    app: datetime-api-csharp
+  sessionAffinity: None # Round-robin load balancing
+```
+
+**Özellikler:**
+
+- ✅ 3 replica (High Availability)
+- ✅ RollingUpdate (Zero-downtime deployments)
+- ✅ Resource limits (Memory: 256Mi, CPU: 200m)
+- ✅ Health probes (Liveness & Readiness)
+- ✅ Service-to-service communication
+- ✅ Round-robin load balancing
+
+---
+
+## 📊 Pod Dağılım Stratejileri
+
+### Otomatik Dağılım (Default)
+
+Kubernetes scheduler pod'ları otomatik olarak dengeli dağıtır:
+
+```
+Worker Node 1 (kind-worker):
+  └─ datetime-api-csharp-xxx-1
+  └─ datetime-web-csharp-xxx-1
+
+Worker Node 2 (kind-worker2):
+  └─ datetime-api-csharp-xxx-2
+  └─ datetime-web-csharp-xxx-2
+
+Worker Node 3 (kind-worker3):
+  └─ datetime-api-csharp-xxx-3
+  └─ datetime-web-csharp-xxx-3
+```
+
+### Pod'ların Yerleşimini Kontrol Etme
+
+```bash
+# Pod'ları node ile birlikte göster
+kubectl get pods -o wide
+
+# Beklenen çıktı:
+NAME                                   READY   STATUS    NODE
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          13m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          13m   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          13m   10.244.4.2   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          13m   10.244.4.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          13m   10.244.3.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          13m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          13m   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          13m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-wxdjf   1/1     Running   0          13m   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          13m   10.244.5.5   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-knz8p       1/1     Running   0          13m   10.244.3.4   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-qtdnq       1/1     Running   0          13m   10.244.4.5   kind-worker    <none>           <none>
+```
+
+### Node Affinity (Opsiyonel)
+
+Belirli pod'ları belirli worker gruplarına yönlendirmek için:
+
+```yaml
+spec:
   template:
     spec:
-      # Node Affinity - API pod'ları sadece worker-group-1'de çalışsın
       affinity:
         nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
                   - key: worker-group
                     operator: In
                     values:
                       - group-1
-      containers:
-        - name: api
-          image: datetime-api-csharp:latest
-          # ... rest of config
-```
-
-#### web-csharp-deployment.yaml'a Node Affinity Ekleme
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: datetime-web-csharp
-spec:
-  replicas: 2
-  template:
-    spec:
-      # Node Affinity - Web pod'ları sadece worker-group-2'de çalışsın
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: worker-group
-                    operator: In
-                    values:
                       - group-2
-      containers:
-        - name: web
-          image: datetime-web-csharp:latest
-          # ... rest of config
 ```
 
-### Pod Anti-Affinity (High Availability)
+### Pod Anti-Affinity (HA için)
 
-Aynı pod'ların farklı node'larda çalışmasını garantilemek için:
+Aynı uygulamanın pod'larını farklı node'lara dağıt:
 
 ```yaml
 spec:
@@ -400,307 +457,225 @@ spec:
 
 ---
 
-## 🧪 Test Senaryoları
+## 🔍 Monitoring ve Debugging
 
-### Test 1: kind-config.yaml Otomatik Oluşturma
+### Cluster Durumu
 
 ```bash
-# kind-config.yaml'ı sil (varsa)
-rm kind-config.yaml
+# Genel durum
+make status
 
+# Çıktı:
+📊 Cluster Durumu
+==================
+
+Nodes:
+📊 Cluster Durumu
+==================
+
+Nodes:
+NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   17m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   16m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   16m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          16m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          16m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          16m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+
+Pods (with Node placement):
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          14m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          14m   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          14m   10.244.4.2   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          14m   10.244.4.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          14m   10.244.3.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          14m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          14m   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          14m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-wxdjf   1/1     Running   0          14m   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          14m   10.244.5.5   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-knz8p       1/1     Running   0          14m   10.244.3.4   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-qtdnq       1/1     Running   0          14m   10.244.4.5   kind-worker    <none>           <none>
+
+Services:
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+datetime-api-csharp-service   ClusterIP   10.96.199.65   <none>        80/TCP    14m
+datetime-api-go-service       ClusterIP   10.96.130.19   <none>        80/TCP    14m
+datetime-web-csharp-service   ClusterIP   10.96.96.23    <none>        80/TCP    14m
+datetime-web-go-service       ClusterIP   10.96.172.47   <none>        80/TCP    14m
+kubernetes                    ClusterIP   10.96.0.1      <none>        443/TCP   16m
+
+Ingress:
+NAME               CLASS   HOSTS                                                        ADDRESS     PORTS   AGE
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...   localhost   80      14m
+```
+
+### Pod Logları
+
+```bash
+# API pod loglarını göster
+make logs-api
+
+# Belirli bir pod'un loglarını göster
+kubectl logs <pod-name>
+
+# Canlı log takibi
+kubectl logs -f <pod-name>
+```
+
+### Service Endpoints
+
+```bash
+# Service hangi pod'lara yönlendiriyor?
+kubectl get endpoints datetime-api-csharp-service 
+kubectl get endpoints datetime-web-csharp-service
+
+# Çıktı:
+NAME                          ENDPOINTS                                         AGE
+datetime-api-csharp-service   10.244.3.2:5000,10.244.4.2:5000,10.244.5.2:5000   15m
+datetime-web-csharp-service   10.244.3.3:80,10.244.4.3:80,10.244.5.3:80         15m
+```
+
+### Resource Kullanımı
+
+```bash
+# Pod resource kullanımı
+kubectl top pods 
+# (metrics-server gerekli)
+
+# Node resource kullanımı
+kubectl top nodes 
+#(metrics-server gerekli)
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Problem 1: kind-config.yaml Bulunamadı
+
+**Hata:**
+
+```
+❌ HATA: k8s/kind-config.yaml bulunamadı!
+Bu dosya worker node yapılandırması için gereklidir.
+```
+
+**Çözüm:**
+
+```bash
+# Dosyanın var olduğundan emin ol
+ls k8s/kind-config.yaml
+
+# Yoksa oluştur veya repository'den al
+git pull origin main
+```
+
+### Problem 2: Pod'lar Pending Durumda
+
+**Kontrol:**
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+**Olası nedenler:**
+
+- Insufficient resources
+- Node selector mismatch
+- Image pull errors
+
+**Çözüm:**
+
+```bash
+# Node kapasitesini kontrol et
+kubectl describe nodes
+
+# Pod event'lerini kontrol et
+kubectl get events --sort-by='.lastTimestamp'
+```
+
+### Problem 3: Service Endpoint'leri Boş
+
+**Kontrol:**
+
+```bash
+kubectl get endpoints <service-name>
+```
+
+**Çözüm:**
+
+```bash
+# Pod label'ları service selector ile eşleşiyor mu?
+kubectl get pods --show-labels
+kubectl describe service <service-name>
+
+# Pod'lar Ready mi?
+kubectl get pods
+kubectl wait --for=condition=ready pod -l app=datetime-api-csharp
+```
+
+### Problem 4: Control-Plane Node'lar NotReady
+
+**Kontrol:**
+
+```bash
+kubectl get nodes
+kubectl describe node kind-control-plane
+```
+
+**Çözüm:**
+
+```bash
+# Cluster'ı yeniden oluştur
+make clean-all
+make deploy
+```
+
+---
+
+## 📚 Kaynaklar
+
+### Official Documentation
+
+- [Kind Multi-Node Clusters](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster)
+- [Kubernetes High Availability](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/)
+- [Node Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+- [Pod Anti-Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
+
+### Project Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Mimari detayları
+- [HAPROXY_NGINX_ARCHITECTURE.md](HAPROXY_NGINX_ARCHITECTURE.md) - Load balancer yapısı
+- [INGRESS_ROUTING.md](INGRESS_ROUTING.md) - Ingress routing detayları
+
+---
+
+## 🎯 Hızlı Komutlar
+
+```bash
 # Cluster oluştur
 make create-cluster
 
-# Beklenen çıktı:
-# ℹ kind-config.yaml bulunamadı, oluşturuluyor...
-# ✓ kind-config.yaml oluşturuldu
-# ✓ Multi-node Kind cluster oluşturuldu
-
-# Dosyanın oluştuğunu doğrula
-ls -la kind-config.yaml
-cat kind-config.yaml
-
-# Node'ları kontrol et
-kubectl get nodes
-# Beklenen: kind-control-plane, kind-worker, kind-worker2
-```
-
-### Test 2: Pod Dağılımını Test Etme
-
-```bash
-# Replica sayısını artır
-make scale-api REPLICAS=4
-make scale-web REPLICAS=4
-
-# Dağılımı kontrol et
-kubectl get pods -o wide
-
-# Her node'da kaç pod var?
-kubectl get pods -o wide | awk '{print $7}' | sort | uniq -c
-
-# Beklenen çıktı örneği:
-#   1 NODE
-#   2 kind-worker
-#   2 kind-worker2
-#   2 kind-control-plane (sadece ingress controller)
-```
-
-### Test 3: Node Failure Simülasyonu
-
-```bash
-# Bir worker node'u drain et
-kubectl drain kind-worker --ignore-daemonsets --delete-emptydir-data
-
-# Pod'ların diğer node'a taşınmasını izle
-kubectl get pods -o wide -w
-
-# Beklenen: kind-worker'daki pod'lar kind-worker2'ye taşınacak
-
-# Node'u tekrar aktif et
-kubectl uncordon kind-worker
-
-# Pod'lar tekrar dengelendi mi kontrol et
-kubectl get pods -o wide
-```
-
-### Test 4: Node Resource Monitoring
-
-```bash
-# Node kaynak kullanımı (metrics-server gerekli)
-kubectl top nodes
-
-# Eğer metrics-server yoksa kur
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
-# Metrics-server için TLS'i devre dışı bırak (Kind için)
-kubectl patch deployment metrics-server -n kube-system --type='json' \
-  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
-
-# Birkaç dakika bekle ve tekrar dene
-kubectl top nodes
-kubectl top pods
-
-# Makefile ile genel durum
+# Cluster durumunu göster
 make status
-```
 
-### Test 5: Multi-Node Cluster Özellikleri
-
-```bash
-# 1. Node label'larını kontrol et
-kubectl get nodes --show-labels
-
-# 2. Her node'un role'ünü kontrol et
-kubectl get nodes -o custom-columns=NAME:.metadata.name,ROLE:.metadata.labels."kubernetes\.io/role",STATUS:.status.conditions[-1].type
-
-# 3. Control-plane'de sadece system pod'ları var mı?
-kubectl get pods -n kube-system -o wide | grep control-plane
-
-# 4. Worker node'larda uygulama pod'ları var mı?
-kubectl get pods -o wide | grep -E "kind-worker|kind-worker2"
-
-# 5. Detaylı rapor
-make show-nodes
-```
-
----
-
-## 📊 Karşılaştırma Tablosu
-
-| Özellik                   | Single Node      | Multi-Node (1+2)   |
-| ------------------------- | ---------------- | ------------------ |
-| **High Availability**     | ❌ Yok           | ✅ Var             |
-| **Load Balancing**        | ❌ Yok           | ✅ Otomatik        |
-| **Resource Isolation**    | ❌ Sınırlı       | ✅ İyi             |
-| **Production-like**       | ❌ Hayır         | ✅ Evet            |
-| **Testing Capabilities**  | ⚠️ Temel         | ✅ Gelişmiş        |
-| **Node Failure Handling** | ❌ Test edilemez | ✅ Test edilebilir |
-| **Startup Time**          | ✅ Hızlı (~30s)  | ⚠️ Orta (~60s)     |
-| **Resource Usage**        | ✅ Düşük         | ⚠️ Orta            |
-
----
-
-## 🚀 Deployment Komutları
-
-### Senaryo 1: İlk Deployment (kind-config.yaml YOK)
-
-```bash
-# Proje dizinine git
-cd datetime-k8s
-
-# Deploy et - kind-config.yaml otomatik oluşturulacak
-make deploy
-
-# Ne oldu?
-# 1. kind-config.yaml otomatik oluşturuldu
-# 2. Multi-node cluster oluşturuldu (1+2)
-# 3. Tüm servisler deploy edildi
-
-# Oluşan dosyayı kontrol et
-cat kind-config.yaml
-
-# Node'ları kontrol et
-make show-nodes
-```
-
-### Senaryo 2: İlk Deployment (kind-config.yaml VAR)
-
-```bash
-# Eğer kind-config.yaml zaten varsa
-cd datetime-k8s
-
-# Deploy et - mevcut dosya kullanılacak
-make deploy
-
-# Ne oldu?
-# 1. Mevcut kind-config.yaml kullanıldı
-# 2. Cluster oluşturuldu
-# 3. Servisler deploy edildi
-```
-
-### Senaryo 3: Özelleştirilmiş Worker Node Sayısı
-
-```bash
-# kind-config.yaml'ı manuel düzenle
-nano kind-config.yaml
-
-# 3 worker ekle
-# - role: worker
-#   labels:
-#     worker-group: group-3
-
-# Eski cluster'ı sil
-make clean-cluster
-
-# Yeni cluster oluştur
-make create-cluster
-
-# Node'ları kontrol et
+# Node'ları göster
 make show-nodes
 
-# Beklenen: 1 control-plane + 3 worker
-```
+# Pod dağılımını göster
+kubectl get pods -o wide
 
-### Senaryo 4: Mevcut Cluster'ı Güncelleme
+# Service endpoint'lerini göster
+kubectl get endpoints
 
-⚠️ **DİKKAT**: Kind cluster'da node eklemek desteklenmez! Cluster'ı silip yeniden oluşturmanız gerekir.
-
-```bash
-# Proje dizininde ol
-cd datetime-k8s
-
-# Tam yeniden deployment
-make redeploy
-
-# Ne oldu?
-# 1. Mevcut cluster silindi (clean-all)
-# 2. kind-config.yaml kontrol edildi/oluşturuldu
-# 3. Yeni multi-node cluster oluşturuldu
-# 4. Tüm servisler yeniden deploy edildi
-
-# Node'ları doğrula
-kubectl get nodes
-```
-
----
-
-## 📝 Özet
-
-### Yapılan Değişiklikler
-
-1. ✅ `kind-config.yaml` - 2 worker node eklendi
-2. ✅ `Makefile` - `create-cluster` target'ı güncellendi
-   - **Yeni Özellik**: `kind-config.yaml` yoksa otomatik oluşturuyor
-   - `printf` kullanarak dosya oluşturma
-3. ✅ `Makefile` - `show-nodes` target'ı eklendi
-4. ✅ `Makefile` - `status` target'ı güncellendi
-
-### Hızlı Referans Tablosu
-
-| Komut                      | Açıklama                 | kind-config.yaml Durumu      |
-| -------------------------- | ------------------------ | ---------------------------- |
-| `make create-cluster`      | Cluster oluştur          | Yoksa otomatik oluşturulur   |
-| `make deploy`              | Full deployment          | Yoksa otomatik oluşturulur   |
-| `make show-nodes`          | Node'ları detaylı göster | -                            |
-| `make status`              | Genel durum (node + pod) | -                            |
-| `make clean-cluster`       | Cluster'ı sil            | kind-config.yaml korunur     |
-| `make redeploy`            | Sil ve yeniden oluştur   | Mevcut veya yeni oluşturulur |
-| `kubectl get nodes`        | Node listesi             | -                            |
-| `kubectl get pods -o wide` | Pod yerleşimi            | -                            |
-
-### Kullanım Akış Şeması
-
-```
-┌──────────────────────────────────────┐
-│  make deploy veya make create-cluster│
-└─────────────────┬────────────────────┘
-                  │
-                  ▼
-       ┌──────────────────────┐
-       │ kind-config.yaml     │
-       │ var mı?              │
-       └──────┬──────┬────────┘
-              │      │
-        HAYIR │      │ EVET
-              │      │
-              ▼      ▼
-    ┌──────────┐  ┌──────────────┐
-    │ Otomatik │  │ Mevcut dosya │
-    │ Oluştur  │  │ kullan       │
-    └────┬─────┘  └──────┬───────┘
-         │               │
-         └───────┬───────┘
-                 │
-                 ▼
-      ┌──────────────────────────┐
-      │ kind create cluster      │
-      │ --config=kind-config.yaml│
-      └─────────┬────────────────┘
-                │
-                ▼
-    ┌──────────────────────────────┐
-    │ 1 Control-Plane              │
-    │ 2 Worker Nodes               │
-    │ (kind-worker, kind-worker2)  │
-    └──────────────────────────────┘
-```
-
-### Kullanım
-
-```bash
-# 1. Mevcut cluster'ı sil
+# Tüm kaynakları temizle
 make clean-all
 
-# 2. Yeni multi-node cluster deploy et
-make deploy
-
-# 3. Node'ları kontrol et
-make show-nodes
-
-# 4. Pod dağılımını kontrol et
-make status
-
-# 5. Test et
-make verify
-make test
+# Yeniden deploy et
+make redeploy
 ```
 
-### Beklenen Sonuç
-
-- 1 Control-Plane Node (kind-control-plane)
-- 2 Worker Node (kind-worker, kind-worker2)
-- Pod'lar worker node'larda dengeli dağıtılmış
-- Ingress Controller control-plane'de çalışıyor
-- Tüm servisler sorunsuz çalışıyor
-
 ---
 
-## 🔗 Ek Kaynaklar
-
-- [Kind Multi-Node Clusters](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster)
-- [Kubernetes Node Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
-- [Pod Anti-Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
-
----
-
-**Not**: Bu değişiklikler tamamen local development için optimize edilmiştir. Production ortamları için farklı yapılandırmalar gerekebilir.
+**Not**: Bu yapılandırma local development için optimize edilmiştir. Production ortamları için ek security, monitoring, ve networking konfigürasyonları gerekebilir.

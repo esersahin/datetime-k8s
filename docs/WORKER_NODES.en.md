@@ -9,379 +9,435 @@
 
 ---
 
-# Guide to Adding Worker Nodes to Kubernetes Cluster
+# High Availability Kubernetes Cluster Working Guide
 
-This document will teach you how to create a multi-node cluster by adding 2 worker nodes to your Kind cluster.
+This documentation explains the **High Availability (HA)** Kubernetes cluster setup and management with 3 control-plane + 3 worker node architecture.
 
 ## 📋 Table of Contents
 
-1. [Current State](#-current-state)
-2. [Target State](#-target-state)
-3. [kind-config.yaml Changes](#-kind-configyaml-changes)
-4. [Makefile Changes](#-makefile-changes)
-5. [Post-Deployment Checks](#-post-deployment-checks)
-6. [Pod Scheduling and Node Affinity](#-pod-scheduling-and-node-affinity)
+1. [Cluster Architecture](#-cluster-architecture)
+2. [kind-config.yaml Structure](#-kind-configyaml-structure)
+3. [Creating Cluster](#-creating-cluster)
+4. [Node Management](#-node-management)
+5. [Deployment Configuration](#-deployment-configuration)
+6. [Pod Distribution Strategies](#-pod-distribution-strategies)
+7. [Monitoring and Debugging](#-monitoring-and-debugging)
+8. [Troubleshooting](#-troubleshooting)
 
 ---
 
-## 🔍 Current State
+## 🏗️ Cluster Architecture
 
-Currently your cluster is running with **only 1 control-plane node**:
+### Current Structure
 
-```yaml
-nodes:
-  - role: control-plane
+The project uses **High Availability (HA)** configuration:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    KUBERNETES CLUSTER (HA)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────────────  CONTROL PLANE  ──────────────────┐    │
+│  │                                                         │    │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐  │    │
+│  │  │ Control Plane │  │ Control Plane │  │Control Plane│  │    │
+│  │  │      #1       │  │      #2       │  │     #3      │  │    │
+│  │  │ kind-control- │  │ kind-control- │  │kind-control-│  │    │
+│  │  │    plane      │  │    plane2     │  │   plane3    │  │    │
+│  │  └───────────────┘  └───────────────┘  └─────────────┘  │    │
+│  │                                                         │    │
+│  │  Kubernetes API Server Load Balanced                    │    │
+│  │  Etcd Cluster (Raft Consensus)                          │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                 │
+│  ┌──────────────────────  WORKER NODES  ────────────────────┐   │
+│  │                                                          │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │   │
+│  │  │  Worker #1  │  │  Worker #2  │  │  Worker #3  │       │   │
+│  │  │ kind-worker │  │kind-worker2 │  │kind-worker3 │       │   │
+│  │  │             │  │             │  │             │       │   │
+│  │  │ group-1     │  │ group-2     │  │ group-3     │       │   │
+│  │  │ ingress-    │  │ ingress-    │  │ ingress-    │       │   │
+│  │  │  ready      │  │  ready      │  │  ready      │       │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘       │   │
+│  │                                                          │   │
+│  │  Application Pods (API, Web, etc.)                       │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-In this structure:
+### Advantages
 
-- ✅ All Kubernetes control plane components running (API Server, Scheduler, Controller Manager)
-- ⚠️ Pods running on control-plane node
-- ⚠️ Not a production-like environment
-- ⚠️ No high availability
+✅ **High Availability (HA)**
 
-## 🎯 Target State
+- 3 control-plane nodes: Resilient to API server failures
+- Etcd cluster: Consensus-based data replication
+- Cluster continues to work if any control-plane goes down
 
-**1 Control-Plane + 2 Worker Node** structure:
+✅ **Workload Distribution**
 
-```yaml
-nodes:
-  - role: control-plane
-  - role: worker
-  - role: worker
-```
+- 3 worker nodes: Pods distributed evenly
+- Easy scaling
+- Resource isolation
 
-In this structure:
+✅ **Production-Ready**
 
-- ✅ Control plane operations on separate node
-- ✅ Application pods on worker nodes
-- ✅ Production-like environment
-- ✅ Load balancing and scalability
-- ✅ Ability to test node failure scenarios
+- HA setup similar to production environments
+- Failure scenarios can be tested
+- Load balancing strategies can be tested
 
 ---
 
-## 📝 kind-config.yaml Changes
+## 📄 kind-config.yaml Structure
 
-### ❌ Old `kind-config.yaml`
+### Full Configuration
 
 ```yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
+  # Control Plane Node 1 - First control plane for HA setup
   - role: control-plane
+
+  # Control Plane Node 2 - Second control plane for HA setup
+  - role: control-plane
+
+  # Control Plane Node 3 - Third control plane for HA setup
+  - role: control-plane
+
+  # Worker Node 1 - Ingress controller will run here
+  # No port mapping - Access through HAProxy
+  - role: worker
     kubeadmConfigPatches:
       - |
-        kind: InitConfiguration
+        kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
-```
+            node-labels: "ingress-ready=true,worker-group=group-1"
 
-### ✅ New `kind-config.yaml` (Multi-Node)
-
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  # Control Plane Node
-  - role: control-plane
+  # Worker Node 2 - Second worker for high availability
+  # No port mapping - Access through HAProxy
+  - role: worker
     kubeadmConfigPatches:
       - |
-        kind: InitConfiguration
+        kind: JoinConfiguration
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 80
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 443
-        protocol: TCP
+            node-labels: "ingress-ready=true,worker-group=group-2"
 
-  # Worker Node 1
+  # Worker Node 3 - Third worker for high availability
+  # No port mapping - Access through HAProxy
   - role: worker
-    labels:
-      worker-group: group-1
-
-  # Worker Node 2
-  - role: worker
-    labels:
-      worker-group: group-2
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true,worker-group=group-3"
 ```
 
-### 🔑 Key Points
+### Important Notes
 
-1. **Control-Plane Node**:
+⚠️ **Manual Creation Required**
 
-   - `ingress-ready=true` label only on control-plane
-   - Port mappings only on control-plane
-   - Ingress controller will run here
+- `k8s/kind-config.yaml` file must exist **manually** in repository
+- Makefile `create-cluster` command does NOT auto-create this file
+- If file doesn't exist, cluster creation will fail with ERROR
 
-2. **Worker Nodes**:
-   - Custom labels can be added (`worker-group`)
-   - Application pods will run here
-   - Each node can be labeled differently (for node affinity)
+🏷️ **Node Labels**
+
+- `ingress-ready=true`: NGINX Ingress Controller can run on these nodes
+- `worker-group=group-X`: Can be used for pod affinity/anti-affinity
+
+🚫 **No Port Mapping**
+
+- Port mapping removed from worker nodes
+- Access through HAProxy external load balancer
 
 ---
 
-## 🔧 Makefile Changes
+## 🚀 Creating Cluster
 
-### Updated `create-cluster` Target
-
-The `create-cluster` target in `Makefile` has been updated with an important improvement:
-
-**Important Feature**: Now `kind-config.yaml` is **automatically created** if it doesn't exist!
-
-```makefile
-create-cluster: ## Create Kind cluster (multi-node: 1 control-plane + 2 workers)
-	@echo "$(YELLOW)🚀 Checking Kind cluster...$(NC)"
-	@if ! kind get clusters | grep -q "$(CLUSTER_NAME)"; then \
-		echo "$(YELLOW)Creating Kind cluster (1 control-plane + 2 workers)...$(NC)"; \
-		if [ ! -f "kind-config.yaml" ]; then \
-			echo "$(YELLOW)kind-config.yaml not found, creating...$(NC)"; \
-			# Create kind-config.yaml using printf
-			printf 'kind: Cluster\n' > kind-config.yaml; \
-			printf 'apiVersion: kind.x-k8s.io/v1alpha4\n' >> kind-config.yaml; \
-			printf 'nodes:\n' >> kind-config.yaml; \
-			printf '# Control Plane Node\n' >> kind-config.yaml; \
-			printf -- '- role: control-plane\n' >> kind-config.yaml; \
-			printf '  kubeadmConfigPatches:\n' >> kind-config.yaml; \
-			printf '  - |\n' >> kind-config.yaml; \
-			printf '    kind: InitConfiguration\n' >> kind-config.yaml; \
-			printf '    nodeRegistration:\n' >> kind-config.yaml; \
-			printf '      kubeletExtraArgs:\n' >> kind-config.yaml; \
-			printf '        node-labels: "ingress-ready=true"\n' >> kind-config.yaml; \
-			printf '  extraPortMappings:\n' >> kind-config.yaml; \
-			printf '  - containerPort: 80\n' >> kind-config.yaml; \
-			printf '    hostPort: 80\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '  - containerPort: 443\n' >> kind-config.yaml; \
-			printf '    hostPort: 443\n' >> kind-config.yaml; \
-			printf '    protocol: TCP\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 1\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-1\n' >> kind-config.yaml; \
-			printf '\n' >> kind-config.yaml; \
-			printf '# Worker Node 2\n' >> kind-config.yaml; \
-			printf -- '- role: worker\n' >> kind-config.yaml; \
-			printf '  labels:\n' >> kind-config.yaml; \
-			printf '    worker-group: group-2\n' >> kind-config.yaml; \
-			echo "$(GREEN)✓ kind-config.yaml created$(NC)"; \
-		else \
-			echo "$(GREEN)✓ kind-config.yaml exists, using it$(NC)"; \
-		fi; \
-		# Always create cluster using kind-config.yaml
-		kind create cluster --config=kind-config.yaml; \
-		echo "$(GREEN)✓ Multi-node Kind cluster created$(NC)"; \
-		echo ""; \
-		echo "$(BLUE)Cluster Nodes:$(NC)"; \
-		kubectl get nodes -o wide; \
-	else \
-		echo "$(GREEN)✓ Kind cluster already exists$(NC)"; \
-		echo "$(BLUE)Existing nodes:$(NC)"; \
-		kubectl get nodes; \
-	fi
-```
-
-### 🎯 Flow Logic
-
-1. **Check if cluster exists**
-
-   - If yes: Show existing nodes
-   - If no: Continue
-
-2. **Check if kind-config.yaml exists**
-
-   - If yes: Use existing file
-   - If no: Auto-create using `printf`
-
-3. **Create cluster**
-
-   - Always use `kind create cluster --config=kind-config.yaml`
-   - Not using inline config, always using file
-
-4. **Show nodes**
-   - List created nodes
-
-### 🔑 Advantages
-
-- ✅ **Automatic**: File is auto-created if missing
-- ✅ **Consistent**: Same file always used
-- ✅ **Customizable**: User can manually edit `kind-config.yaml` if desired
-- ✅ **Version Control**: `kind-config.yaml` can be added to git
-- ✅ **Reproducible**: Same configuration used every time
-
-### New Added `show-nodes` Target
-
-```makefile
-show-nodes: ## Show cluster nodes in detail
-	@echo "$(BLUE)📊 Cluster Nodes$(NC)"
-	@echo "===================="
-	@kubectl get nodes -o wide
-	@echo ""
-	@echo "$(BLUE)Node Details:$(NC)"
-	@echo ""
-	@for node in $$(kubectl get nodes -o name); do \
-		echo "$(YELLOW)$$node:$(NC)"; \
-		kubectl describe $$node | grep -A 5 "Labels:"; \
-		echo ""; \
-	done
-```
-
-### Updated `status` Target
-
-```makefile
-status: ## Show cluster status
-	@echo "$(BLUE)📊 Cluster Status$(NC)"
-	@echo "=================="
-	@echo ""
-	@echo "$(YELLOW)Nodes:$(NC)"
-	@kubectl get nodes -o wide
-	@echo ""
-	@echo "$(YELLOW)Pods (with Node placement):$(NC)"
-	@kubectl get pods -o wide
-	@echo ""
-	@echo "$(YELLOW)Services:$(NC)"
-	@kubectl get services
-	@echo ""
-	@echo "$(YELLOW)Ingress:$(NC)"
-	@kubectl get ingress
-```
-
----
-
-
-## 🔍 Post-Deployment Checks
-
-### 1. Check Nodes
+### Step 1: File Check
 
 ```bash
-# Using Makefile
-make show-nodes
+# Check if kind-config.yaml exists
+ls -la k8s/kind-config.yaml
+```
 
-# or using kubectl
+**Expected output:**
+
+```
+-rw-r--r-- 1 user staff 1234 Oct 28 10:00 k8s/kind-config.yaml
+```
+
+### Step 2: Create Cluster
+
+```bash
+make create-cluster
+```
+
+**Output:**
+
+```
+🚀 Kind cluster kontrol ediliyor...
+Kind cluster oluşturuluyor (3 control-planes + 3 workers - HA setup)...
+✓ k8s/kind-config.yaml mevcut, kullanılıyor
+
+Creating cluster "kind" ...
+ • Ensuring node image (kindest/node:v1.34.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.34.0) 🖼
+ • Preparing nodes 📦 📦 📦 📦 📦 📦   ...
+ ✓ Preparing nodes 📦 📦 📦 📦 📦 📦
+ • Configuring the external load balancer ⚖️  ...
+ ✓ Configuring the external load balancer ⚖️
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Joining more control-plane nodes 🎮  ...
+ ✓ Joining more control-plane nodes 🎮
+ • Joining worker nodes 🚜  ...
+ ✓ Joining worker nodes 🚜
+Set kubectl context to "kind-kind"
+
+✓ Multi-node Kind cluster oluşturuldu
+
+Cluster Node'ları:
+NAME                  STATUS   ROLES           AGE   VERSION
+kind-control-plane    Ready    control-plane   39s   v1.34.0
+kind-control-plane2   Ready    control-plane   34s   v1.34.0
+kind-control-plane3   Ready    control-plane   17s   v1.34.0
+kind-worker           Ready    <none>          16s   v1.34.0
+kind-worker2          Ready    <none>          16s   v1.34.0
+kind-worker3          Ready    <none>          16s   v1.34.0
+```
+
+### Step 3: Check Node Status
+
+```bash
+make show-nodes
+```
+
+**Output:**
+
+```
+📊 Cluster Node'ları
+====================
+NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   14m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   13m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   13m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          13m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          13m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          13m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+```
+
+---
+
+## 🎛️ Node Management
+
+### Viewing Node Information
+
+```bash
+# List all nodes
 kubectl get nodes
 
-# Detailed info
+# Detailed information
 kubectl get nodes -o wide
 
-# Expected output:
-NAME                 STATUS   ROLES           AGE   VERSION
-kind-control-plane   Ready    control-plane   2m    v1.27.3
-kind-worker          Ready    <none>          2m    v1.27.3
-kind-worker2         Ready    <none>          2m    v1.27.3
-```
-
-### 2. Check Pod Distribution
-
-```bash
-# Show which node pods are running on
-kubectl get pods -o wide
-
-# Using Makefile
-make status
-```
-
-**Example Output:**
-
-```
-NAME                           READY   STATUS    NODE
-datetime-api-5d8f7b9c8-abc12   1/1     Running   kind-worker
-datetime-api-5d8f7b9c8-def34   1/1     Running   kind-worker2
-datetime-web-7c9d4b8f5-ghi56   1/1     Running   kind-worker
-datetime-web-7c9d4b8f5-jkl78   1/1     Running   kind-worker2
-```
-
-### 3. Check Node Labels
-
-```bash
-# Show labels of all nodes
+# Show node labels
 kubectl get nodes --show-labels
+```
 
-# Show labels of specific node
-kubectl describe node kind-worker | grep Labels -A 10
+### Checking Node Labels
+
+```bash
+# Show all worker node labels
+kubectl get nodes -l '!node-role.kubernetes.io/control-plane' --show-labels
+
+# Expected output:
+NAME           STATUS   ROLES    AGE   VERSION   LABELS
+kind-worker    Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker,kubernetes.io/os=linux,worker-group=group-1
+kind-worker2   Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker2,kubernetes.io/os=linux,worker-group=group-2
+kind-worker3   Ready    <none>   13m   v1.34.0   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,ingress-ready=true,kubernetes.io/arch=arm64,kubernetes.io/hostname=kind-worker3,kubernetes.io/os=linux,worker-group=group-3
+```
+
+### Viewing Node Capacity
+
+```bash
+# Show resources of each node
+kubectl describe nodes
+
+# Short summary
+kubectl top nodes  # (requires metrics-server)
 ```
 
 ---
 
-## 📦 Pod Scheduling and Node Affinity
+## 📦 Deployment Configuration
 
-### Current Deployments
+### C# API Deployment
 
-Your current deployments don't contain any node affinity, so pods will be automatically distributed to worker nodes.
-
-### Optional: Assign Pods to Specific Nodes
-
-If you want to run specific pods on specific nodes:
-
-#### Add Node Affinity to api-csharp-deployment.yaml
+**File:** `k8s/api-csharp-deployment.yaml`
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: datetime-api
+  name: datetime-api-csharp
+  labels:
+    app: datetime-api-csharp
 spec:
-  replicas: 2
+  replicas: 3 # 3 replicas for HA
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1 # At most 1 pod can be down at the same time
+      maxSurge: 1 # +1 pod can run during update
+  selector:
+    matchLabels:
+      app: datetime-api-csharp
+  template:
+    metadata:
+      labels:
+        app: datetime-api-csharp
+    spec:
+      containers:
+        - name: api
+          image: datetime-api-csharp:latest
+          imagePullPolicy: Never # Local image
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: GO_API_URL
+              value: "http://datetime-api-go-service"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+```
+
+### Service Configuration
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: datetime-api-csharp-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5000
+  selector:
+    app: datetime-api-csharp
+  sessionAffinity: None # Round-robin load balancing
+```
+
+**Features:**
+
+- ✅ 3 replicas (High Availability)
+- ✅ RollingUpdate (Zero-downtime deployments)
+- ✅ Resource limits (Memory: 256Mi, CPU: 200m)
+- ✅ Health probes (Liveness & Readiness)
+- ✅ Service-to-service communication
+- ✅ Round-robin load balancing
+
+---
+
+## 📊 Pod Distribution Strategies
+
+### Automatic Distribution (Default)
+
+Kubernetes scheduler automatically distributes pods evenly:
+
+```
+Worker Node 1 (kind-worker):
+  └─ datetime-api-csharp-xxx-1
+  └─ datetime-web-csharp-xxx-1
+
+Worker Node 2 (kind-worker2):
+  └─ datetime-api-csharp-xxx-2
+  └─ datetime-web-csharp-xxx-2
+
+Worker Node 3 (kind-worker3):
+  └─ datetime-api-csharp-xxx-3
+  └─ datetime-web-csharp-xxx-3
+```
+
+### Checking Pod Placement
+
+```bash
+# Show pods with their nodes
+kubectl get pods -o wide
+
+# Expected output:
+NAME                                   READY   STATUS    NODE
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          13m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          13m   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          13m   10.244.4.2   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          13m   10.244.4.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          13m   10.244.3.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          13m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          13m   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          13m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-wxdjf   1/1     Running   0          13m   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          13m   10.244.5.5   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-knz8p       1/1     Running   0          13m   10.244.3.4   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-qtdnq       1/1     Running   0          13m   10.244.4.5   kind-worker    <none>           <none>
+```
+
+### Node Affinity (Optional)
+
+To direct specific pods to specific worker groups:
+
+```yaml
+spec:
   template:
     spec:
-      # Node Affinity - API pods only run on worker-group-1
       affinity:
         nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
                   - key: worker-group
                     operator: In
                     values:
                       - group-1
-      containers:
-        - name: api
-          image: datetime-api:latest
-          # ... rest of config
-```
-
-#### Add Node Affinity to web-csharp-deployment.yaml
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: datetime-web
-spec:
-  replicas: 2
-  template:
-    spec:
-      # Node Affinity - Web pods only run on worker-group-2
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: worker-group
-                    operator: In
-                    values:
                       - group-2
-      containers:
-        - name: web
-          image: datetime-web:latest
-          # ... rest of config
 ```
 
-### Pod Anti-Affinity (High Availability)
+### Pod Anti-Affinity (For HA)
 
-To guarantee same pods run on different nodes:
+Distribute pods of the same application to different nodes:
 
 ```yaml
 spec:
@@ -395,313 +451,231 @@ spec:
                   - key: app
                     operator: In
                     values:
-                      - datetime-api
+                      - datetime-api-csharp
               topologyKey: "kubernetes.io/hostname"
 ```
 
 ---
 
-## 🧪 Test Scenarios
+## 🔍 Monitoring and Debugging
 
-### Test 1: Auto-Create kind-config.yaml
+### Cluster Status
 
 ```bash
-# Delete kind-config.yaml (if exists)
-rm kind-config.yaml
+# General status
+make status
 
+# Output:
+📊 Cluster Durumu
+==================
+
+Nodes:
+📊 Cluster Durumu
+==================
+
+Nodes:
+NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   17m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   16m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   16m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          16m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          16m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          16m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+
+Pods (with Node placement):
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          14m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          14m   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          14m   10.244.4.2   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          14m   10.244.4.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          14m   10.244.3.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          14m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          14m   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          14m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-wxdjf   1/1     Running   0          14m   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          14m   10.244.5.5   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-knz8p       1/1     Running   0          14m   10.244.3.4   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-qtdnq       1/1     Running   0          14m   10.244.4.5   kind-worker    <none>           <none>
+
+Services:
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+datetime-api-csharp-service   ClusterIP   10.96.199.65   <none>        80/TCP    14m
+datetime-api-go-service       ClusterIP   10.96.130.19   <none>        80/TCP    14m
+datetime-web-csharp-service   ClusterIP   10.96.96.23    <none>        80/TCP    14m
+datetime-web-go-service       ClusterIP   10.96.172.47   <none>        80/TCP    14m
+kubernetes                    ClusterIP   10.96.0.1      <none>        443/TCP   16m
+
+Ingress:
+NAME               CLASS   HOSTS                                                        ADDRESS     PORTS   AGE
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...   localhost   80      14m
+```
+
+### Pod Logs
+
+```bash
+# Show API pod logs
+make logs-api
+
+# Show logs of specific pod
+kubectl logs <pod-name>
+
+# Live log follow
+kubectl logs -f <pod-name>
+```
+
+### Service Endpoints
+
+```bash
+# Which pods is the service forwarding to?
+kubectl get endpoints datetime-api-csharp-service
+kubectl get endpoints datetime-web-csharp-service
+
+# Output:
+NAME                          ENDPOINTS                                         AGE
+datetime-api-csharp-service   10.244.3.2:5000,10.244.4.2:5000,10.244.5.2:5000   15m
+datetime-web-csharp-service   10.244.3.3:80,10.244.4.3:80,10.244.5.3:80         15m
+```
+
+### Resource Usage
+
+```bash
+# Pod resource usage
+kubectl top pods
+# (requires metrics-server)
+
+# Node resource usage
+kubectl top nodes
+#(requires metrics-server)
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Problem 1: kind-config.yaml Not Found
+
+**Error:**
+
+```
+❌ ERROR: k8s/kind-config.yaml not found!
+This file is required for worker node configuration.
+```
+
+**Solution:**
+
+```bash
+# Make sure the file exists
+ls k8s/kind-config.yaml
+
+# If not, create or pull from repository
+git pull origin main
+```
+
+### Problem 2: Pods in Pending State
+
+**Check:**
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+**Possible reasons:**
+
+- Insufficient resources
+- Node selector mismatch
+- Image pull errors
+
+**Solution:**
+
+```bash
+# Check node capacity
+kubectl describe nodes
+
+# Check pod events
+kubectl get events --sort-by='.lastTimestamp'
+```
+
+### Problem 3: Service Endpoints Empty
+
+**Check:**
+
+```bash
+kubectl get endpoints <service-name>
+```
+
+**Solution:**
+
+```bash
+# Do pod labels match service selector?
+kubectl get pods --show-labels
+kubectl describe service <service-name>
+
+# Are pods Ready?
+kubectl get pods
+kubectl wait --for=condition=ready pod -l app=datetime-api-csharp
+```
+
+### Problem 4: Control-Plane Nodes NotReady
+
+**Check:**
+
+```bash
+kubectl get nodes
+kubectl describe node kind-control-plane
+```
+
+**Solution:**
+
+```bash
+# Recreate cluster
+make clean-all
+make deploy
+```
+
+---
+
+## 📚 Resources
+
+### Official Documentation
+
+- [Kind Multi-Node Clusters](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster)
+- [Kubernetes High Availability](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/)
+- [Node Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+- [Pod Anti-Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
+
+### Project Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture details
+- [HAPROXY_NGINX_ARCHITECTURE.md](HAPROXY_NGINX_ARCHITECTURE.md) - Load balancer structure
+- [INGRESS_ROUTING.md](INGRESS_ROUTING.md) - Ingress routing details
+
+---
+
+## 🎯 Quick Commands
+
+```bash
 # Create cluster
 make create-cluster
 
-# Expected output:
-# ℹ kind-config.yaml not found, creating...
-# ✓ kind-config.yaml created
-# ✓ Multi-node Kind cluster created
-
-# Verify file was created
-ls -la kind-config.yaml
-cat kind-config.yaml
-
-# Check nodes
-kubectl get nodes
-# Expected: kind-control-plane, kind-worker, kind-worker2
-```
-
-### Test 2: Test Pod Distribution
-
-```bash
-# Increase replica count
-make scale-api REPLICAS=4
-make scale-web REPLICAS=4
-
-# Check distribution
-kubectl get pods -o wide
-
-# How many pods on each node?
-kubectl get pods -o wide | awk '{print $7}' | sort | uniq -c
-
-# Expected output example:
-#   1 NODE
-#   2 kind-worker
-#   2 kind-worker2
-#   2 kind-control-plane (only ingress controller)
-```
-
-### Test 3: Node Failure Simulation
-
-```bash
-# Drain a worker node
-kubectl drain kind-worker --ignore-daemonsets --delete-emptydir-data
-
-# Watch pods move to other node
-kubectl get pods -o wide -w
-
-# Expected: Pods on kind-worker will move to kind-worker2
-
-# Reactivate node
-kubectl uncordon kind-worker
-
-# Check if pods rebalanced
-kubectl get pods -o wide
-```
-
-### Test 4: Node Resource Monitoring
-
-```bash
-# Node resource usage (requires metrics-server)
-kubectl top nodes
-
-# If metrics-server not installed
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
-# Disable TLS for metrics-server (for Kind)
-kubectl patch deployment metrics-server -n kube-system --type='json' \
-  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
-
-# Wait a few minutes and try again
-kubectl top nodes
-kubectl top pods
-
-# General status using Makefile
+# Show cluster status
 make status
-```
 
-### Test 5: Multi-Node Cluster Features
-
-```bash
-# 1. Check node labels
-kubectl get nodes --show-labels
-
-# 2. Check each node's role
-kubectl get nodes -o custom-columns=NAME:.metadata.name,ROLE:.metadata.labels."kubernetes\.io/role",STATUS:.status.conditions[-1].type
-
-# 3. Only system pods on control-plane?
-kubectl get pods -n kube-system -o wide | grep control-plane
-
-# 4. Application pods on worker nodes?
-kubectl get pods -o wide | grep -E "kind-worker|kind-worker2"
-
-# 5. Detailed report
-make show-nodes
-```
-
----
-
-## 📊 Comparison Table
-
-| Feature                   | Single Node    | Multi-Node (1+2) |
-| ------------------------- | -------------- | ---------------- |
-| **High Availability**     | ❌ No          | ✅ Yes           |
-| **Load Balancing**        | ❌ No          | ✅ Automatic     |
-| **Resource Isolation**    | ❌ Limited     | ✅ Good          |
-| **Production-like**       | ❌ No          | ✅ Yes           |
-| **Testing Capabilities**  | ⚠️ Basic       | ✅ Advanced      |
-| **Node Failure Handling** | ❌ Can't test  | ✅ Can test      |
-| **Startup Time**          | ✅ Fast (~30s) | ⚠️ Medium (~60s) |
-| **Resource Usage**        | ✅ Low         | ⚠️ Medium        |
-
----
-
-## 🚀 Deployment Commands
-
-### Scenario 1: First Deployment (NO kind-config.yaml)
-
-```bash
-# Go to project directory
-cd datetime-k8s
-
-# Deploy - kind-config.yaml will be auto-created
-make deploy
-
-# What happened?
-# 1. kind-config.yaml was auto-created
-# 2. Multi-node cluster created (1+2)
-# 3. All services deployed
-
-# Check created file
-cat kind-config.yaml
-
-# Check nodes
-make show-nodes
-```
-
-### Scenario 2: First Deployment (WITH kind-config.yaml)
-
-```bash
-# If kind-config.yaml already exists
-cd datetime-k8s
-
-# Deploy - existing file will be used
-make deploy
-
-# What happened?
-# 1. Existing kind-config.yaml was used
-# 2. Cluster created
-# 3. Services deployed
-```
-
-### Scenario 3: Custom Worker Node Count
-
-```bash
-# Manually edit kind-config.yaml
-nano kind-config.yaml
-
-# Add 3rd worker
-# - role: worker
-#   labels:
-#     worker-group: group-3
-
-# Delete old cluster
-make clean-cluster
-
-# Create new cluster
-make create-cluster
-
-# Check nodes
+# Show nodes
 make show-nodes
 
-# Expected: 1 control-plane + 3 workers
-```
+# Show pod distribution
+kubectl get pods -o wide
 
-### Scenario 4: Update Existing Cluster
+# Show service endpoints
+kubectl get endpoints
 
-⚠️ **WARNING**: Adding nodes to Kind cluster is not supported! You need to delete and recreate the cluster.
-
-```bash
-# In project directory
-cd datetime-k8s
-
-# Full redeploy
-make redeploy
-
-# What happened?
-# 1. Existing cluster deleted (clean-all)
-# 2. kind-config.yaml checked/created
-# 3. New multi-node cluster created
-# 4. All services redeployed
-
-# Verify nodes
-kubectl get nodes
-```
-
----
-
-## 📝 Summary
-
-### Changes Made
-
-1. ✅ `kind-config.yaml` - Added 2 worker nodes
-2. ✅ `Makefile` - Updated `create-cluster` target
-   - **New Feature**: Auto-creates `kind-config.yaml` if missing
-   - File creation using `printf`
-3. ✅ `Makefile` - Added `show-nodes` target
-4. ✅ `Makefile` - Updated `status` target
-
-### Quick Reference Table
-
-| Command                    | Description               | kind-config.yaml Status    |
-| -------------------------- | ------------------------- | -------------------------- |
-| `make create-cluster`      | Create cluster            | Auto-created if missing    |
-| `make deploy`              | Full deployment           | Auto-created if missing    |
-| `make show-nodes`          | Show nodes in detail      | -                          |
-| `make status`              | General status (node+pod) | -                          |
-| `make clean-cluster`       | Delete cluster            | kind-config.yaml preserved |
-| `make redeploy`            | Delete and recreate       | Existing or newly created  |
-| `kubectl get nodes`        | Node list                 | -                          |
-| `kubectl get pods -o wide` | Pod placement             | -                          |
-
-### Usage Flow Diagram
-
-```
-┌──────────────────────────────────────┐
-│  make deploy or make create-cluster  │
-└─────────────────┬────────────────────┘
-                  │
-                  ▼
-       ┌──────────────────────┐
-       │ Does kind-config.yaml│
-       │ exist?               │
-       └──────┬──────┬────────┘
-              │      │
-        NO    │      │ YES
-              │      │
-              ▼      ▼
-    ┌──────────┐  ┌──────────────┐
-    │ Auto     │  │ Use existing │
-    │ Create   │  │ file         │
-    └────┬─────┘  └──────┬───────┘
-         │               │
-         └───────┬───────┘
-                 │
-                 ▼
-      ┌──────────────────────────┐
-      │ kind create cluster      │
-      │ --config=kind-config.yaml│
-      └─────────┬────────────────┘
-                │
-                ▼
-    ┌──────────────────────────────┐
-    │ 1 Control-Plane              │
-    │ 2 Worker Nodes               │
-    │ (kind-worker, kind-worker2)  │
-    └──────────────────────────────┘
-```
-
-### Usage
-
-```bash
-# 1. Delete existing cluster
+# Clean all resources
 make clean-all
 
-# 2. Deploy new multi-node cluster
-make deploy
-
-# 3. Check nodes
-make show-nodes
-
-# 4. Check pod distribution
-make status
-
-# 5. Test
-make verify
-make test
+# Redeploy
+make redeploy
 ```
 
-### Expected Result
-
-- 1 Control-Plane Node (kind-control-plane)
-- 2 Worker Nodes (kind-worker, kind-worker2)
-- Pods distributed evenly on worker nodes
-- Ingress Controller running on control-plane
-- All services working properly
-
 ---
 
-## 🔗 Additional Resources
-
-- [Kind Multi-Node Clusters](https://kind.sigs.k8s.io/docs/user/quick-start/#creating-a-cluster)
-- [Kubernetes Node Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
-- [Pod Anti-Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity)
-
----
-
-**Note**: These changes are fully optimized for local development. Production environments may require different configurations.
+**Note**: This configuration is optimized for local development. Production environments may require additional security, monitoring, and networking configurations.
