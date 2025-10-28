@@ -758,7 +758,7 @@ type CSharpDateTimeResponse struct {
 func NewCSharpAPIClient() *CSharpAPIClient {
 	baseURL := os.Getenv("CSHARP_API_URL")
 	if baseURL == "" {
-		baseURL = "http://datetime-api-service"
+		baseURL = "http://datetime-api-csharp-service"
 	}
 
 	// Circuit breaker settings
@@ -1067,7 +1067,7 @@ env:
       fieldRef:
         fieldPath: spec.nodeName
   - name: CSHARP_API_URL  # YENİ
-    value: "http://datetime-api-service"
+    value: "http://datetime-api-csharp-service"
 ```
 
 **Neden Environment Variable?**
@@ -1346,11 +1346,11 @@ Circuit breaker 'CSharpAPI' is open
 **Debug:**
 ```bash
 # 1. Hedef servis çalışıyor mu?
-kubectl get pods -l app=datetime-api
+kubectl get pods -l app=datetime-api-csharp
 kubectl logs -l app=datetime-api-csharp --tail=20
 
 # 2. Network bağlantısı var mı?
-kubectl exec deployment/datetime-api-go -- wget -O- http://datetime-api-service/health
+kubectl exec deployment/datetime-api-go -- wget -O- http://datetime-api-csharp-service/health
 
 # 3. Circuit breaker state'i
 curl http://api-go.local/api/resiliency-status
@@ -1359,7 +1359,7 @@ curl http://api-go.local/api/resiliency-status
 **Çözüm:**
 ```bash
 # Hedef servisi yeniden başlat
-kubectl rollout restart deployment/datetime-api
+kubectl rollout restart deployment/datetime-api-csharp
 
 # 30 saniye bekle (BreakDuration)
 # Circuit half-open'a geçecek ve tekrar deneyecek
@@ -1537,6 +1537,6 @@ C# Pod                        Go Pod
 ---
 
 **Hazırlayan:** Claude (Anthropic)
-**Tarih:** 2025-10-07
-**Versiyon:** 1.0
+**Tarih:** 2025-10-28
+**Versiyon:** 1.1
 **Proje:** DateTime Kubernetes Polyglot Microservices

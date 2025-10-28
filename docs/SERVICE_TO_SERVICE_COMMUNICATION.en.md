@@ -59,6 +59,7 @@ The project had two DateTime APIs written in different languages:
 **What does it mean?** Microservices written in different programming languages working together.
 
 **Why is it important?**
+
 - Each language used for its strengths (C# → business logic, Go → performance-critical operations)
 - Services can leverage each other's capabilities
 - Simulates real-world scenarios
@@ -68,6 +69,7 @@ The project had two DateTime APIs written in different languages:
 **What does it mean?** System's ability to resist failures and self-heal.
 
 **Why is it needed?**
+
 - If one service crashes, it shouldn't affect others
 - Auto-retry on network issues
 - System protection under heavy load
@@ -82,6 +84,7 @@ The project had two DateTime APIs written in different languages:
 Works like an electrical circuit breaker. If a service keeps failing, it stops sending requests to it.
 
 **Analogy:**
+
 ```
 Home electrical circuit breaker:
 ├─ Normal → Electricity flows
@@ -90,6 +93,7 @@ Home electrical circuit breaker:
 ```
 
 **Code Example:**
+
 ```csharp
 // If 5 failures → wait 30 seconds
 CircuitBreaker.FailureRatio = 0.5;        // 50% failure ratio
@@ -98,6 +102,7 @@ CircuitBreaker.BreakDuration = 30s;       // Wait 30 seconds
 ```
 
 **States:**
+
 - **Closed**: Normal operation, requests pass through
 - **Open**: Too many failures, requests rejected
 - **Half-Open**: Testing, trying a few requests
@@ -108,6 +113,7 @@ CircuitBreaker.BreakDuration = 30s;       // Wait 30 seconds
 Automatically retries failed requests.
 
 **Exponential Backoff:**
+
 ```
 1st attempt → Immediate
 2nd attempt → Wait 100ms
@@ -116,11 +122,13 @@ Automatically retries failed requests.
 ```
 
 **Why Exponential?**
+
 - Reduces server load
 - Gives time for temporary issues to resolve
 - Prevents network congestion
 
 **Jitter (Randomness):**
+
 ```
 Without jitter:
 All clients → Retry at 100ms → Load spike again
@@ -160,11 +168,13 @@ Bucket: 🪙🪙🪙🪙🪙              (5/10)  ✅ 5 tokens added
 ```
 
 **Why Token Bucket?**
+
 - Allows burst traffic (when bucket is full)
 - Stabilizes under sustained load
 - Fair resource distribution
 
 **Per-Service Rate Limiting:**
+
 ```
 C# API Total: 100 req/sec
 ├─ Calls to Go API: 20 req/sec (special limit)
@@ -181,6 +191,7 @@ Why?
 Determines how one service finds another.
 
 **Kubernetes DNS:**
+
 ```
 C# API → Wants to call Go API
 └─ URL: http://datetime-api-go-service
@@ -189,6 +200,7 @@ C# API → Wants to call Go API
 ```
 
 **Benefits:**
+
 - Code doesn't change if IPs change
 - Automatic load balancing
 - Service mesh compatible
@@ -206,6 +218,7 @@ Total Request Timeout: 10s
 ```
 
 **Why important?**
+
 - Threads waiting forever consume resources
 - Preserves user experience
 - Prevents cascading timeouts
@@ -231,10 +244,12 @@ C# API → Calls Go API
 ### 1. Why .NET 9 Built-in Resiliency?
 
 **Alternatives:**
+
 - ❌ Polly (3rd party library)
 - ✅ Microsoft.Extensions.Http.Resilience (built-in)
 
 **Reasoning:**
+
 ```
 Built-in Advantages:
 ├─ Official Microsoft support
@@ -247,11 +262,13 @@ Built-in Advantages:
 ### 2. Why gobreaker (for Go)?
 
 **Alternatives:**
+
 - go-resiliency/circuitbreaker
 - sony/gobreaker ✅
 - hystrix-go
 
 **Reasoning:**
+
 ```
 gobreaker Advantages:
 ├─ Simple API
@@ -264,6 +281,7 @@ gobreaker Advantages:
 ### 3. Rate Limiting Values
 
 **C# API:**
+
 ```
 Global: 100 req/sec
 Go API Calls: 20 req/sec
@@ -275,6 +293,7 @@ Why 20?
 ```
 
 **Go API:**
+
 ```
 Global: 150 req/sec
 C# API Calls: 30 req/sec
@@ -288,6 +307,7 @@ Why 150?
 ### 4. Circuit Breaker Values
 
 **Why 5 failures?**
+
 ```
 Too low (2 failures) → False alarms
 Too high (20 failures) → Late intervention
@@ -295,6 +315,7 @@ Too high (20 failures) → Late intervention
 ```
 
 **Why 30 seconds break?**
+
 ```
 Too short (5s) → Service can't recover
 Too long (5min) → Users wait too long
@@ -316,6 +337,7 @@ Too long (5min) → Users wait too long
 ```
 
 **Why?**
+
 - .NET 9's resiliency features are in this package
 - Circuit breaker, retry, timeout built-in
 
@@ -355,40 +377,49 @@ builder.Services.AddHttpClient("GoApiClient", client =>
 **Line-by-Line Explanation:**
 
 1. **`AddHttpClient("GoApiClient")`**
+
    - Creates named HTTP client
    - Usable via dependency injection
    - Doesn't create new HttpClient per request (performance)
 
 2. **`client.BaseAddress`**
+
    - Go API's base URL
    - Read from environment variable (overridable in Kubernetes)
    - Default: Service DNS name
 
 3. **`AddStandardResilienceHandler()`**
+
    - .NET 9's built-in resiliency pipeline
    - Retry + Circuit Breaker + Timeout automatic
 
 4. **`Retry.MaxRetryAttempts = 3`**
+
    - Retry 3 more times on failure
    - Total: 4 attempts (1 original + 3 retries)
 
 5. **`Retry.UseJitter = true`**
+
    - Add random delay to each retry
    - Prevents thundering herd problem
 
 6. **`CircuitBreaker.FailureRatio = 0.5`**
+
    - Open circuit at 50% failure rate
    - Example: 5 out of 10 requests fail → Circuit opens
 
 7. **`CircuitBreaker.SamplingDuration = 30s`**
+
    - Evaluate requests within 30 seconds
    - Sliding window
 
 8. **`CircuitBreaker.MinimumThroughput = 5`**
+
    - Need at least 5 requests to evaluate
    - Won't open circuit for 2-3 requests
 
 9. **`CircuitBreaker.BreakDuration = 30s`**
+
    - Wait 30 seconds when circuit opens
    - Then transition to half-open
 
@@ -515,6 +546,7 @@ require (
 **File:** `api-go/client/csharp_client.go`
 
 Key features:
+
 - Circuit breaker with 5 failure threshold
 - Retry with exponential backoff (100ms, 200ms, 400ms)
 - 10-second timeout per request
@@ -526,6 +558,7 @@ Key features:
 **File:** `api-go/middleware/ratelimit.go`
 
 Features:
+
 - Global rate limiting (150 req/sec)
 - Per-endpoint rate limiting (30 req/sec for C# calls)
 - Token bucket algorithm
@@ -551,10 +584,11 @@ env:
 ```yaml
 env:
   - name: CSHARP_API_URL
-    value: "http://datetime-api-service"
+    value: "http://datetime-api-csharp-service"
 ```
 
 **Why Environment Variables?**
+
 - 12-Factor App compliance
 - Not hardcoded in source
 - Different per environment (dev/staging/prod)
@@ -572,6 +606,7 @@ curl http://api-csharp.local/api/go-time
 ```
 
 **Expected:**
+
 ```json
 {
   "source": "csharp-api",
@@ -595,6 +630,7 @@ done
 ```
 
 **Expected Behavior:**
+
 ```
 Request 1-3: Retrying → 503 Service Unavailable
 Request 4-5: Failure ratio reaches 50% → Circuit OPEN
@@ -617,6 +653,7 @@ done
 ```
 
 **Expected:**
+
 ```
 Request 1-20: 200 OK
 Request 21-22: 429 Too Many Requests (queued)
@@ -630,12 +667,14 @@ Request 23-25: 429 Too Many Requests (queue full)
 ### Problem 1: Circuit Breaker Validation Error
 
 **Error:**
+
 ```
 OptionsValidationException: The sampling duration must be at least
 double of timeout interval. Sampling Duration: 10s, Timeout: 10s
 ```
 
 **Solution:**
+
 ```csharp
 // WRONG
 CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(10);
@@ -649,12 +688,14 @@ TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(10);
 ### Problem 2: Service Discovery Not Working
 
 **Symptom:**
+
 ```
 Failed to call Go API: dial tcp: lookup datetime-api-go-service:
 no such host
 ```
 
 **Debug:**
+
 ```bash
 # Check if service exists
 kubectl get svc datetime-api-go-service
@@ -672,22 +713,26 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ## 🚀 Future Improvements
 
 ### 1. Distributed Tracing
+
 - OpenTelemetry integration
 - Jaeger/Zipkin exporter
 - Request journey visualization
 
 ### 2. Health Check Aggregation
+
 - Services checking each other's health
 - Composite health status
 - Dependency health reporting
 
 ### 3. Metrics & Monitoring
+
 - Prometheus metrics
 - Grafana dashboards
 - Circuit breaker state tracking
 - Rate limit hit counts
 
 ### 4. Service Mesh (Istio/Linkerd)
+
 - Move resiliency to sidecar proxies
 - Language-agnostic features
 - Centralized configuration
@@ -698,6 +743,7 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ## 📊 Summary: What We Did and Why
 
 ### Before
+
 ```
 ❌ Services running independently
 ❌ Cascading failures on errors
@@ -707,6 +753,7 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ```
 
 ### After
+
 ```
 ✅ C# ↔ Go inter-service communication
 ✅ Circuit Breaker → Protects failed services
@@ -720,10 +767,12 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ### Achievements
 
 **1. Production-Ready:**
+
 - Ready for real-world scenarios
 - Netflix/Amazon-style resiliency patterns
 
 **2. Learning:**
+
 - .NET 9 built-in resiliency
 - Go circuit breaker patterns
 - Kubernetes service mesh basics
@@ -731,6 +780,7 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 - Distributed systems best practices
 
 **3. Extensible:**
+
 - Easy to add new services
 - Simple monitoring integration
 - Smooth service mesh migration
@@ -738,6 +788,6 @@ kubectl exec deployment/datetime-api-csharp -- env | grep GO_API_URL
 ---
 
 **Prepared by:** Claude (Anthropic)
-**Date:** 2025-10-07
-**Version:** 1.0
+**Date:** 2025-10-28
+**Version:** 1.1
 **Project:** DateTime Kubernetes Polyglot Microservices
