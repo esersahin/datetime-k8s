@@ -28,7 +28,7 @@
 
 ---
 
-This guide will get you running the DateTime Kubernetes application in 5 minutes.
+This guide will get you running the DateTime Kubernetes Polyglot Microservices application in 5 minutes.
 
 ## ⚡ Quick Setup
 
@@ -45,7 +45,7 @@ kubectl version --client
 
 ```bash
 # Create directories
-mkdir -p datetime-k8s/{api-csharp,web-csharp,k8s}
+mkdir -p datetime-k8s/{api-csharp,web-csharp,api-go,web-go,k8s}
 cd datetime-k8s
 
 # Copy all artifact files to respective folders
@@ -57,8 +57,13 @@ cd datetime-k8s
 # Install the entire system with one command
 make deploy
 
-# Or using shell script
-make deploy
+# This command will:
+# ✓ Create 3+3 HA cluster (3 control-plane + 3 worker nodes)
+# ✓ Deploy NGINX Ingress Controller (on worker nodes, 3 replicas)
+# ✓ Deploy HAProxy load balancer (round-robin to 3 workers)
+# ✓ Deploy 4 applications (C# API, Go API, C# Web, Go Web)
+# ✓ Configure Service-to-Service Communication (Circuit Breaker, Retry, Rate Limiting)
+# ✓ Run 20 tests (100% success rate expected)
 ```
 
 ### Step 3: Test
@@ -67,14 +72,20 @@ make deploy
 # Status check
 make status
 
-# Verification
+# Verification (20 tests)
 make verify
 
-# API test
+# C# API test
 curl http://api-csharp.local/api/datetime
 
-# Web test
+# Go API test
+curl http://api-go.local/api/datetime
+
+# C# Web test (Turkish)
 curl http://web-csharp.local
+
+# Go Web test (English)
+curl http://web-go.local
 ```
 
 **That's all!** 🎉
@@ -88,19 +99,31 @@ curl http://web-csharp.local
 ```bash
 # 1. Is cluster running?
 kubectl get nodes
-# Expected: 6 nodes (3 control-planes + 3 workers - HA setup)
+# Expected: 6 nodes (3 control-plane + 3 workers - HA setup)
+# kind-control-plane, kind-control-plane2, kind-control-plane3 (Ready, control-plane)
+# kind-worker, kind-worker2, kind-worker3 (Ready, <none>)
 
 # 2. Are pods ready?
 kubectl get pods --all-namespaces
-# Expected: All Running
+# Expected: All Running (13 application pods + 3 ingress pods)
 
 # 3. Where is Ingress Controller?
 kubectl get pods -n ingress-nginx -o wide
-# Expected: NODE=kind-control-plane
+# Expected: 3 pods, all on worker nodes (kind-worker, kind-worker2, kind-worker3)
+# ✅ CORRECT: On worker nodes
+# ❌ WRONG: If on control-plane
 
-# 4. Do endpoints exist?
+# 4. HAProxy Load Balancer working?
+docker ps | grep haproxy
+# Expected: HAProxy container running, ports 80:80, 443:443, 8404:8404
+
+# 5. Do endpoints exist?
 kubectl get endpoints
-# Expected: 2 endpoints per service
+# Expected: 4 services with endpoints
+# - datetime-api-csharp-service (3 endpoints)
+# - datetime-api-go-service (3 endpoints)
+# - datetime-web-csharp-service (3 endpoints)
+# - datetime-web-go-service (3 endpoints)
 ```
 
 ### Common Issues
@@ -109,8 +132,9 @@ kubectl get endpoints
 | -------------------- | ------------------------------------------------------------------------------ |
 | **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                       |
 | **No endpoint**      | `kubectl apply -f k8s/`                                                        |
-| **No access**        | `echo "127.0.0.1 api-csharp.local web-csharp.local" \| sudo tee -a /etc/hosts` |
+| **No access**        | `echo "127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local" \| sudo tee -a /etc/hosts` |
 | **Pod Pending**      | `kubectl describe pod <pod-name>` for more details                             |
+| **Circuit Breaker test fails** | Check logs: `make logs-api` to see C# API → Go API communication |
 
 ---
 
@@ -119,36 +143,40 @@ kubectl get endpoints
 ### Deployment
 
 ```bash
-make deploy          # Full deployment
-make clean-all       # Clean everything
-make redeploy        # Clean and redeploy
+make deploy          # Full deployment (creates cluster + deploys apps)
+make clean-all       # Clean everything (deletes cluster)
+make redeploy        # Clean and redeploy (fresh start)
 ```
 
 ### Monitoring
 
 ```bash
-make status          # General status
-make show-nodes      # Node details
-make verify          # All tests
-make logs-api        # API logs
-make logs-web        # Web logs
+make status          # General status (nodes, pods, services)
+make show-nodes      # Node details (with IPs)
+make verify          # All tests (20 tests)
+make logs-api        # C# API logs
+make logs-web        # C# Web logs
+make logs-api-go     # Go API logs
+make logs-web-go     # Go Web logs
 ```
 
 ### Debug
 
 ```bash
-make fix-ingress     # Fix Ingress
-make fix-webhooks    # Clean webhooks
-make test            # Endpoint tests
+make fix-ingress     # Fix Ingress (redeploy)
+make fix-webhooks    # Clean webhooks (if needed)
+make test            # Endpoint tests (quick)
 ```
 
 ### Scaling
 
 ```bash
-make scale-api REPLICAS=3    # Scale API
-make scale-web REPLICAS=3    # Scale Web
-make restart-api             # Restart API
-make restart-web             # Restart Web
+make scale-api REPLICAS=5       # Scale C# API
+make scale-web REPLICAS=5       # Scale C# Web
+make scale-api-go REPLICAS=5    # Scale Go API
+make scale-web-go REPLICAS=5    # Scale Go Web
+make restart-api                # Restart C# API
+make restart-web                # Restart C# Web
 ```
 
 ---
@@ -160,7 +188,7 @@ make restart-web             # Restart Web
 ```bash
 $ make status
 
-📊 Cluster Durumu
+📊 Cluster Status
 ==================
 
 Nodes:
@@ -172,7 +200,13 @@ kind-worker           Ready    <none>          32m   v1.34.0   172.20.0.6    <no
 kind-worker2          Ready    <none>          32m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-worker3          Ready    <none>          32m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 
-Pods (with Node placement):
+Ingress Controller Pods (on worker nodes):
+NAME                                        READY   STATUS    RESTARTS   AGE   NODE
+ingress-nginx-controller-xxxxxx-xxxxx       1/1     Running   0          30m   kind-worker
+ingress-nginx-controller-xxxxxx-xxxxx       1/1     Running   0          30m   kind-worker2
+ingress-nginx-controller-xxxxxx-xxxxx       1/1     Running   0          30m   kind-worker3
+
+Application Pods (distributed across workers):
 NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
 datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          30m   10.244.5.2   kind-worker3   <none>           <none>
 datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          30m   10.244.3.2   kind-worker2   <none>           <none>
@@ -205,13 +239,30 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 ```bash
 $ curl http://api-csharp.local/api/datetime
 {
-  "date": "05.10.2025",
+  "date": "29.10.2025",
   "time": "15:45:30",
-  "dayOfWeek": "Sunday",
-  "timestamp": "2025-10-05T15:45:30+03:00"
+  "dayOfWeek": "Wednesday",
+  "timestamp": "2025-10-29T15:45:30+03:00",
+  "goApiStatus": "healthy",
+  "goApiResponseTime": "45ms"
+}
+
+$ curl http://api-go.local/api/datetime
+{
+  "date": "2025-10-29",
+  "time": "15:45:30",
+  "timezone": "UTC",
+  "timestamp": 1730214330
 }
 
 $ curl http://web-csharp.local
+<!DOCTYPE html>
+<html>
+  <head><title>Tarih ve Saat Uygulaması</title></head>
+  ...
+</html>
+
+$ curl http://web-go.local
 <!DOCTYPE html>
 <html>
   <head><title>Date and Time Application</title></head>
@@ -219,30 +270,47 @@ $ curl http://web-csharp.local
 </html>
 
 $ make verify
-🔍 Deployment Doğrulama
+🔍 Deployment Verification
 ========================
 
 1. Kind Cluster
-✓ Kind cluster mevcut
+✓ Kind cluster exists
+✓ 6 nodes ready (3 control-plane + 3 worker)
 
 2. NGINX Ingress Controller
-✓ Ingress namespace mevcut
-✓ hostNetwork: true (Doğru)
-✓ ValidatingWebhook yok (İdeal)
+✓ Ingress namespace exists
+✓ 3 Ingress pods running on worker nodes
+✓ hostNetwork: true (Correct)
+✓ ValidatingWebhook not found (Ideal)
 
-3. Deployments
-✓ API deployment mevcut
-✓ Web deployment mevcut
+3. HAProxy Load Balancer
+✓ HAProxy container running
+✓ Backend workers: 3/3 UP
 
-4. Endpoint Testleri
-✓ API health endpoint erişilebilir
-✓ API datetime endpoint erişilebilir
-✓ Web uygulaması erişilebilir
+4. Deployments
+✓ C# API deployment exists (3 replicas)
+✓ Go API deployment exists (3 replicas)
+✓ C# Web deployment exists (3 replicas)
+✓ Go Web deployment exists (3 replicas)
 
-ÖZET
-Toplam: 9 | Başarılı: 9  | Başarısız: 0  | Oran: 100%
+5. Endpoint Tests
+✓ C# API health endpoint accessible
+✓ C# API datetime endpoint accessible
+✓ Go API health endpoint accessible
+✓ Go API datetime endpoint accessible
+✓ C# Web application accessible
+✓ Go Web application accessible
 
-🎉 TÜM TESTLER BAŞARILI! 🎉
+6. Service-to-Service Communication
+✓ C# API → Go API communication working
+✓ Circuit Breaker configured
+✓ Retry Policy configured
+✓ Rate Limiting configured
+
+SUMMARY
+Total: 20 | Successful: 20  | Failed: 0  | Success Rate: 100%
+
+🎉 ALL TESTS PASSED! 🎉
 ```
 
 ---
@@ -254,26 +322,37 @@ Toplam: 9 | Başarılı: 9  | Başarısız: 0  | Oran: 100%
 ```
 datetime-k8s/
 ├── api-csharp/
-│   ├── Program.cs
-│   ├── DateTimeApi.csproj
-│   └── Dockerfile.api
+│   ├── Program.cs                      # C# API main code (Circuit Breaker, Retry, Rate Limiting)
+│   ├── DateTimeApi.csproj              # .NET 9 project file
+│   └── Dockerfile.api                  # Docker image: 32.6 MB (Alpine + Invariant Mode)
+├── api-go/
+│   ├── main.go                         # Go API main code (timezone, calculator)
+│   ├── go.mod                          # Go dependencies
+│   └── Dockerfile.api-go               # Docker image: ~15 MB (Alpine multi-stage)
 ├── web-csharp/
-│   ├── index.html
-│   ├── nginx.conf
-│   └── Dockerfile.web
+│   ├── index.html                      # Turkish UI
+│   ├── nginx.conf                      # NGINX config
+│   └── Dockerfile.web                  # Lightweight web image
+├── web-go/
+│   ├── index.html                      # English UI
+│   ├── nginx.conf                      # NGINX config
+│   └── Dockerfile.web-go               # Lightweight web image
 ├── k8s/
-│   ├── api-csharp-deployment.yaml
-│   ├── web-csharp-deployment.yaml
-│   ├── kind-config.yaml
-│   ├── ingress.yaml
-│   └── ingress-nginx-deployment.yaml   # ⭐ IMPORTANT!
-├── Makefile                            # ⭐ IMPORTANT!
+│   ├── api-csharp-deployment.yaml      # C# API deployment (3 replicas)
+│   ├── api-go-deployment.yaml          # Go API deployment (3 replicas)
+│   ├── web-csharp-deployment.yaml      # C# Web deployment (3 replicas)
+│   ├── web-go-deployment.yaml          # Go Web deployment (3 replicas)
+│   ├── kind-config.yaml                # 3+3 HA cluster config
+│   ├── ingress.yaml                    # Ingress rules (4 hosts)
+│   └── ingress-nginx-deployment.yaml   # ⭐ CRITICAL! (Worker nodes, 3 replicas)
+├── Makefile                            # ⭐ CRITICAL! (30+ commands)
+└── haproxy.cfg                         # HAProxy load balancer config
 ```
 
 ### Documentation Files
 
 ```
-├── docs/                              # Documents
+├── docs/                              # Documentation
 │   ├── ARCHITECTURE.en.md             # 📘 System architecture overview
 │   ├── ARCHITECTURE.md                # 📘 System architecture overview (TR)
 │   ├── ARCHITECTURE_C4.en.md          # 📘 C4 model architecture diagrams
@@ -282,6 +361,8 @@ datetime-k8s/
 │   ├── c4-diagrams.md                 # 📘 C4 diagram generation guide
 │   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
 │   ├── CHANGES_SUMMARY.md             # 📄 Summary of changes (TR)
+│   ├── DOCKER_OPTIMIZATION.en.md      # 📘 Docker optimization (277 MB → 32.6 MB)
+│   ├── DOCKER_OPTIMIZATION.md         # 📘 Docker optimization (TR)
 │   ├── HAPROXY_LOADBALANCER.en.md     # 📘 HAProxy load balancer setup
 │   ├── HAPROXY_LOADBALANCER.md        # 📘 HAProxy load balancer setup (TR)
 │   ├── HAPROXY_NGINX_ARCHITECTURE.en.md # 📘 HAProxy vs NGINX architecture
@@ -324,25 +405,50 @@ The `k8s/ingress-nginx-deployment.yaml` file is optimized for ARM64:
 image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 ```
 
-### 2. Multi-Node Cluster
+### 2. Multi-Node HA Cluster
 
-By default **6 nodes** run:
+By default **6 nodes** run (High Availability):
 
-- 3 Control-Plane
-- 3 Workers
+- **3 Control-Plane nodes**: Kubernetes API, etcd quorum (fault tolerance)
+- **3 Worker nodes**: Application pods, Ingress Controller
 
-### 3. Ingress Controller Placement
+### 3. Ingress Controller Placement ⭐
 
-**Critical**: Ingress Controller **must be on control-plane**:
+**CRITICAL**: Ingress Controller runs on **WORKER NODES** (3 replicas):
 
 ```bash
 kubectl get pods -n ingress-nginx -o wide
-# NODE: kind-control-plane ✅
+# NODE: kind-worker, kind-worker2, kind-worker3 ✅
 ```
 
-If on worker node, **access won't work**!
+**WHY?**
+- ✅ HA (High Availability) - 3 replicas
+- ✅ Load balancing - HAProxy distributes traffic
+- ✅ Optimal performance - Separation of concerns
+- ✅ Production-like - Control plane for management only
 
-### 4. /etc/hosts
+**Old Error**: Tried to run on control-plane ❌
+
+### 4. HAProxy Load Balancer
+
+HAProxy container distributes traffic to worker nodes' ingress controllers:
+
+```bash
+# HAProxy stats dashboard
+curl http://localhost:8404
+
+# Backends (round-robin)
+- kind-worker:80    (UP)
+- kind-worker2:80   (UP)
+- kind-worker3:80   (UP)
+```
+
+**Traffic Flow**:
+```
+localhost:80/443 → HAProxy → Worker Nodes (Ingress) → Services → Pods
+```
+
+### 5. /etc/hosts Configuration
 
 ```bash
 # Added automatically (requires sudo)
@@ -353,9 +459,36 @@ If on worker node, **access won't work**!
 cat /etc/hosts | grep local
 ```
 
-### 5. Webhooks Disabled
+### 6. Webhooks Disabled
 
 Admission webhooks are unnecessary and cause issues in Kind. They're disabled in our project.
+
+### 7. Polyglot Microservices
+
+**4 Applications**:
+1. **C# API** (.NET 9) - 32.6 MB, datetime service, calls Go API
+2. **Go API** (~15 MB) - High-performance, timezone/calculator
+3. **C# Web** - Turkish UI, consumes C# API
+4. **Go Web** - English UI, consumes Go API
+
+**Service-to-Service Communication**:
+- C# API → Go API (Circuit Breaker, Retry Policy, Rate Limiting)
+- **Circuit Breaker**: Opens after 50% failure ratio, 30s break duration
+- **Retry Policy**: Exponential backoff (2s, 4s, 8s), max 3 retries
+- **Rate Limiting**: Token bucket, 10 req/sec
+
+### 8. Docker Image Optimization
+
+**Evolution**:
+- **Before**: 277 MB (Ubuntu base)
+- **After Alpine**: 68.5 MB (75% reduction)
+- **After Invariant Mode**: 32.6 MB (88.2% reduction)
+
+**Key Techniques**:
+- Alpine Linux base image
+- .NET Invariant Globalization Mode
+- Multi-stage build
+- Minimal runtime dependencies
 
 ---
 
@@ -369,7 +502,9 @@ Admission webhooks are unnecessary and cause issues in Kind. They're disabled in
 
 ```bash
 kubectl apply -f k8s/api-csharp-deployment.yaml
+kubectl apply -f k8s/api-go-deployment.yaml
 kubectl apply -f k8s/web-csharp-deployment.yaml
+kubectl apply -f k8s/web-go-deployment.yaml
 kubectl get endpoints  # Check
 ```
 
@@ -386,16 +521,20 @@ kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
 ### Error 3: "Failed to connect to api-csharp.local"
 
-**Reason**: /etc/hosts missing or Ingress Controller on worker.
+**Reason**: /etc/hosts missing or Ingress Controller not on worker nodes.
 
 **Solution**:
 
 ```bash
 # Add to /etc/hosts
-echo "127.0.0.1 api-csharp.local web-csharp.local" | sudo tee -a /etc/hosts
+echo "127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local" | sudo tee -a /etc/hosts
 
 # Fix Ingress
 make fix-ingress
+
+# Verify
+kubectl get pods -n ingress-nginx -o wide
+# Should show all pods on worker nodes
 ```
 
 ### Error 4: "secret ingress-nginx-admission not found"
@@ -409,6 +548,24 @@ kubectl delete namespace ingress-nginx
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 ```
 
+### Error 5: "Circuit Breaker not working"
+
+**Reason**: Go API not accessible from C# API.
+
+**Solution**:
+
+```bash
+# Check Go API service
+kubectl get svc datetime-api-go-service
+
+# Check Go API pods
+kubectl get pods -l app=datetime-api-go
+
+# Check logs
+make logs-api
+# Should see: "Go API health check successful"
+```
+
 ---
 
 ## 🔄 Workflow Examples
@@ -416,13 +573,14 @@ kubectl apply -f k8s/ingress-nginx-deployment.yaml
 ### Developing New Features
 
 ```bash
-# 1. Modify code (e.g., Program.cs)
+# 1. Modify code (e.g., Program.cs or main.go)
 
 # 2. Quick update
 make quick-update
 
 # 3. Test
 curl http://api-csharp.local/api/datetime
+curl http://api-go.local/api/datetime
 ```
 
 ### Full Restart
@@ -445,14 +603,15 @@ make verify
 make status
 
 # 2. Watch logs
-make logs-api
+make logs-api        # C# API
+make logs-api-go     # Go API
 
 # 3. Connect to pod
 kubectl exec -it <pod-name> -- /bin/sh
 
-# 4. Network test
+# 4. Network test (internal)
 kubectl run test --image=curlimages/curl -it --rm -- \
-  curl http://datetime-api-service/api/datetime
+  curl http://datetime-api-csharp-service/api/datetime
 ```
 
 ### Load Testing
@@ -461,13 +620,44 @@ kubectl run test --image=curlimages/curl -it --rm -- \
 # 1. Scale up
 make scale-api REPLICAS=5
 make scale-web REPLICAS=5
+make scale-api-go REPLICAS=5
+make scale-web-go REPLICAS=5
 
-# 2. Test
+# 2. Test C# API
 for i in {1..100}; do curl -s http://api-csharp.local/api/datetime; done
 
-# 3. Scale down
-make scale-api REPLICAS=2
-make scale-web REPLICAS=2
+# 3. Test Go API
+for i in {1..100}; do curl -s http://api-go.local/api/datetime; done
+
+# 4. Scale down
+make scale-api REPLICAS=3
+make scale-web REPLICAS=3
+make scale-api-go REPLICAS=3
+make scale-web-go REPLICAS=3
+```
+
+### Circuit Breaker Testing
+
+```bash
+# 1. Simulate Go API failure
+kubectl scale deployment datetime-api-go --replicas=0
+
+# 2. Test C# API (should handle gracefully)
+curl http://api-csharp.local/api/datetime
+# Expected: {"goApiStatus": "circuit_open", ...}
+
+# 3. Watch logs
+make logs-api
+# Should see: "Circuit breaker opened after 50% failure ratio"
+
+# 4. Restore Go API
+kubectl scale deployment datetime-api-go --replicas=3
+
+# 5. Wait 30 seconds (circuit breaker recovery)
+
+# 6. Test again (should work)
+curl http://api-csharp.local/api/datetime
+# Expected: {"goApiStatus": "healthy", ...}
 ```
 
 ---
@@ -480,7 +670,7 @@ make scale-web REPLICAS=2
 | ------------- | -------------------------- |
 | `make help`   | List all commands          |
 | `make deploy` | **Full deployment (MAIN)** |
-| `make verify` | Verification tests         |
+| `make verify` | Verification tests (20 tests) |
 | `make status` | General status             |
 | `make test`   | Endpoint tests             |
 
@@ -489,8 +679,10 @@ make scale-web REPLICAS=2
 | Command             | Description          |
 | ------------------- | -------------------- |
 | `make show-nodes`   | Node details         |
-| `make logs-api`     | API logs (real-time) |
-| `make logs-web`     | Web logs (real-time) |
+| `make logs-api`     | C# API logs (real-time) |
+| `make logs-web`     | C# Web logs (real-time) |
+| `make logs-api-go`  | Go API logs (real-time) |
+| `make logs-web-go`  | Go Web logs (real-time) |
 | `make fix-ingress`  | Fix Ingress          |
 | `make fix-webhooks` | Clean webhooks       |
 
@@ -498,10 +690,12 @@ make scale-web REPLICAS=2
 
 | Command                     | Description                |
 | --------------------------- | -------------------------- |
-| `make scale-api REPLICAS=3` | Scale API                  |
-| `make scale-web REPLICAS=3` | Scale Web                  |
-| `make restart-api`          | Restart API                |
-| `make restart-web`          | Restart Web                |
+| `make scale-api REPLICAS=3` | Scale C# API               |
+| `make scale-web REPLICAS=3` | Scale C# Web               |
+| `make scale-api-go REPLICAS=3` | Scale Go API            |
+| `make scale-web-go REPLICAS=3` | Scale Go Web            |
+| `make restart-api`          | Restart C# API             |
+| `make restart-web`          | Restart C# Web             |
 | `make clean`                | Delete K8s resources       |
 | `make clean-all`            | Delete cluster + resources |
 | `make redeploy`             | Full redeploy              |
@@ -513,16 +707,22 @@ make scale-web REPLICAS=2
 For successful deployment:
 
 - [ ] Docker, Kind, kubectl installed
-- [ ] Project files in correct folders
-- [ ] `make deploy` executed
-- [ ] 6 nodes present (3 control-planes + 3 workers - HA setup)
-- [ ] Ingress Controller on control-plane
-- [ ] All pods Running
-- [ ] Endpoints exist
-- [ ] /etc/hosts updated
+- [ ] Project files in correct folders (4 apps: C# API, Go API, C# Web, Go Web)
+- [ ] `make deploy` executed successfully
+- [ ] 6 nodes present (3 control-plane + 3 workers - HA setup)
+- [ ] Ingress Controller on **worker nodes** (NOT control-plane) ⭐
+- [ ] 3 Ingress pods running (kind-worker, kind-worker2, kind-worker3)
+- [ ] HAProxy container running (localhost:8404 accessible)
+- [ ] 13 application pods Running (distributed across workers)
+- [ ] 4 services have endpoints (C# API, Go API, C# Web, Go Web)
+- [ ] /etc/hosts updated (4 domains)
 - [ ] `curl http://api-csharp.local/api/datetime` working
+- [ ] `curl http://api-go.local/api/datetime` working
 - [ ] `curl http://web-csharp.local` working
-- [ ] `make verify` successful
+- [ ] `curl http://web-go.local` working
+- [ ] Service-to-Service communication working (C# API → Go API)
+- [ ] Circuit Breaker configured and tested
+- [ ] `make verify` successful (20/20 tests passed)
 
 ---
 
@@ -530,22 +730,27 @@ For successful deployment:
 
 ### Troubleshooting
 
-1. `make verify` → Automatic issue detection
+1. `make verify` → Automatic issue detection (20 tests)
 2. `kubectl describe pod <pod-name>` → Pod details
 3. `kubectl logs <pod-name>` → Pod logs
+4. `make status` → Overall cluster status
 
 ### Documentation
 
 - **[README](../README.en.md)** → General information
-- **[WORKER_NODES](WORKER_NODES.en.md)** → Multi-node details
+- **[WORKER_NODES](WORKER_NODES.en.md)** → Multi-node HA cluster details
 - **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** → Network flow
-- **[LOAD_BALANCING](LOAD_BALANCING.en.md)** → Load balancing
+- **[LOAD_BALANCING](LOAD_BALANCING.en.md)** → Load balancing strategies
+- **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** → HAProxy setup
+- **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.en.md)** → Circuit Breaker, Retry, Rate Limiting
+- **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.en.md)** → Docker image optimization (277 MB → 32.6 MB)
 
 ### Commands
 
 ```bash
-make help          # View all commands
+make help          # View all commands (30+)
 kubectl get all    # View all resources
+kubectl get nodes  # View all nodes
 ```
 
 ---
@@ -554,21 +759,41 @@ kubectl get all    # View all resources
 
 If you completed these steps:
 
-✅ Multi-node Kubernetes cluster running
-✅ NGINX Ingress Controller active
-✅ .NET API and Web application accessible
-✅ Load balancing working
+✅ Multi-node HA Kubernetes cluster running (3+3 nodes)
+✅ NGINX Ingress Controller active (on worker nodes, 3 replicas)
+✅ HAProxy load balancer distributing traffic
+✅ Polyglot microservices running (.NET 9 + Go)
+✅ 4 applications accessible (C# API, Go API, C# Web, Go Web)
+✅ Service-to-Service communication working (Circuit Breaker, Retry, Rate Limiting)
+✅ Load balancing working (across 3 workers)
 ✅ Production-like environment ready
+✅ Docker images optimized (32.6 MB C# API, ~15 MB Go API)
 
 **Congratulations!** 🚀
 
 ---
 
 **First time setup**: Takes 5-10 minutes
-**Having issues**: Run `make verify` to diagnose issues
+**Having issues**: Run `make verify` to diagnose issues (20 automated tests)
 **Everything working**: Enjoy development! 🎨
 
-**Prepared by:** Claude (Anthropic)
-**Date:** 2025-10-28
-**Version:** 1.1
-**Project:** DateTime Kubernetes Polyglot Microservices
+---
+
+## 📊 Project Statistics
+
+- **Nodes**: 6 (3 control-plane + 3 workers)
+- **Application Pods**: 13 (3 per app × 4 apps + 1 spare)
+- **Services**: 4 ClusterIP services
+- **Ingress Rules**: 4 hosts
+- **Ingress Replicas**: 3 (HA)
+- **Tests**: 20 (100% success rate)
+- **Docker Images**: 2 optimized (32.6 MB C# + ~15 MB Go)
+- **Resiliency Patterns**: 3 (Circuit Breaker, Retry, Rate Limiting)
+- **Languages**: 2 (C# .NET 9 + Go)
+- **Makefile Commands**: 30+
+
+---
+
+**Date:** 2025-10-29
+**Version:** 2.0
+**Project:** DateTime Kubernetes Polyglot Microservices with Resiliency Patterns
