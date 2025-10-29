@@ -1,4 +1,8 @@
 using System.Threading.RateLimiting;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.ResponseCompression;
+
+ThreadPool.SetMinThreads(100, 100);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +16,18 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
+});
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.EnableForHttps = true;
+});
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Add(RateLimitJsonContext.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Add(WorldClockJsonContext.Default);
 });
 
 // HttpClient with Resilience for Go API
@@ -78,14 +94,23 @@ builder.Services.AddRateLimiter(options =>
             ? (double?)retryAfter.TotalSeconds
             : null;
 
-        await context.HttpContext.Response.WriteAsJsonAsync(new
-        {
-            error = "Rate limit exceeded",
-            message = "Too many requests. Please try again later.",
-            retryAfter = retryAfterSeconds
-        }, cancellationToken: token);
+        var error = new RateLimitErrorResponse(
+            "Rate limit exceeded",
+            "Too many requests. Please try again later.",
+            retryAfterSeconds);
+
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            error, 
+            jsonTypeInfo: RateLimitJsonContext.Default.RateLimitErrorResponse, 
+            cancellationToken: token);
+
     };
 });
+
+var turkishDays = new[] {
+      "Pazar", "Pazartesi", "Salı", "Çarşamba",
+      "Perşembe", "Cuma", "Cumartesi"
+  };
 
 var app = builder.Build();
 
@@ -95,13 +120,12 @@ app.UseRateLimiter();
 app.MapGet("/api/datetime", () =>
 {
     var now = DateTime.Now;
-    return Results.Ok(new
-    {
-        date = now.ToString("dd.MM.yyyy"),
-        time = now.ToString("HH:mm:ss"),
-        dayOfWeek = now.ToString("dddd", new System.Globalization.CultureInfo("tr-TR")),
-        timestamp = now.ToString("o")
-    });
+    return Results.Ok(new DateTimeResponse(
+        now.ToString("dd.MM.yyyy"),
+        now.ToString("HH:mm:ss"),
+        turkishDays[(int)now.DayOfWeek],
+        now.ToString("o")
+    ));
 });
 
 app.MapGet("/health", () =>
@@ -109,34 +133,39 @@ app.MapGet("/health", () =>
     var podName = Environment.GetEnvironmentVariable("HOSTNAME") ?? "unknown";
     var nodeName = Environment.GetEnvironmentVariable("NODE_NAME") ?? "unknown";
 
-    return Results.Ok(new
-    {
-        status = "healthy",
-        pod = podName,
-        node = nodeName,
-        service = "datetime-api-csharp"
-    });
+    return Results.Ok(new HealthResponse(
+        "healthy",
+        podName,
+        nodeName,
+        "datetime-api-csharp"
+    ));
 });
 
 // New endpoint: Call Go API and get world clock data
-app.MapGet("/api/go-time", async (IHttpClientFactory httpClientFactory) =>
+app.MapGet("/api/go-time", async (IHttpClientFactory httpClientFactory, CancellationToken cancellationToken) =>
 {
     try
     {
         var client = httpClientFactory.CreateClient("GoApiClient");
-        var response = await client.GetAsync("/api/worldclock?city=Istanbul");
+        var goApiUrl = "/api/worldclock/city?timezone=Europe/Istanbul";
+        var response = await client.GetAsync(goApiUrl);
 
         if (response.IsSuccessStatusCode)
         {
-            var goData = await response.Content.ReadFromJsonAsync<object>();
-            return Results.Ok(new
-            {
-                source = "csharp-api",
-                calledService = "go-api",
-                endpoint = "/api/worldclock?city=Istanbul",
-                data = goData,
-                timestamp = DateTime.UtcNow
-            });
+            // Trimming-safe deserialization: source-generated JsonTypeInfo kullanıyoruz
+            var goData = await response.Content.ReadFromJsonAsync(
+                WorldClockJsonContext.Default.WorldClockResponse,
+                cancellationToken
+            );
+
+            // Global context ile Results.Json/Ok çağrısı trimming-safe olarak serileştirir
+            return Results.Ok(new GoTimeResponse(
+                "csharp-api",
+                "go-api",
+                goApiUrl,
+                goData,
+                DateTime.UtcNow
+            ));
         }
 
         return Results.Problem(
@@ -154,3 +183,33 @@ app.MapGet("/api/go-time", async (IHttpClientFactory httpClientFactory) =>
 }).RequireRateLimiting("go-api-calls");
 
 app.Run();
+
+
+public record RateLimitErrorResponse(string Error, string Message, double? RetryAfter);
+public record DateTimeResponse(string Date, string Time, string DayOfWeek, string Timestamp);
+public record HealthResponse(string Status, string Pod, string Node, string Service);
+public record GoTimeResponse(string Source, string CalledService, string Endpoint, WorldClockResponse? Data, DateTime Timestamp);
+public sealed class WorldClockResponse
+{
+    public string City { get; set; } = default!;
+    public string Timezone { get; set; } = default!;
+    public string Time { get; set; } = default!;
+    public string Date { get; set; } = default!;
+    public string Offset { get; set; } = default!;
+    public bool IsDst { get; set; }
+}
+
+[JsonSerializable(typeof(RateLimitErrorResponse))]
+[JsonSerializable(typeof(DateTimeResponse))]
+[JsonSerializable(typeof(HealthResponse))]
+[JsonSerializable(typeof(GoTimeResponse))]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+public partial class RateLimitJsonContext : JsonSerializerContext
+{
+}
+
+[JsonSerializable(typeof(WorldClockResponse))]
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+public partial class WorldClockJsonContext : JsonSerializerContext
+{
+}

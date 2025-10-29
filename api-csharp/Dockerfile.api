@@ -22,20 +22,34 @@
 # COPY --from=publish /app/publish .
 # ENTRYPOINT ["dotnet", "DateTimeApi.dll"]
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+ARG TARGETARCH
 WORKDIR /src
 
 COPY DateTimeApi.csproj .
-RUN dotnet restore
+RUN dotnet restore -a ${TARGETARCH}
 
 COPY Program.cs .
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish -c Release \
+    -a ${TARGETARCH} \
+    --self-contained true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=link \
+    -p:PublishSingleFile=true \
+    -p:DebugType=None \
+    -p:DebugSymbols=false \
+    -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM alpine:3.19
 WORKDIR /app
+
+# Runtime dependencies için gerekli kütüphaneler
+RUN apk add --no-cache libstdc++ 
+
+ENV ASPNETCORE_URLS=http://+:5000 \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+
+EXPOSE 5000
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:5000
-EXPOSE 5000
-
-ENTRYPOINT ["dotnet", "DateTimeApi.dll"]
+ENTRYPOINT ["./DateTimeApi"]
