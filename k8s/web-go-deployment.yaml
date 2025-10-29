@@ -5,12 +5,12 @@ metadata:
   labels:
     app: datetime-web-go
 spec:
-  replicas: 2
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # Aynı anda en fazla 1 pod kapalı olabilir
-      maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
+      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı olabilir
+      maxSurge: 1 # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
       app: datetime-web-go

@@ -5,12 +5,12 @@ metadata:
   labels:
     app: datetime-api-csharp
 spec:
-  replicas: 2
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # Aynı anda en fazla 1 pod kapalı olabilir
-      maxSurge: 1        # Güncelleme sırasında +1 extra pod çalışabilir
+      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı olabilir
+      maxSurge: 1 # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
       app: datetime-api-csharp
@@ -27,6 +27,10 @@ spec:
             - containerPort: 5000
               name: http
           env:
+            - name: DOTNET_gcServer
+              value: "1"
+            - name: DOTNET_GCHeapHardLimitPercent
+              value: "60"
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
             - name: TZ
