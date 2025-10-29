@@ -964,14 +964,14 @@ Container toplam: 32.6 MB (Alpine + libstdc++ + Application)
 
 Bu optimizasyon çalışması ile:
 
-✅ **%87.8 boyut azalması** (277 MB → 33.9 MB)
+✅ **%88.2 boyut azalması** (277 MB → 32.6 MB)
 ✅ **~8x daha hızlı cold start** (image pull sayesinde)
 ✅ **Multi-architecture support** (ARM64 + x64)
 ✅ **Production-ready** (minimal, güvenli, hızlı)
 
-**Önerilen konfigürasyon:** 33.9 MB versiyonu (PublishSingleFile, no compression, no R2R)
+**Önerilen konfigürasyon:** 32.6 MB versiyonu (Invariant mode + Custom Turkish logic)
 
-**Trade-off:** Startup'ta ~200ms fark var ancak image pull'da ~20-30 saniye kazanç var, bu yüzden toplam cold start çok daha hızlı.
+**Trade-off:** Application-level locale handling (7 hardcoded strings yerine 35 MB ICU data tasarrufu).
 
 ## İlgili Bağlantılar
 
