@@ -250,5 +250,4 @@ Başarılı kurulum için:
 ## 🔗 İlgili Dökümanlar
 
 - [QUICK_START.md](QUICK_START.md) - Hızlı başlangıç
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Sorun giderme
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Mimari detayları

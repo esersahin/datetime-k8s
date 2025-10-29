@@ -422,7 +422,6 @@ spec:
 - [Architecture Overview](./ARCHITECTURE.en.md)
 - [Quick Start Guide](./QUICK_START.en.md)
 - [Load Balancing](./LOAD_BALANCING.en.md)
-- [Troubleshooting](./TROUBLESHOOTING.en.md)
 
 ---
 

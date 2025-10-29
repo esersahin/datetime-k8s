@@ -527,7 +527,7 @@ kubectl logs -f <pod-name>
 
 ```bash
 # Service hangi pod'lara yönlendiriyor?
-kubectl get endpoints datetime-api-csharp-service 
+kubectl get endpoints datetime-api-csharp-service
 kubectl get endpoints datetime-web-csharp-service
 
 # Çıktı:
@@ -540,11 +540,11 @@ datetime-web-csharp-service   10.244.3.3:80,10.244.4.3:80,10.244.5.3:80         
 
 ```bash
 # Pod resource kullanımı
-kubectl top pods 
+kubectl top pods
 # (metrics-server gerekli)
 
 # Node resource kullanımı
-kubectl top nodes 
+kubectl top nodes
 #(metrics-server gerekli)
 ```
 
@@ -679,3 +679,8 @@ make redeploy
 ---
 
 **Not**: Bu yapılandırma local development için optimize edilmiştir. Production ortamları için ek security, monitoring, ve networking konfigürasyonları gerekebilir.
+
+**Prepared by:** Claude (Anthropic)
+**Date:** 2025-10-28
+**Version:** 1.1
+**Project:** DateTime Kubernetes Polyglot Microservices

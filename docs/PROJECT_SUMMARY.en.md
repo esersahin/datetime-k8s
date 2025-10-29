@@ -73,7 +73,6 @@ datetime-k8s/
 │   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
 │   ├── PROJECT_SUMMARY.en.md          # 📘 Summary of components and key points
 │   ├── QUICK_START.en.md              # 📘 Setup, deploy, test and other operations
-│   ├── TROUBLESHOOTING.en.md          # 📘 Troubleshooting guide
 │   └── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
 ├── Makefile                           # 🎯 Main automation (RECOMMENDED!)
 ├── CONTRIBUTING.en.md                 # 📖 How to contribute?
@@ -110,15 +109,14 @@ make clean-all       # Clean
 
 ## 📚 Documentation Guide
 
-| File                                                       | When to Read          | Content                  |
-| ---------------------------------------------------------- | --------------------- | ------------------------ |
-| **[QUICK_START](QUICK_START.en.md)**                       | First start           | 5-minute setup           |
-| **[README](../README.en.md)**                              | Overview              | All features, commands   |
-| **[TROUBLESHOOTING](TROUBLESHOOTING.en.md)**               | When issues occur     | All errors and solutions |
-| **[WORKER_NODES](WORKER_NODES.en.md)**                     | To learn multi-node   | Node configuration       |
-| **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**               | To understand network | Traffic flow             |
-| **[LOAD_BALANCING](LOAD_BALANCING.en.md)**                 | To customize LB       | Round-robin, IP hash     |
-| **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** | Ingress issues        | All fix methods          |
+| File                                                       | When to Read          | Content                |
+| ---------------------------------------------------------- | --------------------- | ---------------------- |
+| **[QUICK_START](QUICK_START.en.md)**                       | First start           | 5-minute setup         |
+| **[README](../README.en.md)**                              | Overview              | All features, commands |
+| **[WORKER_NODES](WORKER_NODES.en.md)**                     | To learn multi-node   | Node configuration     |
+| **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**               | To understand network | Traffic flow           |
+| **[LOAD_BALANCING](LOAD_BALANCING.en.md)**                 | To customize LB       | Round-robin, IP hash   |
+| **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** | Ingress issues        | All fix methods        |
 
 ## 🔑 Critical Files
 
@@ -405,14 +403,12 @@ To improve the project:
 ### Troubleshooting
 
 1. Run `make verify`
-2. Check [TROUBLESHOOTING](TROUBLESHOOTING.en.md)
-3. `kubectl describe pod <pod-name>`
-4. `kubectl logs <pod-name>`
+2. `kubectl describe pod <pod-name>`
+3. `kubectl logs <pod-name>`
 
 ### Documentation
 
 - Getting Started: [QUICK_START](QUICK_START.en.md)
-- Issues: [TROUBLESHOOTING](TROUBLESHOOTING.en.md)
 - Network: [INGRESS_ROUTING](INGRESS_ROUTING.en.md)
 - Multi-node: [WORKER_NODES](WORKER_NODES.en.md)
 

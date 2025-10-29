@@ -3,7 +3,7 @@
 ### 🌐 Diğer Dillerde Oku / Read in Other Languages
 
 | 🇹🇷 [Türkçe](QUICK_START.md) | 🇬🇧 [English](QUICK_START.en.md) |
-| :------------------------------: | :----------------------------------: |
+| :-------------------------: | :-----------------------------: |
 
 </div>
 
@@ -105,16 +105,12 @@ kubectl get endpoints
 
 ### Yaygın Sorunlar
 
-| Sorun                | Hızlı Çözüm                                                                        |
-| -------------------- | ---------------------------------------------------------------------------------- |
-| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                           |
-| **Endpoint yok**     | `kubectl apply -f k8s/`                                                            |
-| **Erişim yok**       | `echo "127.0.0.1 api-csharp.local web-csharp.local" \| sudo tee -a /etc/hosts`                   |
-| **Pod Pending**      | `kubectl describe pod <pod-name>` → [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bakın |
-
-### Detaylı Sorun Giderme
-
-**[TROUBLESHOOTING](TROUBLESHOOTING.md)** dosyasına bakın! 🆘
+| Sorun                | Hızlı Çözüm                                                                      |
+| -------------------- | -------------------------------------------------------------------------------- |
+| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make deploy`                         |
+| **Endpoint yok**     | `kubectl apply -f k8s/`                                                          |
+| **Erişim yok**       | `echo "127.0.0.1 api-csharp.local web-csharp.local" \| sudo tee -a /etc/hosts`   |
+| **Pod Pending**      | `kubectl describe pod <pod-name>` ile detaylara bakın                            |
 
 ---
 
@@ -168,26 +164,40 @@ $ make status
 ==================
 
 Nodes:
-NAME                 STATUS   ROLES           AGE   VERSION
-kind-control-plane   Ready    control-plane   5m    v1.34.0
-kind-worker          Ready    <none>          5m    v1.34.0
-kind-worker2         Ready    <none>          5m    v1.34.0
+NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   33m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   33m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   32m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          32m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          32m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          32m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 
 Pods (with Node placement):
-NAME                           READY   STATUS    NODE
-datetime-api-xxx              1/1     Running   kind-worker
-datetime-api-yyy              1/1     Running   kind-worker2
-datetime-web-xxx              1/1     Running   kind-worker
-datetime-web-yyy              1/1     Running   kind-worker2
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          30m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          30m   10.244.3.2   kind-worker2   <none>           <none>
+datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          30m   10.244.4.2   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          30m   10.244.4.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          30m   10.244.3.5   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          30m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          30m   10.244.4.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          30m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-wxdjf   1/1     Running   0          30m   10.244.3.3   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          30m   10.244.5.5   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-knz8p       1/1     Running   0          30m   10.244.3.4   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-qtdnq       1/1     Running   0          30m   10.244.4.5   kind-worker    <none>           <none>
 
 Services:
-NAME                   TYPE        CLUSTER-IP      PORT(S)
-datetime-api-service   ClusterIP   10.96.177.25    80/TCP
-datetime-web-service   ClusterIP   10.96.240.159   80/TCP
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+datetime-api-csharp-service   ClusterIP   10.96.199.65   <none>        80/TCP    30m
+datetime-api-go-service       ClusterIP   10.96.130.19   <none>        80/TCP    30m
+datetime-web-csharp-service   ClusterIP   10.96.96.23    <none>        80/TCP    30m
+datetime-web-go-service       ClusterIP   10.96.172.47   <none>        80/TCP    30m
+kubernetes                    ClusterIP   10.96.0.1      <none>        443/TCP   33m
 
 Ingress:
-NAME               CLASS   HOSTS                 ADDRESS     PORTS
-datetime-ingress   nginx   api-csharp.local,web-csharp.local   localhost   80
+NAME               CLASS   HOSTS                                                        ADDRESS     PORTS   AGE
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...   localhost   80      30m
 ```
 
 ### Test Sonuçları
@@ -214,28 +224,23 @@ $ make verify
 
 1. Kind Cluster
 ✓ Kind cluster mevcut
-✓ Kubectl cluster'a bağlı
 
 2. NGINX Ingress Controller
 ✓ Ingress namespace mevcut
-✓ Ingress controller hazır (1 replicas)
 ✓ hostNetwork: true (Doğru)
-✓ ValidatingWebhook yok (Mac/Kind için ideal)
+✓ ValidatingWebhook yok (İdeal)
 
 3. Deployments
 ✓ API deployment mevcut
-✓ API pod'ları hazır (2/2)
 ✓ Web deployment mevcut
-✓ Web pod'ları hazır (2/2)
 
 4. Endpoint Testleri
 ✓ API health endpoint erişilebilir
 ✓ API datetime endpoint erişilebilir
-✓ API valid JSON dönüyor
 ✓ Web uygulaması erişilebilir
 
 ÖZET
-Toplam: 15 | Başarılı: 15 | Başarısız: 0 | Oran: 100%
+Toplam: 9 | Başarılı: 9  | Başarısız: 0  | Oran: 100%
 
 🎉 TÜM TESTLER BAŞARILI! 🎉
 ```
@@ -268,16 +273,42 @@ datetime-k8s/
 ### Dokümantasyon Dosyaları
 
 ```
-├── README.md                   # Genel rehber
-├── CHANGES_SUMMARY.md          # Değişikliklerin özeti
-├── PROJECT_SUMMARY.md          # Bileşenlerin ve önemli noktaların özeti
-├── QUICK_START.md              # Bu dosya
-├── TROUBLESHOOTING.md          # 🆘 Sorun giderme
-├── WORKER_NODES.md             # Multi-node detaylar
-├── INGRESS_ROUTING.md          # Routing açıklaması
-├── INGRESS_CONTROLLER_FIX.md   # Ingress düzeltme
-├── INGRESS_SETUP.md            # Ingress kurulum
-└── LOAD_BALANCING.md           # Yük dengeleme stratejileri
+├── docs/                              # Documents
+│   ├── ARCHITECTURE.en.md             # 📘 System architecture overview
+│   ├── ARCHITECTURE.md                # 📘 Sistem mimarisi genel bakış
+│   ├── ARCHITECTURE_C4.en.md          # 📘 C4 model architecture diagrams
+│   ├── ARCHITECTURE_C4.md             # 📘 C4 model mimari diyagramları
+│   ├── architecture-diagram.md        # 📘 Architecture diagram documentation
+│   ├── c4-diagrams.md                 # 📘 C4 diagram generation guide
+│   ├── CHANGES_SUMMARY.en.md          # 📄 Summary of changes
+│   ├── CHANGES_SUMMARY.md             # 📄 Değişikliklerin özeti
+│   ├── HAPROXY_LOADBALANCER.en.md     # 📘 HAProxy load balancer setup
+│   ├── HAPROXY_LOADBALANCER.md        # 📘 HAProxy load balancer kurulumu
+│   ├── HAPROXY_NGINX_ARCHITECTURE.en.md # 📘 HAProxy vs NGINX architecture
+│   ├── HAPROXY_NGINX_ARCHITECTURE.md  # 📘 HAProxy vs NGINX mimarisi
+│   ├── INGRESS_CONTROLLER_FIX.en.md   # 📘 Ingress fix methods
+│   ├── INGRESS_CONTROLLER_FIX.md      # 📘 Ingress düzeltme yöntemleri
+│   ├── INGRESS_ROUTING.en.md          # 📘 Ingress routing explanation
+│   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
+│   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
+│   ├── INGRESS_SETUP.md               # 📘 Ingress kurulum rehberi
+│   ├── INGRESS-WORKER-NODE-MIGRATION.en.md # 📘 Ingress worker node migration
+│   ├── INGRESS-WORKER-NODE-MIGRATION.md # 📘 Ingress worker node taşıma
+│   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
+│   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
+│   ├── MACOS_NETWORK_FIX.en.md        # 📘 macOS network troubleshooting
+│   ├── MACOS_NETWORK_FIX.md           # 📘 macOS network sorun giderme
+│   ├── PROJECT_SUMMARY.en.md          # 📘 Summary of components and key points
+│   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin özeti
+│   ├── QUICK_START.en.md              # 📘 Quick start guide
+│   ├── QUICK_START.md                 # 📘 Hızlı başlangıç rehberi
+│   ├── SERVICE_TO_SERVICE_COMMUNICATION.en.md # 📘 Service-to-service calls
+│   ├── SERVICE_TO_SERVICE_COMMUNICATION.md # 📘 Servisler arası iletişim
+│   ├── WORKER_NODES.en.md             # 📘 Multi-node cluster guide
+│   └── WORKER_NODES.md                # 📘 Çok node cluster rehberi
+├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
+├── CONTRIBUTING.md                    # 📖 Nasıl katkıda bulunurum?
+└── README.md                          # 📖 Ana dokümantasyon
 ```
 
 ---
@@ -295,10 +326,10 @@ image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 
 ### 2. Multi-Node Cluster
 
-Varsayılan olarak **3 node** çalışır:
+Varsayılan olarak **6 node** çalışır:
 
-- 1 Control-Plane (Ingress Controller burada)
-- 2 Worker (Uygulama pod'ları burada)
+- 3 Control-Plane
+- 3 Worker
 
 ### 3. Ingress Controller Yerleşimi
 
@@ -315,7 +346,8 @@ Worker node'daysa **erişim çalışmaz**!
 
 ```bash
 # Otomatik eklenir (sudo gerekir)
-127.0.0.1 api-csharp.local web-csharp.local
+127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local
+::1 api-csharp.local web-csharp.local api-go.local web-go.local
 
 # Kontrol
 cat /etc/hosts | grep local
@@ -498,10 +530,9 @@ Başarılı deployment için:
 
 ### Sorun Giderme
 
-1. **TROUBLESHOOTING.md** → Tüm hatalar ve çözümleri
-2. `make verify` → Otomatik sorun tespiti
-3. `kubectl describe pod <pod-name>` → Pod detayları
-4. `kubectl logs <pod-name>` → Pod logları
+1. `make verify` → Otomatik sorun tespiti
+2. `kubectl describe pod <pod-name>` → Pod detayları
+3. `kubectl logs <pod-name>` → Pod logları
 
 ### Dokümantasyon
 
@@ -533,6 +564,11 @@ Eğer bu adımları tamamladıysanız:
 
 ---
 
-**İlk kez kuruyorsanız**: 5-10 dakika sürer  
-**Sorun yaşıyorsanız**: [TROUBLESHOOTING](TROUBLESHOOTING.md)'ye bakın  
+**İlk kez kuruyorsanız**: 5-10 dakika sürer
+**Sorun yaşıyorsanız**: `make verify` komutuyla sorunları tespit edin
 **Her şey çalışıyorsa**: Keyifli geliştirmeler! 🎨
+
+**Prepared by:** Claude (Anthropic)
+**Date:** 2025-10-28
+**Version:** 1.1
+**Project:** DateTime Kubernetes Polyglot Microservices

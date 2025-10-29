@@ -73,7 +73,6 @@ datetime-k8s/
 │   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
 │   ├── PROJECT_SUMMARY.md             # 📘 Bileşenlerin ve önemli noktaların özeti
 │   ├── QUICK_START.md                 # 📘 Setup, deploy, test ve diğer operasyonlar
-│   ├── TROUBLESHOOTING.md             # 📘 Sorun giderme rehberi
 │   └── WORKER_NODES.md                # 📘 Multi-node cluster rehberi
 ├── Makefile                           # 🎯 Ana otomasyon (ÖNERİLEN!)
 ├── CONTRIBUTING.md                    # 📖 Nasıl katkıda bulunurum?
@@ -114,7 +113,6 @@ make clean-all       # Temizle
 | ------------------------------------------------------- | ------------------------ | ------------------------ |
 | **[QUICK_START](QUICK_START.md)**                       | İlk başlangıç            | 5 dakikada kurulum       |
 | **[README](../README.md)**                              | Genel bakış              | Tüm özellikler, komutlar |
-| **[TROUBLESHOOTING](TROUBLESHOOTING.md)**               | Sorun olduğunda          | Tüm hatalar ve çözümleri |
 | **[WORKER_NODES](WORKER_NODES.md)**                     | Multi-node öğrenmek için | Node yapılandırması      |
 | **[INGRESS_ROUTING](INGRESS_ROUTING.md)**               | Network anlamak için     | Trafik akışı             |
 | **[LOAD_BALANCING](LOAD_BALANCING.md)**                 | LB özelleştirme          | Round-robin, IP hash     |
@@ -405,14 +403,12 @@ Projeyi geliştirmek için:
 ### Sorun Giderme
 
 1. `make verify` çalıştır
-2. [TROUBLESHOOTING](TROUBLESHOOTING.md)'e bak
-3. `kubectl describe pod <pod-name>`
-4. `kubectl logs <pod-name>`
+2. `kubectl describe pod <pod-name>`
+3. `kubectl logs <pod-name>`
 
 ### Dokümantasyon
 
 - Başlangıç: [QUICK_START](QUICK_START.md)
-- Sorun: [TROUBLESHOOTING](TROUBLESHOOTING.md)
 - Network: [INGRESS_ROUTING](INGRESS_ROUTING.md)
 - Multi-node: [WORKER_NODES](WORKER_NODES.md)
 

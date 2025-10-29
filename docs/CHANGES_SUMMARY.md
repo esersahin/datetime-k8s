@@ -444,8 +444,7 @@ Tüm yeni dokümantasyon dosyaları:
 5. **[LOAD_BALANCING](LOAD_BALANCING.md)** - LB stratejileri
 6. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** - HAProxy HA Load Balancer rehberi
 7. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Tam genel bakış
-8. **[TROUBLESHOOTING](TROUBLESHOOTING.md)** - Tüm sorunlar ve çözümler
-9. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya
+8. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya
 
 ---
 

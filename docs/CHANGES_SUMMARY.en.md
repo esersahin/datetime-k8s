@@ -444,8 +444,7 @@ All new documentation files:
 5. **[LOAD_BALANCING](LOAD_BALANCING.en.md)** - LB strategies
 6. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** - HAProxy HA Load Balancer guide
 7. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Complete overview
-8. **[TROUBLESHOOTING](TROUBLESHOOTING.en.md)** - All issues and solutions
-9. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file
+8. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file
 
 ---
 
