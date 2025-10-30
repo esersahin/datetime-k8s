@@ -4,53 +4,112 @@
 
 Kind Kubernetes cluster'ına **standart port 80/443** üzerinden **yüksek erişilebilirlik (HA)** ile erişim sağlamak.
 
-## 📊 Mimari
+## 📊 Architecture (HA Cluster)
 
 ```
-┌─────────────────────────────────────────┐
-│         Kullanıcı (Browser/curl)        │
-│     http://api-csharp.local (port 80)   │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│      HAProxy Load Balancer              │
-│      Container: kind-http-lb            │
-│      Port: 80, 443, 8404 (stats)        │
-│      Network: kind                      │
-└──────────────┬──────────────────────────┘
-               │
-               ├──────────┬──────────┬─────────
-               ▼          ▼          ▼
-       ┌──────────┐ ┌──────────┐ ┌──────────┐
-       │ Worker 1 │ │ Worker 2 │ │ Worker 3 │
-       │  :80     │ │  :80     │ │  :80     │
-       └────┬─────┘ └────┬─────┘ └────┬─────┘
-            │            │            │
-            └────────────┴────────────┘
-                   ▼
-         ┌──────────────────────┐
-         │  Ingress Controller  │
-         │  (3 replicas)        │
-         └──────────────────────┘
-                   ▼
-         ┌──────────────────────┐
-         │  Application Pods    │
-         └──────────────────────┘
+┌──────────────────────────────────────────────────┐
+│         User (Browser/curl)                      │
+│     http://api-csharp.local (port 80)            │
+└───────────────────┬──────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────┐
+│      HAProxy Load Balancer (External)            │
+│      Container: kind-http-lb                     │
+│      Port: 80, 443, 8404 (stats)                 │
+│      Network: kind                               │
+│      Algorithm: Round-robin                      │
+└───────────────────┬──────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────┐
+│          Kind Kubernetes Cluster (HA)            │
+│  ┌────────────────────────────────────────────┐  │
+│  │   3 Control-Plane Nodes                    │  │
+│  │   (Kubernetes management - HA)             │  │
+│  └────────────────────────────────────────────┘  │
+│                                                  │
+│  ┌────────────────────────────────────────────┐  │
+│  │   3 Worker Nodes                           │  │
+│  │   ┌──────────┬──────────┬──────────┐       │  │
+│  │   │ Worker 1 │ Worker 2 │ Worker 3 │       │  │
+│  │   │  :80     │  :80     │  :80     │       │  │
+│  │   └────┬─────┴────┬─────┴────┬─────┘       │  │
+│  │        │          │          │             │  │
+│  │        └──────────┴──────────┘             │  │
+│  │                   ▼                        │  │
+│  │        ┌─────────────────────┐             │  │
+│  │        │ Ingress Controller  │             │  │
+│  │        │ (3 replicas - HA)   │             │  │
+│  │        │ hostNetwork: true   │             │  │
+│  │        │ 1 per worker node   │             │  │
+│  │        └──────────┬──────────┘             │  │
+│  │                   ▼                        │  │
+│  │        ┌─────────────────────┐             │  │
+│  │        │  Application Pods   │             │  │
+│  │        │  (C# & Go services) │             │  │
+│  │        └─────────────────────┘             │  │
+│  └────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────┘
 ```
 
-## 🚀 Otomatik Kurulum
+## 🏗️ Cluster Structure
 
-### Tam Deployment (HAProxy dahil)
+### Kubernetes Cluster Topology
+
+```bash
+kubectl get nodes -o wide
+```
+
+**Output:**
+```
+NAME                  STATUS   ROLES           AGE   VERSION
+kind-control-plane    Ready    control-plane   20m   v1.31.0
+kind-control-plane2   Ready    control-plane   20m   v1.31.0
+kind-control-plane3   Ready    control-plane   20m   v1.31.0
+kind-worker           Ready    <none>          19m   v1.31.0
+kind-worker2          Ready    <none>          19m   v1.31.0
+kind-worker3          Ready    <none>          19m   v1.31.0
+```
+
+**HA Structure:**
+- **3 Control-Plane Nodes**: Kubernetes management plane (etcd, API server, etc.)
+- **3 Worker Nodes**: Application workloads and Ingress Controller
+- **3 Ingress Replicas**: 1 NGINX Ingress pod per worker node (hostNetwork: true)
+
+### NGINX Ingress Controller Deployment
+
+```bash
+kubectl get pods -n ingress-nginx -o wide
+```
+
+**Output:**
+```
+NAME                                        READY   STATUS    NODE
+ingress-nginx-controller-xxx                1/1     Running   kind-worker
+ingress-nginx-controller-yyy                1/1     Running   kind-worker2
+ingress-nginx-controller-zzz                1/1     Running   kind-worker3
+```
+
+**Important:**
+- `hostNetwork: true` → Each Ingress pod listens on worker container's port 80/443
+- `replicas: 3` → 1 replica per worker node for HA
+- `nodeSelector: ingress-ready=true` → Runs only on worker nodes
+
+---
+
+## 🚀 Automatic Installation
+
+### Full Deployment (Including HAProxy)
 ```bash
 make deploy
 ```
 
-Bu komut otomatik olarak:
-1. ✅ Kind cluster oluşturur (3 control-planes + 3 workers)
-2. ✅ Ingress controller kurar
-3. ✅ Uygulamaları deploy eder
-4. ✅ **HAProxy load balancer'ı başlatır**
+This command automatically:
+1. ✅ Creates HA Kind cluster (3 control-planes + 3 workers)
+2. ✅ Installs NGINX Ingress controller (3 replicas, hostNetwork: true)
+3. ✅ Deploys applications (C# & Go API/Web)
+4. ✅ **Starts HAProxy load balancer (DNS-based routing)**
 
 ### Sadece HAProxy Kurulumu
 ```bash
@@ -64,21 +123,33 @@ make remove-haproxy
 
 ## 📁 Dosyalar
 
-### 1. HAProxy Yapılandırması
-**Dosya**: `k8s/haproxy-lb.cfg`
+### 1. HAProxy Configuration
+**File**: `k8s/haproxy-lb.cfg`
 
 ```haproxy
-# DNS ile worker node çözümlemesi
-server worker1 kind-worker:80 check inter 2s fall 2 rise 2 resolvers docker
-server worker2 kind-worker2:80 check inter 2s fall 2 rise 2 resolvers docker
-server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker
+# HAProxy Load Balancer Configuration for Kind Cluster
+# DNS-based load balancing to 3 worker nodes
+
+backend workers_http
+    mode http
+    balance roundrobin
+
+    option httpchk GET /healthz
+    http-check expect status 200-499
+
+    # DNS-based worker node resolution
+    server worker1 kind-worker:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker2 kind-worker2:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
 ```
 
-**Özellikler:**
-- ✅ DNS kullanımı - IP değişikliklerinden etkilenmez
-- ✅ Health check - Her 2 saniyede kontrol
-- ✅ Hızlı failover - 2 başarısız check sonrası DOWN
-- ✅ Otomatik recovery - 2 başarılı check sonrası UP
+**Features:**
+- ✅ **DNS usage** - Not affected by IP changes (kind-worker, kind-worker2, kind-worker3)
+- ✅ **Health check** - Checks `/healthz` endpoint every 2 seconds
+- ✅ **Fast failover** - Worker marked DOWN after 2 failed checks
+- ✅ **Automatic recovery** - Worker returns to UP status after 2 successful checks
+- ✅ **Round-robin** - Requests distributed sequentially to workers (worker1→worker2→worker3)
+- ✅ **Layer 7 check** - HTTP status code validation (200-499 considered successful)
 
 ### 2. Makefile Hedefleri
 
@@ -125,15 +196,59 @@ http://localhost:8404
 ### DNS Çözümlemesi
 HAProxy, Docker'ın built-in DNS'ini kullanır (`127.0.0.11:53`). Bu sayede worker node IP'leri değişse bile otomatik olarak çözümlenir.
 
-## 🔍 HA Testi
+## 🔍 HA Testing
 
-### Worker Node Durdurma
+### Scenario 1: Normal State (All Workers UP)
+
 ```bash
-# Worker1'i durdur
+# Cluster status
+kubectl get nodes | grep worker
+# kind-worker    Ready    <none>   20m   v1.31.0
+# kind-worker2   Ready    <none>   20m   v1.31.0
+# kind-worker3   Ready    <none>   20m   v1.31.0
+
+# HAProxy stats
+curl -s http://localhost:8404 | grep "workers_http"
+# Backend: workers_http - Active: 3/3
+
+# Test - Round-robin in action
+for i in {1..6}; do
+  curl -s http://api-csharp.local/api/datetime | jq -r '.time'
+done
+# Requests go to worker1 → worker2 → worker3 → worker1 ... sequentially
+```
+
+### Scenario 2: Worker Node Failure (Failover Test)
+
+```bash
+# Stop worker1
 docker stop kind-worker
 
-# Servisler hala erişilebilir (worker2 & worker3)
+# HAProxy automatically marks worker1 as DOWN (within 4 seconds)
+curl -s http://localhost:8404 | grep "worker1"
+# worker1: DOWN
+
+# Services still accessible (via worker2 & worker3)
 curl http://api-csharp.local/api/datetime
+# ✅ WORKING! HAProxy routes to worker2 and worker3
+```
+
+### Scenario 3: Worker Node Recovery (Recovery Test)
+
+```bash
+# Start worker1 again
+docker start kind-worker
+
+# Wait 4-6 seconds (for 2 successful health checks)
+sleep 6
+
+# HAProxy automatically adds worker1 back to the pool
+curl -s http://localhost:8404 | grep "worker1"
+# worker1: UP
+
+# Worker1 is back in round-robin rotation
+curl http://api-csharp.local/api/datetime
+# ✅ WORKING! Now all worker1, worker2, worker3 are in use
 ```
 
 ### HAProxy Stats Kontrolü
