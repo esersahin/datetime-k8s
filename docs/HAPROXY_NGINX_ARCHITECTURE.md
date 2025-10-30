@@ -119,9 +119,30 @@ backend workers_http
 
 ---
 
-### 2. Worker Nodes (Kind Containers)
+### 2. Kubernetes Cluster Topology
 
-**Worker Node'ları Kontrol Et**:
+**Cluster Node'larını Kontrol Et**:
+
+```bash
+kubectl get nodes -o wide
+```
+
+**Çıktı**:
+```
+NAME                  STATUS   ROLES           AGE   VERSION
+kind-control-plane    Ready    control-plane   20m   v1.31.0
+kind-control-plane2   Ready    control-plane   20m   v1.31.0
+kind-control-plane3   Ready    control-plane   20m   v1.31.0
+kind-worker           Ready    <none>          19m   v1.31.0
+kind-worker2          Ready    <none>          19m   v1.31.0
+kind-worker3          Ready    <none>          19m   v1.31.0
+```
+
+**Cluster Yapısı**:
+- **3 Control-Plane Nodes**: HA Kubernetes yönetimi
+- **3 Worker Nodes**: Uygulama workload'ları ve Ingress Controller
+
+**Worker Node Container'larını Kontrol Et**:
 
 ```bash
 docker ps --filter name=kind-worker --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
@@ -135,7 +156,7 @@ kind-worker    Up 15 minutes
 kind-worker2   Up 15 minutes
 ```
 
-**Not**: Worker node'ların **port mapping'i yok**! (extraPortMappings kaldırıldı)
+**Önemli Not**: Worker node'ların **port mapping'i yok**! (extraPortMappings kaldırıldı)
 - HAProxy üzerinden erişim sağlanıyor
 - hostNetwork: true sayesinde worker container'ların port 80'i dinliyor
 
@@ -216,7 +237,7 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
 
 ---
 
-## 🔄 İki Katmanlı Load Balancing Mimarisi
+## 🔄 İki Katmanlı Load Balancing Mimarisi (HA Cluster)
 
 ### Katman 1: HAProxy (External Load Balancer)
 
@@ -248,10 +269,15 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
            ↓
      (Round-robin seçimi)
            ↓
-┌─────────┬──────────┬──────────┐
-│ Worker1 │ Worker2  │ Worker3  │  ← Kind Containers
-│ :80     │ :80      │ :80      │
-└─────────┴──────────┴──────────┘
+┌───────────────────────────────────────────┐
+│  Kind Cluster                             │
+│  (3 Control-Plane + 3 Worker Nodes)       │
+│                                           │
+│  ┌─────────┬──────────┬──────────┐       │
+│  │ Worker1 │ Worker2  │ Worker3  │       │
+│  │ :80     │ :80      │ :80      │       │
+│  └─────────┴──────────┴──────────┘       │
+└───────────────────────────────────────────┘
 ```
 
 **HAProxy Ne Yapar?**
@@ -826,18 +852,24 @@ Ingress Controller (Internal)
 Services & Pods
 ```
 
-**Bizim Setup**:
+**Bizim Setup (HA Cluster)**:
 
 ```
 localhost:80
     ↓
 HAProxy (External LB - Cloud LB'yi simüle ediyor)
     ↓
-Kind Cluster (3 control-plane + 3 worker)
+Kind Cluster
+  ├─ 3 Control-Plane Nodes (HA - Kubernetes yönetimi)
+  └─ 3 Worker Nodes (HA - Uygulama workload'ları)
     ↓
 NGINX Ingress Controller (Internal Router)
+  ├─ 3 Replica (Her worker'da 1 replica)
+  └─ hostNetwork: true
     ↓
-Services & Pods
+Services & Pods (Polyglot mikroservisler)
+  ├─ C# API/Web (datetime-api-csharp, datetime-web-csharp)
+  └─ Go API/Web (datetime-api-go, datetime-web-go)
 ```
 
 **Avantajı**: Production'a geçerken sadece HAProxy → Cloud LB değişimi yeterli!
@@ -846,18 +878,23 @@ Services & Pods
 
 ## 🎬 Örnek Senaryolar
 
-### Senaryo 1: Normal Durum
+### Senaryo 1: Normal Durum (HA Cluster - Tüm Node'lar UP)
 
 ```
-✅ worker1, worker2, worker3 → Hepsi UP
-✅ HAProxy round-robin yapıyor
-✅ NGINX Ingress her worker'da çalışıyor
+Cluster Durumu:
+  ✅ 3 Control-Plane Nodes → UP (Kubernetes yönetimi)
+  ✅ 3 Worker Nodes → UP (kind-worker, kind-worker2, kind-worker3)
+  ✅ 3 NGINX Ingress Pod'ları → UP (Her worker'da 1 tane)
+
+Load Balancing:
+  ✅ HAProxy round-robin yapıyor (worker1 → worker2 → worker3)
+  ✅ NGINX Ingress her worker'da çalışıyor (hostNetwork: true)
 
 Test:
   $ curl http://api-csharp.local/api/datetime
-  → HAProxy: worker1 seçildi
+  → HAProxy: worker1 seçildi (round-robin)
   → NGINX (worker1): api-csharp.local → datetime-api-csharp-service
-  → datetime-api-csharp-service: pod-1 seçildi
+  → datetime-api-csharp-service: pod-1 seçildi (kube-proxy)
   → Response: 200 OK
 ```
 

@@ -122,9 +122,30 @@ backend workers_http
 
 ---
 
-### 2. Worker Nodes (Kind Containers)
+### 2. Kubernetes Cluster Topology
 
-**Check Worker Nodes**:
+**Check Cluster Nodes**:
+
+```bash
+kubectl get nodes -o wide
+```
+
+**Output**:
+```
+NAME                  STATUS   ROLES           AGE   VERSION
+kind-control-plane    Ready    control-plane   20m   v1.31.0
+kind-control-plane2   Ready    control-plane   20m   v1.31.0
+kind-control-plane3   Ready    control-plane   20m   v1.31.0
+kind-worker           Ready    <none>          19m   v1.31.0
+kind-worker2          Ready    <none>          19m   v1.31.0
+kind-worker3          Ready    <none>          19m   v1.31.0
+```
+
+**Cluster Structure**:
+- **3 Control-Plane Nodes**: HA Kubernetes management
+- **3 Worker Nodes**: Application workloads and Ingress Controller
+
+**Check Worker Node Containers**:
 
 ```bash
 docker ps --filter name=kind-worker --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
@@ -139,7 +160,7 @@ kind-worker    Up 15 minutes
 kind-worker2   Up 15 minutes
 ```
 
-**Note**: Worker nodes have **no port mapping**! (extraPortMappings removed)
+**Important Note**: Worker nodes have **no port mapping**! (extraPortMappings removed)
 
 - Access is provided through HAProxy
 - hostNetwork: true allows worker containers to listen on port 80
@@ -225,7 +246,7 @@ rules:
 
 ---
 
-## 🔄 Two-Layer Load Balancing Architecture
+## 🔄 Two-Layer Load Balancing Architecture (HA Cluster)
 
 ### Layer 1: HAProxy (External Load Balancer)
 
@@ -257,10 +278,15 @@ rules:
            ↓
      (Round-robin selection)
            ↓
-┌─────────┬──────────┬──────────┐
-│ Worker1 │ Worker2  │ Worker3  │  ← Kind Containers
-│ :80     │ :80      │ :80      │
-└─────────┴──────────┴──────────┘
+┌───────────────────────────────────────────┐
+│  Kind Cluster                             │
+│  (3 Control-Plane + 3 Worker Nodes)       │
+│                                           │
+│  ┌─────────┬──────────┬──────────┐       │
+│  │ Worker1 │ Worker2  │ Worker3  │       │
+│  │ :80     │ :80      │ :80      │       │
+│  └─────────┴──────────┴──────────┘       │
+└───────────────────────────────────────────┘
 ```
 
 **What Does HAProxy Do?**
@@ -872,18 +898,24 @@ Ingress Controller (Internal)
 Services & Pods
 ```
 
-**Our Setup**:
+**Our Setup (HA Cluster)**:
 
 ```
 localhost:80
     ↓
 HAProxy (External LB - simulating Cloud LB)
     ↓
-Kind Cluster (3 control-plane + 3 worker)
+Kind Cluster
+  ├─ 3 Control-Plane Nodes (HA - Kubernetes management)
+  └─ 3 Worker Nodes (HA - Application workloads)
     ↓
 NGINX Ingress Controller (Internal Router)
+  ├─ 3 Replicas (1 per worker node)
+  └─ hostNetwork: true
     ↓
-Services & Pods
+Services & Pods (Polyglot microservices)
+  ├─ C# API/Web (datetime-api-csharp, datetime-web-csharp)
+  └─ Go API/Web (datetime-api-go, datetime-web-go)
 ```
 
 **Advantage**: When moving to production, only need to change HAProxy → Cloud LB!
@@ -892,18 +924,23 @@ Services & Pods
 
 ## 🎬 Example Scenarios
 
-### Scenario 1: Normal State
+### Scenario 1: Normal State (HA Cluster - All Nodes UP)
 
 ```
-✅ worker1, worker2, worker3 → All UP
-✅ HAProxy doing round-robin
-✅ NGINX Ingress running on each worker
+Cluster State:
+  ✅ 3 Control-Plane Nodes → UP (Kubernetes management)
+  ✅ 3 Worker Nodes → UP (kind-worker, kind-worker2, kind-worker3)
+  ✅ 3 NGINX Ingress Pods → UP (1 per worker node)
+
+Load Balancing:
+  ✅ HAProxy doing round-robin (worker1 → worker2 → worker3)
+  ✅ NGINX Ingress running on each worker (hostNetwork: true)
 
 Test:
   $ curl http://api-csharp.local/api/datetime
-  → HAProxy: worker1 selected
+  → HAProxy: worker1 selected (round-robin)
   → NGINX (worker1): api-csharp.local → datetime-api-csharp-service
-  → datetime-api-csharp-service: pod-1 selected
+  → datetime-api-csharp-service: pod-1 selected (kube-proxy)
   → Response: 200 OK
 ```
 
