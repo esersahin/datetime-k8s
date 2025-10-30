@@ -306,7 +306,6 @@ curl http://web-csharp.local
 ## 📚 Detaylı Bilgi
 
 - **[LOAD_BALANCING](LOAD_BALANCING.md)**: HAProxy ve load balancing detayları
-- **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)**: Tüm çözümler ve detaylı açıklama
 - **[INGRESS_ROUTING](INGRESS_ROUTING.md)**: Routing mekanizması
 - **[README](../README.md)**: Genel dokümantasyon
 

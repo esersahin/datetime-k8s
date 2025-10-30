@@ -553,8 +553,6 @@ datetime-k8s/
 │   ├── HAPROXY_LOADBALANCER.md        # 📘 HAProxy load balancer kurulumu
 │   ├── HAPROXY_NGINX_ARCHITECTURE.en.md # 📘 HAProxy vs NGINX architecture
 │   ├── HAPROXY_NGINX_ARCHITECTURE.md  # 📘 HAProxy vs NGINX mimarisi
-│   ├── INGRESS_CONTROLLER_FIX.en.md   # 📘 Ingress fix methods
-│   ├── INGRESS_CONTROLLER_FIX.md      # 📘 Ingress düzeltme yöntemleri
 │   ├── INGRESS_ROUTING.en.md          # 📘 Ingress routing explanation
 │   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
 │   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
@@ -1035,7 +1033,6 @@ make redeploy
 - **🔍 Kubernetes Debugging**: [DEBUGGING_KUBERNETES](docs/DEBUGGING_KUBERNETES.md) - Kubernetes sorun giderme ve debugging rehberi (CrashLoopBackOff, JSON serialization, globalization hataları)
 - **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md) - Ingress routing açıklaması ve yapılandırması
 - **📦 Ingress Kurulumu**: [INGRESS_SETUP](docs/INGRESS_SETUP.md) - NGINX Ingress Controller kurulum rehberi
-- **🔨 Ingress Controller Düzeltme**: [INGRESS_CONTROLLER_FIX](docs/INGRESS_CONTROLLER_FIX.md) - Ingress sorunlarını düzeltme yöntemleri
 - **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü
 - **👥 Multi-node Cluster**: [WORKER_NODES](docs/WORKER_NODES.md) - Çok node cluster kurulum ve yönetim rehberi
 

@@ -576,9 +576,8 @@ show-nodes:
 
 **Updated Documents:**
 1. `WORKER_NODES.md` - HA cluster setup
-2. `INGRESS_CONTROLLER_FIX.md` - Worker node migration
-3. `LOAD_BALANCING.md` - HAProxy strategies
-4. `README.md` - Polyglot microservice structure
+2. `LOAD_BALANCING.md` - HAProxy strategies
+3. `README.md` - Polyglot microservice structure
 
 ---
 
@@ -1070,12 +1069,11 @@ Post-deployment verification:
 
 11. **[INGRESS_SETUP](INGRESS_SETUP.en.md)** - NGINX Ingress Controller setup
 12. **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** - Ingress routing and traffic management
-13. **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** - Troubleshooting and fixes
 
 ### Troubleshooting
 
-14. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
-15. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
+13. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
+14. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
 
 ### Project Summary
 

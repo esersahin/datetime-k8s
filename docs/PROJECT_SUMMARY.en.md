@@ -169,7 +169,6 @@ make clean-all       # Clean everything
 | **[INGRESS_SETUP](INGRESS_SETUP.en.md)** | Ingress setup | Worker nodes |
 | **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** | Traffic routing | 4 domains |
 | **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** | HAProxy | HA setup |
-| **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** | Troubleshooting | All issues |
 
 ### Troubleshooting Documents
 
