@@ -14,13 +14,14 @@
 ## 📋 İçindekiler
 
 1. [Önerilen Yöntem: Özel YAML](#-önerilen-yöntem-özel-yaml)
-2. [Kullanım](#-kullanım)
-3. [Doğrulama](#-doğrulama)
-4. [Sorun Giderme](#-sorun-giderme)
-5. [Dosya Özellikleri](#-dosya-özellikleri)
-6. [Neden Bu Yöntem?](#-neden-bu-yöntem)
-7. [Hızlı Test](#-hızlı-test)
-8. [Detaylı Bilgi](#-detaylı-bilgi)
+2. [Yüksek Erişilebilirlik (HA) Yapısı](#-yüksek-erişilebilirlik-ha-yapısı)
+3. [Kullanım](#-kullanım)
+4. [Doğrulama](#-doğrulama)
+5. [Sorun Giderme](#-sorun-giderme)
+6. [Dosya Özellikleri](#-dosya-özellikleri)
+7. [Neden Bu Yöntem?](#-neden-bu-yöntem)
+8. [Hızlı Test](#-hızlı-test)
+9. [Detaylı Bilgi](#-detaylı-bilgi)
 
 ---
 
@@ -30,15 +31,61 @@ Projede `k8s/ingress-nginx-deployment.yaml` dosyası hazır! Bu dosya Kind için
 
 ```yaml
 spec:
+  replicas: 3  # HA için 3 replica (her worker node'da 1 replica)
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # Zero downtime
+      maxSurge: 1        # Progressive rollout
+
   template:
     spec:
-      hostNetwork: true # localhost:80/443 için
+      hostNetwork: true  # Host ağını kullan (port 80/443)
       nodeSelector:
-        ingress-ready: "true" # Control-plane'de çalış
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          effect: NoSchedule # Taint'i tolere et
+        ingress-ready: "true"  # Worker node'larda çalış
+      # tolerations yok - control-plane'de ÇALIŞMASIN
 ```
+
+## 🏗️ Yüksek Erişilebilirlik (HA) Yapısı
+
+### Cluster Mimarisi
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                 3 Control Plane Nodes                   │
+│  (Kubernetes yönetimi - Ingress çalışmaz)              │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│              3 Worker Nodes (HA Setup)                  │
+│                                                         │
+│  Worker-1          Worker-2          Worker-3          │
+│  ┌──────────┐      ┌──────────┐      ┌──────────┐      │
+│  │ Ingress  │      │ Ingress  │      │ Ingress  │      │
+│  │ Replica1 │      │ Replica2 │      │ Replica3 │      │
+│  │ :80/443  │      │ :80/443  │      │ :80/443  │      │
+│  └──────────┘      └──────────┘      └──────────┘      │
+│                                                         │
+│  ingress-ready=true  ingress-ready=true  ingress-ready=true │
+└─────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+               ┌─────────────────┐
+               │   HAProxy LB    │
+               │  localhost:80   │
+               │  localhost:443  │
+               └─────────────────┘
+```
+
+### HA Özellikleri
+
+- ✅ **3 Replica**: Her worker node'da 1 Ingress controller
+- ✅ **Zero Downtime**: Rolling update ile kesintisiz güncelleme
+- ✅ **Load Balancing**: HAProxy trafiği 3 worker'a dağıtır
+- ✅ **Fault Tolerance**: 1-2 node çökerse sistem çalışmaya devam eder
+- ✅ **Progressive Rollout**: Aynı anda sadece 1 replica güncellenir
 
 ## 🚀 Kullanım
 
@@ -82,9 +129,10 @@ kubectl get pods -n ingress-nginx -o wide
 ## ✅ Doğrulama
 
 ```bash
-# 1. Pod control-plane'de mi?
+# 1. Pod'lar worker node'larda mı? (3 replica)
 kubectl get pods -n ingress-nginx -o wide
-# NODE: kind-control-plane olmalı
+# NODE: kind-worker, kind-worker2, kind-worker3 olmalı
+# READY: 3/3
 
 # 2. hostNetwork true mu?
 kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o yaml | grep hostNetwork
@@ -96,34 +144,83 @@ kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o ya
 #   ingress-ready: "true"
 #   kubernetes.io/os: linux
 
-# 4. Test
+# 4. Tolerations yok mu? (control-plane'de çalışmamalı)
+kubectl get pod -n ingress-nginx -l app.kubernetes.io/component=controller -o yaml | grep -A 2 tolerations
+# Çıktı boş olmalı veya sadece node.kubernetes.io/not-ready gibi varsayılan tolerations
+
+# 5. RollingUpdate strategy doğru mu?
+kubectl get deployment -n ingress-nginx ingress-nginx-controller -o yaml | grep -A 3 "strategy:"
+# maxSurge: 1
+# maxUnavailable: 0
+
+# 6. Test - HAProxy üzerinden erişim
 curl http://api-csharp.local/api/datetime
+curl http://web-csharp.local
 ```
 
 ## 🔧 Sorun Giderme
 
-### Sorun: Pod worker node'da
+### Sorun 1: Pod'lar control-plane'de çalışıyor
 
 ```bash
 kubectl get pods -n ingress-nginx -o wide
-# NODE: kind-worker veya kind-worker2
+# NODE: kind-control-plane, kind-control-plane2, kind-control-plane3 ❌ YANLIŞ!
 
-# Çözüm 1: YAML'ı kullan (önerilen)
-kubectl delete namespace ingress-nginx
+# Çözüm 1: Deployment'ı güncelle (önerilen)
+kubectl delete deployment -n ingress-nginx ingress-nginx-controller
 kubectl apply -f k8s/ingress-nginx-deployment.yaml
 
-# Çözüm 2: Patch uygula
-make fix-ingress
+# Çözüm 2: Cluster'ı yeniden oluştur
+make clean-all
+make deploy
 ```
 
-### Sorun: YAML dosyası yok
+### Sorun 2: Worker node'larda ingress-ready label yok
 
 ```bash
-# Dosyayı oluştur veya artifact'tan kopyala
-# k8s/ingress-nginx-deployment.yaml
+kubectl get nodes --show-labels | grep ingress-ready
+# Çıktı boş ise label yok
 
-# Veya patch kullan
-make fix-ingress
+# Çözüm: Label ekle
+kubectl label node kind-worker ingress-ready=true --overwrite
+kubectl label node kind-worker2 ingress-ready=true --overwrite
+kubectl label node kind-worker3 ingress-ready=true --overwrite
+
+# Ingress pod'larını yeniden oluştur
+kubectl rollout restart deployment -n ingress-nginx ingress-nginx-controller
+```
+
+### Sorun 3: Pod'lar Pending durumunda
+
+```bash
+kubectl get pods -n ingress-nginx
+# STATUS: Pending
+
+kubectl describe pod -n ingress-nginx <pod-name>
+# 0/6 nodes are available: 3 node(s) had untolerated taint, 3 node(s) didn't match Pod's node affinity/selector
+
+# Çözüm: Worker node'lara label ekle (Sorun 2'ye bak)
+```
+
+### Sorun 4: HAProxy üzerinden erişim çalışmıyor
+
+```bash
+curl http://api-csharp.local/api/datetime
+# Connection refused veya timeout
+
+# 1. HAProxy çalışıyor mu?
+docker ps | grep haproxy
+
+# 2. HAProxy config doğru mu?
+cat haproxy/haproxy.cfg | grep -A 5 "backend k8s"
+
+# 3. Ingress pod'ları hazır mı?
+kubectl get pods -n ingress-nginx
+
+# Çözüm: HAProxy'yi yeniden başlat
+cd haproxy
+docker-compose down
+docker-compose up -d
 ```
 
 ## 📝 Dosya Özellikleri
@@ -131,52 +228,88 @@ make fix-ingress
 **k8s/ingress-nginx-deployment.yaml**:
 
 - 🔹 Tam NGINX Ingress Controller deployment
-- 🔹 Kind için optimize edilmiş
-- 🔹 ~400 satır (tüm gerekli resource'lar)
-- 🔹 Namespace, RBAC, Service, Deployment, IngressClass
+- 🔹 HA setup için optimize edilmiş (3 replica)
+- 🔹 Worker node'lara deployment (nodeSelector)
+- 🔹 Zero downtime rollout (RollingUpdate strategy)
+- 🔹 ~450 satır (tüm gerekli resource'lar)
 
 **İçerik**:
 
 - ✅ Namespace (ingress-nginx)
 - ✅ ServiceAccount
-- ✅ ConfigMap
+- ✅ ConfigMap (optimize edilmiş ayarlarla)
 - ✅ ClusterRole & ClusterRoleBinding
 - ✅ Role & RoleBinding
 - ✅ Service (NodePort)
-- ✅ Deployment (⭐ kritik ayarlarla)
+- ✅ Deployment (⭐ kritik ayarlarla):
+  - `replicas: 3` - HA için
+  - `hostNetwork: true` - Host network kullanımı
+  - `nodeSelector: ingress-ready=true` - Worker node placement
+  - `maxSurge: 1, maxUnavailable: 0` - Progressive rollout
+  - ReadinessProbe: `initialDelaySeconds: 5, periodSeconds: 5` - Optimize edilmiş
 - ✅ IngressClass
+
+**kind-config.yaml**:
+
+- 🔹 3 Control Plane Nodes (HA)
+- 🔹 3 Worker Nodes (Ingress için)
+- 🔹 Worker node'larda `ingress-ready=true` label
+- 🔹 Port mapping YOK (HAProxy kullanılıyor)
 
 ## 🎓 Neden Bu Yöntem?
 
-| Özellik        | Özel YAML    | Patch       | Kind Varsayılan |
-| -------------- | ------------ | ----------- | --------------- |
-| **Kontrol**    | ✅ Tam       | ⚠️ Kısmi    | ❌ Yok          |
-| **Versiyon**   | ✅ Git'te    | ❌ Runtime  | ❌ Remote       |
-| **Tutarlılık** | ✅ Her zaman | ⚠️ Manuel   | ❌ Rastgele     |
-| **Basitlik**   | ✅ Tek komut | ⚠️ İki adım | ❌ Sorunlu      |
+### Özel YAML vs Diğer Yöntemler
+
+| Özellik              | Özel YAML (Mevcut) | Patch          | Kind Varsayılan        |
+| -------------------- | ------------------ | -------------- | ---------------------- |
+| **Kontrol**          | ✅ Tam             | ⚠️ Kısmi       | ❌ Yok                 |
+| **HA Support**       | ✅ 3 replica       | ❌ 1 replica   | ❌ 1 replica           |
+| **Worker Placement** | ✅ Otomatik        | ⚠️ Manuel      | ❌ Control-plane       |
+| **Versiyon Kontrol** | ✅ Git'te          | ❌ Runtime     | ❌ Remote              |
+| **Tutarlılık**       | ✅ Her zaman       | ⚠️ Manuel      | ❌ Rastgele            |
+| **Zero Downtime**    | ✅ RollingUpdate   | ❌ Yok         | ❌ Yok                 |
+| **HAProxy Entegre**  | ✅ Uyumlu          | ⚠️ Ekstra ayar | ❌ Uyumsuz             |
+| **Production Ready** | ✅ Evet            | ❌ Hayır       | ❌ Hayır               |
+
+### Avantajlar
+
+- ✅ **High Availability**: 3 replica, fault tolerance
+- ✅ **Best Practice**: Worker node'larda çalışma (control-plane temiz kalır)
+- ✅ **Zero Downtime**: Progressive rollout ile kesintisiz güncelleme
+- ✅ **Load Balancing**: HAProxy ile trafik dağıtımı
+- ✅ **Consistent**: Git'te versiyonlanmış, her deployment aynı
+- ✅ **Optimized**: ReadinessProbe, RollingUpdate strategy optimize edilmiş
 
 ## 🚀 Hızlı Test
 
 ```bash
-# 1. Cluster oluştur
+# 1. Cluster oluştur (HA setup ile)
 make clean-all
 make deploy
 
-# 2. Kontrol et
+# 2. Node'ları kontrol et (3 control-plane + 3 worker olmalı)
+kubectl get nodes
+
+# 3. Ingress pod'larını kontrol et (3 replica, worker node'larda)
 kubectl get pods -n ingress-nginx -o wide
 
-# 3. Test et
-curl http://api-csharp.local/api/datetime
+# 4. HAProxy durumu
+docker ps | grep haproxy
 
-# Beklenen: JSON response ✅
+# 5. Test et (HAProxy üzerinden)
+curl http://api-csharp.local/api/datetime
+curl http://web-csharp.local
+
+# Beklenen: JSON response ve HTML response ✅
 ```
 
 ## 📚 Detaylı Bilgi
 
+- **[LOAD_BALANCING](LOAD_BALANCING.md)**: HAProxy ve load balancing detayları
 - **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)**: Tüm çözümler ve detaylı açıklama
 - **[INGRESS_ROUTING](INGRESS_ROUTING.md)**: Routing mekanizması
 - **[README](../README.md)**: Genel dokümantasyon
 
 ---
 
-**Sonuç**: `k8s/ingress-nginx-deployment.yaml` kullanarak Ingress Controller her zaman control-plane'de çalışacak! 🎉
+**Sonuç**: `k8s/ingress-nginx-deployment.yaml` kullanarak Ingress Controller HA yapısıyla worker node'larda çalışacak! 🎉
