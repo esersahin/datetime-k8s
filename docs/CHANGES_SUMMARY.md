@@ -1071,17 +1071,16 @@ Deployment sonrası doğrulama:
 11. **[INGRESS_SETUP](INGRESS_SETUP.md)** - NGINX Ingress Controller kurulum
 12. **[INGRESS_ROUTING](INGRESS_ROUTING.md)** - Ingress routing ve traffic yönetimi
 13. **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.md)** - Sorun giderme ve düzeltmeler
-14. **[INGRESS-WORKER-NODE-MIGRATION](INGRESS-WORKER-NODE-MIGRATION.md)** - Worker node'a taşıma rehberi
 
 ### Sorun Giderme
 
-15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** - Kubernetes debugging ve troubleshooting
-16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** - macOS network sorunları (5s gecikme çözümü)
+14. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** - Kubernetes debugging ve troubleshooting
+15. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** - macOS network sorunları (5s gecikme çözümü)
 
 ### Proje Özeti
 
-17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
-18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
+16. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
+17. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
 
 ---
 

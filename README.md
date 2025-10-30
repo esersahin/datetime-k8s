@@ -559,8 +559,6 @@ datetime-k8s/
 │   ├── INGRESS_ROUTING.md             # 📘 Ingress routing açıklaması
 │   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
 │   ├── INGRESS_SETUP.md               # 📘 Ingress kurulum rehberi
-│   ├── INGRESS-WORKER-NODE-MIGRATION.en.md # 📘 Ingress worker node migration
-│   ├── INGRESS-WORKER-NODE-MIGRATION.md # 📘 Ingress worker node taşıma
 │   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
 │   ├── LOAD_BALANCING.md              # 📘 Yük dengeleme stratejileri
 │   ├── MACOS_NETWORK_FIX.en.md        # 📘 macOS network troubleshooting
@@ -1038,7 +1036,6 @@ make redeploy
 - **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md) - Ingress routing açıklaması ve yapılandırması
 - **📦 Ingress Kurulumu**: [INGRESS_SETUP](docs/INGRESS_SETUP.md) - NGINX Ingress Controller kurulum rehberi
 - **🔨 Ingress Controller Düzeltme**: [INGRESS_CONTROLLER_FIX](docs/INGRESS_CONTROLLER_FIX.md) - Ingress sorunlarını düzeltme yöntemleri
-- **🔄 Ingress Controller Migration**: [INGRESS_WORKER_NODE_MIGRATION](docs/INGRESS-WORKER-NODE-MIGRATION.md) - Ingress controller'ı worker node'lara taşıma, deployment optimizasyonu ve troubleshooting rehberi
 - **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü
 - **👥 Multi-node Cluster**: [WORKER_NODES](docs/WORKER_NODES.md) - Çok node cluster kurulum ve yönetim rehberi
 

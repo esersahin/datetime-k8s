@@ -1071,17 +1071,16 @@ Post-deployment verification:
 11. **[INGRESS_SETUP](INGRESS_SETUP.en.md)** - NGINX Ingress Controller setup
 12. **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** - Ingress routing and traffic management
 13. **[INGRESS_CONTROLLER_FIX](INGRESS_CONTROLLER_FIX.en.md)** - Troubleshooting and fixes
-14. **[INGRESS-WORKER-NODE-MIGRATION](INGRESS-WORKER-NODE-MIGRATION.en.md)** - Worker node migration guide
 
 ### Troubleshooting
 
-15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
-16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
+14. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
+15. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
 
 ### Project Summary
 
-17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
-18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
+16. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
+17. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
 
 ---
 

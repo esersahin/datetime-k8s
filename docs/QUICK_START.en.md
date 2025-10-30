@@ -373,8 +373,6 @@ datetime-k8s/
 │   ├── INGRESS_ROUTING.md             # 📘 Ingress routing explanation (TR)
 │   ├── INGRESS_SETUP.en.md            # 📘 Ingress setup guide
 │   ├── INGRESS_SETUP.md               # 📘 Ingress setup guide (TR)
-│   ├── INGRESS-WORKER-NODE-MIGRATION.en.md # 📘 Ingress worker node migration
-│   ├── INGRESS-WORKER-NODE-MIGRATION.md # 📘 Ingress worker node migration (TR)
 │   ├── LOAD_BALANCING.en.md           # 📘 Load balancing strategies
 │   ├── LOAD_BALANCING.md              # 📘 Load balancing strategies (TR)
 │   ├── MACOS_NETWORK_FIX.en.md        # 📘 macOS network troubleshooting
