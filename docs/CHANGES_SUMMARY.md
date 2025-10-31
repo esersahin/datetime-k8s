@@ -1047,38 +1047,40 @@ Deployment sonrası doğrulama:
 
 1. **[ARCHITECTURE](ARCHITECTURE.md)** - Detaylı mimari diyagramlar, circuit breaker, rate limiting
 2. **[ARCHITECTURE_C4](ARCHITECTURE_C4.md)** - C4 model (Context, Container, Component, Deployment)
-3. **[HAPROXY_NGINX_ARCHITECTURE](HAPROXY_NGINX_ARCHITECTURE.md)** - Load balancer mimarisi karşılaştırma
+3. **[architecture-diagram](architecture-diagram.md)** - Mimari diyagram görselleri ve açıklamaları
+4. **[c4-diagrams](c4-diagrams.md)** - C4 model diyagramları (PlantUML/Mermaid formatında)
+5. **[HAPROXY_NGINX_ARCHITECTURE](HAPROXY_NGINX_ARCHITECTURE.md)** - Load balancer mimarisi karşılaştırma
 
 ### Deployment ve Kurulum
 
-4. **[QUICK_START](QUICK_START.md)** - Hızlı başlangıç rehberi
-5. **[WORKER_NODES](WORKER_NODES.md)** - Multi-node cluster kurulumu ve yönetimi
-6. **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.md)** - Rolling, Canary, Blue-Green stratejileri
+6. **[QUICK_START](QUICK_START.md)** - Hızlı başlangıç rehberi
+7. **[WORKER_NODES](WORKER_NODES.md)** - Multi-node cluster kurulumu ve yönetimi
+8. **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.md)** - Rolling, Canary, Blue-Green stratejileri
 
 ### Optimizasyon ve Performance
 
-7. **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.md)** - Image optimizasyon rehberi (277 MB → 32.6 MB)
-8. **[LOAD_BALANCING](LOAD_BALANCING.md)** - Load balancing stratejileri ve best practices
+9. **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.md)** - Image optimizasyon rehberi (277 MB → 32.6 MB)
+10. **[LOAD_BALANCING](LOAD_BALANCING.md)** - Load balancing stratejileri ve best practices
 
 ### Servisler ve İletişim
 
-9. **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.md)** - Mikroservis iletişimi, circuit breaker, retry
-10. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** - HAProxy kurulum ve yapılandırma
+11. **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.md)** - Mikroservis iletişimi, circuit breaker, retry
+12. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** - HAProxy kurulum ve yapılandırma
 
 ### Ingress ve Networking
 
-11. **[INGRESS_SETUP](INGRESS_SETUP.md)** - NGINX Ingress Controller kurulum
-12. **[INGRESS_ROUTING](INGRESS_ROUTING.md)** - Ingress routing ve traffic yönetimi
+13. **[INGRESS_SETUP](INGRESS_SETUP.md)** - NGINX Ingress Controller kurulum
+14. **[INGRESS_ROUTING](INGRESS_ROUTING.md)** - Ingress routing ve traffic yönetimi
 
 ### Sorun Giderme
 
-13. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** - Kubernetes debugging ve troubleshooting
-14. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** - macOS network sorunları (5s gecikme çözümü)
+15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** - Kubernetes debugging ve troubleshooting
+16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** - macOS network sorunları (5s gecikme çözümü)
 
 ### Proje Özeti
 
-16. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
-17. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
+17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
+18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
 
 ---
 
@@ -1198,6 +1200,6 @@ Deployment sonrası doğrulama:
 
 ---
 
-**Son Güncelleme:** 2025-10-29
-**Versiyon:** 2.0
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
 **Proje:** DateTime Kubernetes Polyglot Microservices

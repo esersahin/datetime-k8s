@@ -1047,38 +1047,40 @@ Post-deployment verification:
 
 1. **[ARCHITECTURE](ARCHITECTURE.en.md)** - Detailed architecture diagrams, circuit breaker, rate limiting
 2. **[ARCHITECTURE_C4](ARCHITECTURE_C4.en.md)** - C4 model (Context, Container, Component, Deployment)
-3. **[HAPROXY_NGINX_ARCHITECTURE](HAPROXY_NGINX_ARCHITECTURE.en.md)** - Load balancer architecture comparison
+3. **[architecture-diagram](architecture-diagram.md)** - Architecture diagram visuals and descriptions
+4. **[c4-diagrams](c4-diagrams.md)** - C4 model diagrams (PlantUML/Mermaid format)
+5. **[HAPROXY_NGINX_ARCHITECTURE](HAPROXY_NGINX_ARCHITECTURE.en.md)** - Load balancer architecture comparison
 
 ### Deployment and Setup
 
-4. **[QUICK_START](QUICK_START.en.md)** - Quick start guide
-5. **[WORKER_NODES](WORKER_NODES.en.md)** - Multi-node cluster setup and management
-6. **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.en.md)** - Rolling, Canary, Blue-Green strategies
+6. **[QUICK_START](QUICK_START.en.md)** - Quick start guide
+7. **[WORKER_NODES](WORKER_NODES.en.md)** - Multi-node cluster setup and management
+8. **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.en.md)** - Rolling, Canary, Blue-Green strategies
 
 ### Optimization and Performance
 
-7. **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.en.md)** - Image optimization guide (277 MB → 32.6 MB)
-8. **[LOAD_BALANCING](LOAD_BALANCING.en.md)** - Load balancing strategies and best practices
+9. **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.en.md)** - Image optimization guide (277 MB → 32.6 MB)
+10. **[LOAD_BALANCING](LOAD_BALANCING.en.md)** - Load balancing strategies and best practices
 
 ### Services and Communication
 
-9. **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.en.md)** - Microservice communication, circuit breaker, retry
-10. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** - HAProxy setup and configuration
+11. **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.en.md)** - Microservice communication, circuit breaker, retry
+12. **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** - HAProxy setup and configuration
 
 ### Ingress and Networking
 
-11. **[INGRESS_SETUP](INGRESS_SETUP.en.md)** - NGINX Ingress Controller setup
-12. **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** - Ingress routing and traffic management
+13. **[INGRESS_SETUP](INGRESS_SETUP.en.md)** - NGINX Ingress Controller setup
+14. **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** - Ingress routing and traffic management
 
 ### Troubleshooting
 
-13. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
-14. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
+15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
+16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
 
 ### Project Summary
 
-16. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
-17. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
+17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
+18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
 
 ---
 
@@ -1198,6 +1200,6 @@ Post-deployment verification:
 
 ---
 
-**Last Updated:** 2025-10-29
-**Version:** 2.0
+**Last Updated:** 2025-10-31
+**Version:** 2.1
 **Project:** DateTime Kubernetes Polyglot Microservices
