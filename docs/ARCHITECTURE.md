@@ -46,10 +46,10 @@ Bu diyagram, C# ve Go mikroservislerinin High Availability (HA) Kubernetes clust
   - Application pods dağıtılmış
 
 **Application Layer:**
-- **2 Pod C# API (.NET 9)** - Worker 1, Worker 2
+- **3 Pod C# API (.NET 9)** - Worker 1, Worker 2, Worker 3
 - **3 Pod Go API (Go 1.25)** - Worker 1, Worker 2, Worker 3
-- **2 Pod C# Web** - Worker 1, Worker 3
-- **2 Pod Go Web** - Worker 2, Worker 3
+- **3 Pod C# Web** - Worker 1, Worker 2, Worker 3
+- **3 Pod Go Web** - Worker 1, Worker 2, Worker 3
 
 **Multi-Layer Load Balancing:**
 - **Layer 1:** HAProxy → Worker Nodes (Round-robin + Health Check)

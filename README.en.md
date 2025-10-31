@@ -465,8 +465,8 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 - ✅ Multi-node Kubernetes cluster (3 control-planes + 3 workers - HA setup)
 - ✅ HAProxy Load Balancer (External LB - Port 80/443/8404)
 - ✅ NGINX Ingress Controller (on worker nodes, 3 replicas - hostNetwork:true)
-- ✅ C# API: 2 replicas, Go API: 3 replicas (on worker nodes)
-- ✅ C# Web: 2 replicas, Go Web: 2 replicas (on worker nodes)
+- ✅ C# API: 3 replicas, Go API: 3 replicas (on worker nodes)
+- ✅ C# Web: 3 replicas, Go Web: 3 replicas (on worker nodes)
 - ✅ Services and Ingress configuration
 
 </details>
@@ -929,10 +929,10 @@ cat /etc/hosts | grep local
 
 - **Image Pull Policy**: `imagePullPolicy: Never` is set for Kind
 - **Replicas**:
-  - C# API: 2 replicas
+  - C# API: 3 replicas
   - Go API: 3 replicas
-  - C# Web: 2 replicas
-  - Go Web: 2 replicas
+  - C# Web: 3 replicas
+  - Go Web: 3 replicas
 - **Multi-Node Cluster**: Uses 3 control-planes + 3 worker nodes configuration by default (HA setup)
   - Control-plane nodes: Kubernetes management components (API Server, etcd 3-node quorum, scheduler, CoreDNS)
   - Worker nodes: Application pods + NGINX Ingress Controller (3 replicas, hostNetwork:true)
@@ -1079,7 +1079,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Happy Coding! 🚀**
 
-**Prepared by:** Claude (Anthropic)
-**Date:** 2025-10-28
-**Version:** 1.1
+**Last Updated:** 2025-10-31
+**Version:** 2.1
 **Project:** DateTime Kubernetes Polyglot Microservices

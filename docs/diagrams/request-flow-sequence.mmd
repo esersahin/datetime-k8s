@@ -30,9 +30,9 @@ sequenceDiagram
 
     Ingress->>K8sSvc: Route to api-service<br/>(ClusterIP: 10.96.x.x)
 
-    Note over K8sSvc: Layer 3: Pod Selection<br/>kube-proxy round-robin<br/>Select from 2 replicas
+    Note over K8sSvc: Layer 3: Pod Selection<br/>kube-proxy round-robin<br/>Select from 3 replicas
 
-    K8sSvc->>CSharpAPI: Forward to C# API Pod<br/>(Replica 1 or 2)
+    K8sSvc->>CSharpAPI: Forward to C# API Pod<br/>(Replica 1, 2, or 3)
 
     activate CSharpAPI
 
@@ -91,5 +91,5 @@ sequenceDiagram
     end
 
     rect rgb(255, 255, 240)
-    Note over HAProxy,GoAPI: HA Features Active:<br/>✓ HAProxy: 3 workers available<br/>✓ NGINX: 3 replicas (1 per worker)<br/>✓ C# API: 2 pod replicas<br/>✓ Go API: 3 pod replicas<br/>✓ Circuit Breaker: Protecting calls<br/>✓ Rate Limiting: Preventing overload
+    Note over HAProxy,GoAPI: HA Features Active:<br/>✓ HAProxy: 3 workers available<br/>✓ NGINX: 3 replicas (1 per worker)<br/>✓ C# API: 3 pod replicas<br/>✓ Go API: 3 pod replicas<br/>✓ Circuit Breaker: Protecting calls<br/>✓ Rate Limiting: Preventing overload
     end

@@ -12,12 +12,15 @@ graph TB
         subgraph "C# Microservice (.NET 9)"
             CSharpAPI1[C# API Pod 1]
             CSharpAPI2[C# API Pod 2]
+            CSharpAPI3[C# API Pod 3]
 
             CSharpAPI1 --> |Circuit Breaker| GoClient1[Go API Client]
             CSharpAPI2 --> |Circuit Breaker| GoClient2[Go API Client]
+            CSharpAPI3 --> |Circuit Breaker| GoClient3[Go API Client]
 
             GoClient1 -.-> |Retry: 3 attempts<br/>Exponential Backoff| RateLimit1[Rate Limiter<br/>20 req/sec]
             GoClient2 -.-> |Retry: 3 attempts<br/>Exponential Backoff| RateLimit2[Rate Limiter<br/>20 req/sec]
+            GoClient3 -.-> |Retry: 3 attempts<br/>Exponential Backoff| RateLimit6[Rate Limiter<br/>20 req/sec]
         end
 
         subgraph "Go Microservice (Go 1.25)"
@@ -43,6 +46,7 @@ graph TB
         RateLimit3 --> |Service Name| DNS
         RateLimit4 --> |Service Name| DNS
         RateLimit5 --> |Service Name| DNS
+        RateLimit6 --> |Service Name| DNS
 
         DNS --> |datetime-api-go-service| GoAPI1
         DNS --> |datetime-api-go-service| GoAPI2
@@ -50,6 +54,7 @@ graph TB
 
         DNS --> |datetime-api-csharp-service| CSharpAPI1
         DNS --> |datetime-api-csharp-service| CSharpAPI2
+        DNS --> |datetime-api-csharp-service| CSharpAPI3
     end
 
     Client[Web-CSharp Client] --> |http://api-csharp.local| Ingress
@@ -57,12 +62,14 @@ graph TB
 
     Ingress --> CSharpAPI1
     Ingress --> CSharpAPI2
+    Ingress --> CSharpAPI3
     Ingress --> GoAPI1
     Ingress --> GoAPI2
     Ingress --> GoAPI3
 
     style CSharpAPI1 fill:#512BD4,color:#fff
     style CSharpAPI2 fill:#512BD4,color:#fff
+    style CSharpAPI3 fill:#512BD4,color:#fff
     style GoAPI1 fill:#00ADD8,color:#fff
     style GoAPI2 fill:#00ADD8,color:#fff
     style GoAPI3 fill:#00ADD8,color:#fff

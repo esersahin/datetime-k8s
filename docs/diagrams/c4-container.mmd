@@ -11,12 +11,12 @@ C4Container
         Container(ingress, "NGINX Ingress", "NGINX (3 replicas)", "Host-based routing, one per worker")
 
         Container_Boundary(csharp_stack, "CSharp Stack (.NET 9)") {
-            Container(csharp_web, "Web UI", "Nginx + HTML/JS", "Displays datetime in Turkish (2 replicas)")
-            Container(csharp_api, "CSharp API", ".NET 9 Minimal API", "REST API with resiliency patterns (2 replicas)")
+            Container(csharp_web, "Web UI", "Nginx + HTML/JS", "Displays datetime in Turkish (3 replicas)")
+            Container(csharp_api, "CSharp API", ".NET 9 Minimal API", "REST API with resiliency patterns (3 replicas)")
         }
 
         Container_Boundary(go_stack, "Go Stack (Go 1.25)") {
-            Container(go_web, "Web UI Go", "Nginx + HTML/JS", "Displays world clock (2 replicas)")
+            Container(go_web, "Web UI Go", "Nginx + HTML/JS", "Displays world clock (3 replicas)")
             Container(go_api, "Go API", "Go HTTP Server", "REST API with timezone features (3 replicas)")
         }
 

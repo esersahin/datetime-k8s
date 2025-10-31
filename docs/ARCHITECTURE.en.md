@@ -46,10 +46,10 @@ This diagram shows how C# and Go microservices run in a High Availability (HA) K
   - Application pods distributed
 
 **Application Layer:**
-- **2 C# API Pods (.NET 9)** - Worker 1, Worker 2
+- **3 C# API Pods (.NET 9)** - Worker 1, Worker 2, Worker 3
 - **3 Go API Pods (Go 1.25)** - Worker 1, Worker 2, Worker 3
-- **2 C# Web Pods** - Worker 1, Worker 3
-- **2 Go Web Pods** - Worker 2, Worker 3
+- **3 C# Web Pods** - Worker 1, Worker 2, Worker 3
+- **3 Go Web Pods** - Worker 1, Worker 2, Worker 3
 
 **Multi-Layer Load Balancing:**
 - **Layer 1:** HAProxy → Worker Nodes (Round-robin + Health Check)

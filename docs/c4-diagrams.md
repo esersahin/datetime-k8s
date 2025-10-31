@@ -175,23 +175,26 @@ C4Deployment
 
                 Deployment_Node(worker1, "Worker Node 1", "kindest/node:v1.34.0") {
                     Container(ingress_ctrl1, "NGINX Ingress", "NGINX", "Replica 1/3 - hostNetwork:true")
-                    Container(csharp_api_pod1, "CSharp API Pod", ".NET 9", "Replica 1/2")
+                    Container(csharp_api_pod1, "CSharp API Pod", ".NET 9", "Replica 1/3")
                     Container(go_api_pod1, "Go API Pod", "Go 1.25", "Replica 1/3")
-                    Container(csharp_web_pod1, "Web Pod", "Nginx", "Replica 1/2")
+                    Container(csharp_web_pod1, "Web Pod", "Nginx", "Replica 1/3")
+                    Container(go_web_pod1_node1, "Web-Go Pod", "Nginx", "Replica 1/3")
                 }
 
                 Deployment_Node(worker2, "Worker Node 2", "kindest/node:v1.34.0") {
                     Container(ingress_ctrl2, "NGINX Ingress", "NGINX", "Replica 2/3 - hostNetwork:true")
-                    Container(csharp_api_pod2, "CSharp API Pod", ".NET 9", "Replica 2/2")
+                    Container(csharp_api_pod2, "CSharp API Pod", ".NET 9", "Replica 2/3")
                     Container(go_api_pod2, "Go API Pod", "Go 1.25", "Replica 2/3")
-                    Container(go_web_pod1, "Web-Go Pod", "Nginx", "Replica 1/2")
+                    Container(csharp_web_pod2_node2, "Web Pod", "Nginx", "Replica 2/3")
+                    Container(go_web_pod2_node2, "Web-Go Pod", "Nginx", "Replica 2/3")
                 }
 
                 Deployment_Node(worker3, "Worker Node 3", "kindest/node:v1.34.0") {
                     Container(ingress_ctrl3, "NGINX Ingress", "NGINX", "Replica 3/3 - hostNetwork:true")
+                    Container(csharp_api_pod3, "CSharp API Pod", ".NET 9", "Replica 3/3")
                     Container(go_api_pod3, "Go API Pod", "Go 1.25", "Replica 3/3")
-                    Container(csharp_web_pod2, "Web Pod", "Nginx", "Replica 2/2")
-                    Container(go_web_pod2, "Web-Go Pod", "Nginx", "Replica 2/2")
+                    Container(csharp_web_pod3, "Web Pod", "Nginx", "Replica 3/3")
+                    Container(go_web_pod3, "Web-Go Pod", "Nginx", "Replica 3/3")
                 }
             }
         }

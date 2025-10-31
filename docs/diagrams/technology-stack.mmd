@@ -27,13 +27,13 @@ graph TB
 
     subgraph Applications["🚀 Applications"]
         subgraph CSharpStack["C# Stack (.NET 9)"]
-            CSharpAPI["API - Minimal API<br/>ASP.NET Core 9.0<br/>2 Replicas"]
-            CSharpWeb["Web UI<br/>NGINX + HTML/JS<br/>2 Replicas"]
+            CSharpAPI["API - Minimal API<br/>ASP.NET Core 9.0<br/>3 Replicas"]
+            CSharpWeb["Web UI<br/>NGINX + HTML/JS<br/>3 Replicas"]
         end
 
         subgraph GoStack["Go Stack (Go 1.25)"]
             GoAPI["API - net/http<br/>Go 1.25<br/>3 Replicas"]
-            GoWeb["Web UI<br/>NGINX + HTML/JS<br/>2 Replicas"]
+            GoWeb["Web UI<br/>NGINX + HTML/JS<br/>3 Replicas"]
         end
     end
 

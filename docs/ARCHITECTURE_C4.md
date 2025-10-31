@@ -244,19 +244,22 @@ Local Machine (macOS/Linux)
         │   └── Control Plane 3 (API Server, etcd 3/3, CoreDNS)
         ├── Worker Node 1 (ingress-ready=true)
         │   ├── NGINX Ingress Controller (1/3 - hostNetwork:true)
-        │   ├── CSharp API Pod (1/2)
+        │   ├── CSharp API Pod (1/3)
         │   ├── Go API Pod (1/3)
-        │   └── CSharp Web Pod (1/2)
+        │   ├── CSharp Web Pod (1/3)
+        │   └── Go Web Pod (1/3)
         ├── Worker Node 2 (ingress-ready=true)
         │   ├── NGINX Ingress Controller (2/3 - hostNetwork:true)
-        │   ├── CSharp API Pod (2/2)
+        │   ├── CSharp API Pod (2/3)
         │   ├── Go API Pod (2/3)
-        │   └── Go Web Pod (1/2)
+        │   ├── CSharp Web Pod (2/3)
+        │   └── Go Web Pod (2/3)
         └── Worker Node 3 (ingress-ready=true)
             ├── NGINX Ingress Controller (3/3 - hostNetwork:true)
+            ├── CSharp API Pod (3/3)
             ├── Go API Pod (3/3)
-            ├── CSharp Web Pod (2/2)
-            └── Go Web Pod (2/2)
+            ├── CSharp Web Pod (3/3)
+            └── Go Web Pod (3/3)
 ```
 
 ### Pod Dağılımı
@@ -264,9 +267,9 @@ Local Machine (macOS/Linux)
 | Node | Pods | Roller |
 |------|------|--------|
 | **Control Plane 1-3** | API Server, etcd (3-node cluster), CoreDNS | HA cluster yönetimi, etcd quorum |
-| **Worker 1** | Ingress (1/3), C# API (1/2), Go API (1/3), C# Web (1/2) | Uygulama workload'ları |
-| **Worker 2** | Ingress (2/3), C# API (2/2), Go API (2/3), Go Web (1/2) | Uygulama workload'ları |
-| **Worker 3** | Ingress (3/3), Go API (3/3), C# Web (2/2), Go Web (2/2) | Uygulama workload'ları |
+| **Worker 1** | Ingress (1/3), C# API (1/3), Go API (1/3), C# Web (1/3), Go Web (1/3) | Uygulama workload'ları |
+| **Worker 2** | Ingress (2/3), C# API (2/3), Go API (2/3), C# Web (2/3), Go Web (2/3) | Uygulama workload'ları |
+| **Worker 3** | Ingress (3/3), C# API (3/3), Go API (3/3), C# Web (3/3), Go Web (3/3) | Uygulama workload'ları |
 
 ### Trafik Akışı
 

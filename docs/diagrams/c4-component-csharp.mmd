@@ -1,7 +1,7 @@
 C4Component
-    title Component Diagram - CSharp API (.NET 9) - HA Setup (2 Replicas)
+    title Component Diagram - CSharp API (.NET 9) - HA Setup (3 Replicas)
 
-    Container_Boundary(csharp_api_boundary, "CSharp API Container (2 Replicas)") {
+    Container_Boundary(csharp_api_boundary, "CSharp API Container (3 Replicas)") {
         Component(endpoints, "API Endpoints", "Minimal API", "REST endpoints (/api/datetime, /health, /api/go-time)")
         Component(resilience_layer, "Resiliency Layer", "Microsoft.Extensions.Http.Resilience", "Manages all resiliency patterns")
 

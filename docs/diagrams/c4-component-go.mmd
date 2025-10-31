@@ -13,7 +13,7 @@ C4Component
         Component(utils, "Utilities", "utils package", "Helper functions")
     }
 
-    Container_Ext(csharp_api_ext, "CSharp API", ".NET 9 API (2 Replicas)", "External microservice - Load balanced by K8s Service")
+    Container_Ext(csharp_api_ext, "CSharp API", ".NET 9 API (3 Replicas)", "External microservice - Load balanced by K8s Service")
     ContainerDb_Ext(k8s_dns_ext2, "CoreDNS", "Kubernetes DNS", "Service discovery in HA cluster")
 
     Rel(router, handlers, "Routes to", "Handler functions")
