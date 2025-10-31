@@ -1115,3 +1115,9 @@ kubectl rollout undo deployment/<DEPLOY> --to-revision=2
 - [Stern - Multi Pod Log Tailing](https://github.com/stern/stern)
 - [K9s - Kubernetes CLI](https://k9scli.io/)
 - [Telepresence - Local Development](https://www.telepresence.io/)
+
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices
