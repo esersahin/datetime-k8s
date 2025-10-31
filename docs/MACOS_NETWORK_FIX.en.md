@@ -121,3 +121,9 @@ This is a known macOS issue:
 ```
 
 When using `.local` domains on macOS, **always add IPv6 (::1) entry**!
+
+---
+
+**Last Updated:** 2025-10-31
+**Version:** 1.0
+**Project:** DateTime Kubernetes Polyglot Microservices
