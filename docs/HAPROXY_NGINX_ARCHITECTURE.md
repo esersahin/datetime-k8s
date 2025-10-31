@@ -1392,3 +1392,9 @@ Bu mimari sayesinde:
 **Happy Learning! 🚀**
 
 *Bu doküman, HAProxy ve NGINX Ingress Controller arasındaki farkları ve birlikte nasıl çalıştıklarını anlamak için hazırlanmıştır.*
+
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices

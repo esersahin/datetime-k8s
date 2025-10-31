@@ -979,3 +979,9 @@ This optimization work achieved:
 - [ReadyToRun Deployment](https://learn.microsoft.com/en-us/dotnet/core/deploying/ready-to-run)
 - [Docker Multi-platform Builds](https://docs.docker.com/build/building/multi-platform/)
 - [Distroless Container Images](https://github.com/GoogleContainerTools/distroless)
+
+---
+
+**Last Updated:** 2025-10-31
+**Version:** 2.1
+**Project:** DateTime Kubernetes Polyglot Microservices

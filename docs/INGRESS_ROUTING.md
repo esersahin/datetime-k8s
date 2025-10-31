@@ -632,3 +632,9 @@ docker-compose up -d
 ---
 
 **Sonuç**: 3 katmanlı HA mimarisi ile **production-grade** bir sistem elde ediyoruz. HAProxy (Layer 1), Ingress Controllers (Layer 2) ve Kubernetes Services (Layer 3) birlikte çalışarak **yüksek erişilebilirlik, fault tolerance ve optimal load balancing** sağlıyor.
+
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices

@@ -312,3 +312,9 @@ curl http://web-csharp.local
 ---
 
 **Sonuç**: `k8s/ingress-nginx-deployment.yaml` kullanarak Ingress Controller HA yapısıyla worker node'larda çalışacak! 🎉
+
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices

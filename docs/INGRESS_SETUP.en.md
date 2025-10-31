@@ -312,3 +312,9 @@ curl http://web-csharp.local
 ---
 
 **Result**: Using `k8s/ingress-nginx-deployment.yaml`, Ingress Controller runs on worker nodes with HA! 🎉
+
+---
+
+**Last Updated:** 2025-10-31
+**Version:** 2.1
+**Project:** DateTime Kubernetes Polyglot Microservices

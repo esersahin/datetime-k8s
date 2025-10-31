@@ -366,3 +366,9 @@ Başarılı kurulum için:
 
 - [QUICK_START.md](QUICK_START.md) - Hızlı başlangıç
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Mimari detayları
+
+---
+
+**Last Updated:** 2025-10-31
+**Version:** 2.1
+**Project:** DateTime Kubernetes Polyglot Microservices

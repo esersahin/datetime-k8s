@@ -425,6 +425,6 @@ spec:
 
 ---
 
-**Last Updated:** 2025-10-27
-**Project:** datetime-k8s
-**Author:** DevOps Team
+**Last Updated:** 2025-10-31
+**Version:** 2.1
+**Project:** DateTime Kubernetes Polyglot Microservices

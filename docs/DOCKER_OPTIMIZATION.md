@@ -981,3 +981,9 @@ Bu optimizasyon çalışması ile:
 - [ReadyToRun Deployment](https://learn.microsoft.com/en-us/dotnet/core/deploying/ready-to-run)
 - [Docker Multi-platform Builds](https://docs.docker.com/build/building/multi-platform/)
 - [Distroless Container Images](https://github.com/GoogleContainerTools/distroless)
+
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices
