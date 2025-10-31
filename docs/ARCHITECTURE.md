@@ -25,19 +25,42 @@ Bu sayfa, DateTime Kubernetes projesinin mimari yapısını görsel olarak açı
 
 ## 🏗️ Genel Mimari
 
-Bu diyagram, C# ve Go mikroservislerinin Kubernetes cluster'ında nasıl çalıştığını ve birbirleriyle nasıl iletişim kurduğunu gösterir.
+Bu diyagram, C# ve Go mikroservislerinin High Availability (HA) Kubernetes cluster'ında nasıl çalıştığını ve birbirleriyle nasıl iletişim kurduğunu gösterir.
 
 ![Architecture Overview](diagrams/architecture-overview.png)
 
-### Özellikler:
+### HA Cluster Yapısı:
 
-- **2 Pod C# API (.NET 9)** - Worker node'larda çalışıyor
-- **3 Pod Go API (Go 1.25)** - Worker node'larda dağıtılmış
-- **NGINX Ingress** - Round Robin load balancing
-- **Kubernetes DNS** - Service discovery için CoreDNS
+**Infrastructure Layer:**
+- **HAProxy Load Balancer** - External LB (Port 80/443/8404)
+  - Round-robin load balancing
+  - Health check (/healthz)
+  - Stats dashboard (:8404)
+- **3 Control Plane Nodes** - HA cluster yönetimi
+  - Kubernetes API Server (3 replicas)
+  - etcd cluster (3-node quorum)
+  - CoreDNS (Service Discovery)
+- **3 Worker Nodes** - Application workloads
+  - `ingress-ready=true` label
+  - NGINX Ingress Controller (3 replicas, hostNetwork:true)
+  - Application pods dağıtılmış
+
+**Application Layer:**
+- **2 Pod C# API (.NET 9)** - Worker 1, Worker 2
+- **3 Pod Go API (Go 1.25)** - Worker 1, Worker 2, Worker 3
+- **2 Pod C# Web** - Worker 1, Worker 3
+- **2 Pod Go Web** - Worker 2, Worker 3
+
+**Multi-Layer Load Balancing:**
+- **Layer 1:** HAProxy → Worker Nodes (Round-robin + Health Check)
+- **Layer 2:** NGINX Ingress → Services (Host-based routing)
+- **Layer 3:** Kubernetes Service → Pods (kube-proxy round-robin)
+
+**Resiliency Features:**
 - **Circuit Breaker** - Her serviste hata koruması
-- **Rate Limiting** - Per-service hız sınırlama
+- **Rate Limiting** - Per-service hız sınırlama (Token bucket)
 - **Retry Policy** - Exponential backoff ile otomatik retry
+- **Timeout Management** - Request ve total timeout'lar
 
 ---
 

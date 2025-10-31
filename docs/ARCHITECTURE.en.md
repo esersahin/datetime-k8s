@@ -25,19 +25,42 @@ This page visually explains the architectural structure of the DateTime Kubernet
 
 ## 🏗️ Overall Architecture
 
-This diagram shows how C# and Go microservices run in the Kubernetes cluster and communicate with each other.
+This diagram shows how C# and Go microservices run in a High Availability (HA) Kubernetes cluster and communicate with each other.
 
 ![Architecture Overview](diagrams/architecture-overview.png)
 
-### Features:
+### HA Cluster Structure:
 
-- **2 C# API Pods (.NET 9)** - Running on worker nodes
-- **3 Go API Pods (Go 1.25)** - Distributed across worker nodes
-- **NGINX Ingress** - Round Robin load balancing
-- **Kubernetes DNS** - CoreDNS for service discovery
+**Infrastructure Layer:**
+- **HAProxy Load Balancer** - External LB (Port 80/443/8404)
+  - Round-robin load balancing
+  - Health check (/healthz)
+  - Stats dashboard (:8404)
+- **3 Control Plane Nodes** - HA cluster management
+  - Kubernetes API Server (3 replicas)
+  - etcd cluster (3-node quorum)
+  - CoreDNS (Service Discovery)
+- **3 Worker Nodes** - Application workloads
+  - `ingress-ready=true` label
+  - NGINX Ingress Controller (3 replicas, hostNetwork:true)
+  - Application pods distributed
+
+**Application Layer:**
+- **2 C# API Pods (.NET 9)** - Worker 1, Worker 2
+- **3 Go API Pods (Go 1.25)** - Worker 1, Worker 2, Worker 3
+- **2 C# Web Pods** - Worker 1, Worker 3
+- **2 Go Web Pods** - Worker 2, Worker 3
+
+**Multi-Layer Load Balancing:**
+- **Layer 1:** HAProxy → Worker Nodes (Round-robin + Health Check)
+- **Layer 2:** NGINX Ingress → Services (Host-based routing)
+- **Layer 3:** Kubernetes Service → Pods (kube-proxy round-robin)
+
+**Resiliency Features:**
 - **Circuit Breaker** - Failure protection in each service
-- **Rate Limiting** - Per-service rate limiting
+- **Rate Limiting** - Per-service rate limiting (Token bucket)
 - **Retry Policy** - Auto-retry with exponential backoff
+- **Timeout Management** - Request and total timeouts
 
 ---
 

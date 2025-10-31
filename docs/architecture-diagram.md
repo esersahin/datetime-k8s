@@ -180,10 +180,16 @@ mindmap
         net/http
         gobreaker
     Kubernetes
-      Kind Cluster
-        1 Control Plane
-        2 Worker Nodes
+      Kind Cluster - HA Setup
+        3 Control Plane Nodes
+        3 Worker Nodes
+        etcd Quorum (3-node)
+      HAProxy Load Balancer
+        Port 80/443
+        Stats :8404
       NGINX Ingress
+        3 Replicas
+        hostNetwork true
       Service Discovery
         CoreDNS
     Resiliency

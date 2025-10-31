@@ -233,44 +233,60 @@ Router → Handlers → Circuit Breaker → Timezone Service
 
 ```
 Local Machine (macOS/Linux)
+├── HAProxy Load Balancer (Docker Container)
+│   ├── Port 80/443 - HTTP/HTTPS traffic
+│   └── Port 8404 - Stats dashboard
 └── Docker Desktop
-    └── Kind Cluster (Kubernetes v1.34)
-        ├── Control Plane Node
-        │   ├── NGINX Ingress Controller
-        │   ├── CoreDNS
-        │   └── K8s API Server
-        ├── Worker Node 1
+    └── Kind Cluster (Kubernetes v1.34 - HA Setup)
+        ├── Control Plane Nodes (HA - 3 Nodes)
+        │   ├── Control Plane 1 (API Server, etcd 1/3)
+        │   ├── Control Plane 2 (API Server, etcd 2/3)
+        │   └── Control Plane 3 (API Server, etcd 3/3, CoreDNS)
+        ├── Worker Node 1 (ingress-ready=true)
+        │   ├── NGINX Ingress Controller (1/3 - hostNetwork:true)
         │   ├── CSharp API Pod (1/2)
         │   ├── Go API Pod (1/3)
-        │   └── Web Pod (1/2)
-        └── Worker Node 2
-            ├── CSharp API Pod (2/2)
-            ├── Go API Pod (2/3)
+        │   └── CSharp Web Pod (1/2)
+        ├── Worker Node 2 (ingress-ready=true)
+        │   ├── NGINX Ingress Controller (2/3 - hostNetwork:true)
+        │   ├── CSharp API Pod (2/2)
+        │   ├── Go API Pod (2/3)
+        │   └── Go Web Pod (1/2)
+        └── Worker Node 3 (ingress-ready=true)
+            ├── NGINX Ingress Controller (3/3 - hostNetwork:true)
             ├── Go API Pod (3/3)
-            └── Web-Go Pod (1/2)
+            ├── CSharp Web Pod (2/2)
+            └── Go Web Pod (2/2)
 ```
 
 ### Pod Distribution
 
 | Node | Pods | Roles |
 |------|------|-------|
-| **Control Plane** | Ingress, DNS, API Server | Cluster management |
-| **Worker 1** | CSharp API, Go API, Web | Application workloads |
-| **Worker 2** | CSharp API, Go API x2, Web-Go | Application workloads |
+| **Control Plane 1-3** | API Server, etcd (3-node cluster), CoreDNS | HA cluster management, etcd quorum |
+| **Worker 1** | Ingress (1/3), C# API (1/2), Go API (1/3), C# Web (1/2) | Application workloads |
+| **Worker 2** | Ingress (2/3), C# API (2/2), Go API (2/3), Go Web (1/2) | Application workloads |
+| **Worker 3** | Ingress (3/3), Go API (3/3), C# Web (2/2), Go Web (2/2) | Application workloads |
 
 ### Traffic Flow
 
 ```
 User Request
     ↓
-Ingress (Control Plane)
+HAProxy Load Balancer (Layer 1)
+    ↓ (Round-robin + Health Check)
+Worker Node (1, 2, or 3)
     ↓
-Round Robin
-    ↓
+NGINX Ingress Controller (Layer 2 - hostNetwork:true)
+    ↓ (Host-based routing)
+Kubernetes Service (Layer 3)
+    ↓ (kube-proxy round-robin)
 ├─→ CSharp API Pod 1 (Worker 1)
 └─→ CSharp API Pod 2 (Worker 2)
         ↓
     DNS Lookup (CoreDNS)
+        ↓
+    Go API Service
         ↓
     Go API Pod 1/2/3 (Round Robin)
 ```
