@@ -1536,7 +1536,6 @@ C# Pod                        Go Pod
 
 ---
 
-**Hazırlayan:** Claude (Anthropic)
-**Tarih:** 2025-10-28
-**Versiyon:** 1.1
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
 **Proje:** DateTime Kubernetes Polyglot Microservices

@@ -680,7 +680,8 @@ make redeploy
 
 **Not**: Bu yapılandırma local development için optimize edilmiştir. Production ortamları için ek security, monitoring, ve networking konfigürasyonları gerekebilir.
 
-**Prepared by:** Claude (Anthropic)
-**Date:** 2025-10-28
-**Version:** 1.1
-**Project:** DateTime Kubernetes Polyglot Microservices
+---
+
+**Son Güncelleme:** 2025-10-31
+**Versiyon:** 2.1
+**Proje:** DateTime Kubernetes Polyglot Microservices
