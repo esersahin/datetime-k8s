@@ -463,9 +463,10 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 **Created Resources:**
 
 - ✅ Multi-node Kubernetes cluster (3 control-planes + 3 workers - HA setup)
-- ✅ NGINX Ingress Controller (on worker nodes, 2 replicas)
-- ✅ 2x datetime-api pods (on worker nodes)
-- ✅ 2x datetime-web pods (on worker nodes)
+- ✅ HAProxy Load Balancer (External LB - Port 80/443/8404)
+- ✅ NGINX Ingress Controller (on worker nodes, 3 replicas - hostNetwork:true)
+- ✅ C# API: 2 replicas, Go API: 3 replicas (on worker nodes)
+- ✅ C# Web: 2 replicas, Go Web: 2 replicas (on worker nodes)
 - ✅ Services and Ingress configuration
 
 </details>
@@ -927,10 +928,14 @@ cat /etc/hosts | grep local
 ## 📝 Notes
 
 - **Image Pull Policy**: `imagePullPolicy: Never` is set for Kind
-- **Replicas**: 2 replicas run for each service by default
+- **Replicas**:
+  - C# API: 2 replicas
+  - Go API: 3 replicas
+  - C# Web: 2 replicas
+  - Go Web: 2 replicas
 - **Multi-Node Cluster**: Uses 3 control-planes + 3 worker nodes configuration by default (HA setup)
-  - Control-plane: Kubernetes management components and Ingress Controller
-  - Worker nodes: Application pods (datetime-api-csharp, datetime-web-csharp)
+  - Control-plane nodes: Kubernetes management components (API Server, etcd 3-node quorum, scheduler, CoreDNS)
+  - Worker nodes: Application pods + NGINX Ingress Controller (3 replicas, hostNetwork:true)
   - For details: [WORKER_NODES](docs/WORKER_NODES.en.md)
 - **Mac Optimization**: `make deploy` or `deploy.sh` automatically fixes Mac/Kind issues:
   - Sets hostNetwork to true
