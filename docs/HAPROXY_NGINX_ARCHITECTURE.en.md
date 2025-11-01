@@ -131,6 +131,7 @@ kubectl get nodes -o wide
 ```
 
 **Output**:
+
 ```
 NAME                  STATUS   ROLES           AGE   VERSION
 kind-control-plane    Ready    control-plane   20m   v1.31.0
@@ -142,6 +143,7 @@ kind-worker3          Ready    <none>          19m   v1.31.0
 ```
 
 **Cluster Structure**:
+
 - **3 Control-Plane Nodes**: HA Kubernetes management
 - **3 Worker Nodes**: Application workloads and Ingress Controller
 
@@ -278,15 +280,15 @@ rules:
            ↓
      (Round-robin selection)
            ↓
-┌───────────────────────────────────────────┐
-│  Kind Cluster                             │
-│  (3 Control-Plane + 3 Worker Nodes)       │
-│                                           │
+┌──────────────────────────────────────────┐
+│  Kind Cluster                            │
+│  (3 Control-Plane + 3 Worker Nodes)      │
+│                                          │
 │  ┌─────────┬──────────┬──────────┐       │
 │  │ Worker1 │ Worker2  │ Worker3  │       │
 │  │ :80     │ :80      │ :80      │       │
 │  └─────────┴──────────┴──────────┘       │
-└───────────────────────────────────────────┘
+└──────────────────────────────────────────┘
 ```
 
 **What Does HAProxy Do?**
@@ -319,7 +321,7 @@ Worker Node (example: kind-worker)
 │  │    → api-csharp-service:80           │  │
 │  │                                      │  │
 │  │ IF Host == "web-csharp.local"        │  │
-│  │    → web-csharp-service:80                  │  │
+│  │    → web-csharp-service:80           │  │
 │  │                                      │  │
 │  │ IF Host == "api-go.local"            │  │
 │  │    → api-go-service:80               │  │
@@ -750,20 +752,20 @@ HAProxy works as an **external load balancer** in front of NGINX, while NGINX wo
 
 ## 🔍 HAProxy vs NGINX Ingress Comparison
 
-| **FEATURE**          | **HAProxy**                            | **NGINX Ingress**                         |
-| -------------------- | -------------------------------------- | ----------------------------------------- |
-| **Location**         | Docker container (outside Kubernetes)  | Kubernetes pod (on each worker)           |
-| **Main Task**        | Worker node selection (load balancing) | Service routing (host-based)              |
-| **Routing Criteria** | Round-robin (worker1,2,3)              | HTTP Host header (api-csharp.local, etc.) |
-| **Layer**            | Layer 4/7                              | Layer 7                                   |
-| **Health Check**     | GET /healthz (every 2 seconds)         | Kubernetes readinessProbe                 |
-| **Failover**         | Yes (routes to others if worker DOWN)  | Yes (routes to other pod if pod DOWN)     |
-| **SSL Termination**  | Yes (for 443)                          | Yes (for 443)                             |
+| **FEATURE**          | **HAProxy**                            | **NGINX Ingress**                                    |
+| -------------------- | -------------------------------------- | ---------------------------------------------------- |
+| **Location**         | Docker container (outside Kubernetes)  | Kubernetes pod (on each worker)                      |
+| **Main Task**        | Worker node selection (load balancing) | Service routing (host-based)                         |
+| **Routing Criteria** | Round-robin (worker1,2,3)              | HTTP Host header (api-csharp.local, etc.)            |
+| **Layer**            | Layer 4/7                              | Layer 7                                              |
+| **Health Check**     | GET /healthz (every 2 seconds)         | Kubernetes readinessProbe                            |
+| **Failover**         | Yes (routes to others if worker DOWN)  | Yes (routes to other pod if pod DOWN)                |
+| **SSL Termination**  | Yes (for 443)                          | Yes (for 443)                                        |
 | **Target**           | Worker nodes (kind-worker:80)          | Kubernetes Services (datetime-api-csharp-service:80) |
-| **Configuration**    | haproxy.cfg                            | Ingress YAML                              |
-| **Stats Page**       | Yes (:8404)                            | No                                        |
-| **DNS Resolution**   | Yes (Docker DNS: 127.0.0.11)           | Kubernetes CoreDNS                        |
-| **Replica Count**    | 1 (Single point, but external)         | 3 (1 on each worker)                      |
+| **Configuration**    | haproxy.cfg                            | Ingress YAML                                         |
+| **Stats Page**       | Yes (:8404)                            | No                                                   |
+| **DNS Resolution**   | Yes (Docker DNS: 127.0.0.11)           | Kubernetes CoreDNS                                   |
+| **Replica Count**    | 1 (Single point, but external)         | 3 (1 on each worker)                                 |
 
 ---
 
@@ -1349,16 +1351,16 @@ Cashier: "Routing to burger chef" (datetime-web-csharp-service)
 │ • Stats: http://localhost:8404                                  │
 └─────────────────────────────────────────────────────────────────┘
                           ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ LAYER 2: NGINX Ingress Controller (L7)                          │
-├─────────────────────────────────────────────────────────────────┤
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│ LAYER 2: NGINX Ingress Controller (L7)                                              │
+├─────────────────────────────────────────────────────────────────────────────────────┤
 │ • What it does: Host-based routing (api-csharp.local → datetime-api-csharp-service) │
-│ • Algorithm: Ingress rules (host matching)                      │
-│ • SSL Termination: Yes (HTTPS → HTTP)                           │
-│ • Location: Kubernetes pod (1 on each worker)                   │
-│ • Config: k8s/ingress-nginx-deployment.yaml + Ingress YAML      │
-│ • hostNetwork: true (listens on worker container's port 80)     │
-└─────────────────────────────────────────────────────────────────┘
+│ • Algorithm: Ingress rules (host matching)                                          │
+│ • SSL Termination: Yes (HTTPS → HTTP)                                               │
+│ • Location: Kubernetes pod (1 on each worker)                                       │
+│ • Config: k8s/ingress-nginx-deployment.yaml + Ingress YAML                          │
+│ • hostNetwork: true (listens on worker container's port 80)                         │
+└─────────────────────────────────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │ LAYER 3: Kubernetes Service (kube-proxy) (L4)                   │

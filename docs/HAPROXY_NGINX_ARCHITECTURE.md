@@ -269,15 +269,15 @@ kubectl get ingress datetime-ingress -o yaml | grep -A 10 "rules:"
            ↓
      (Round-robin seçimi)
            ↓
-┌───────────────────────────────────────────┐
-│  Kind Cluster                             │
-│  (3 Control-Plane + 3 Worker Nodes)       │
-│                                           │
+┌──────────────────────────────────────────┐
+│  Kind Cluster                            │
+│  (3 Control-Plane + 3 Worker Nodes)      │
+│                                          │
 │  ┌─────────┬──────────┬──────────┐       │
 │  │ Worker1 │ Worker2  │ Worker3  │       │
 │  │ :80     │ :80      │ :80      │       │
 │  └─────────┴──────────┴──────────┘       │
-└───────────────────────────────────────────┘
+└──────────────────────────────────────────┘
 ```
 
 **HAProxy Ne Yapar?**
@@ -1297,16 +1297,16 @@ Kasa: "Burger'ci'ye yönlendiriyorum" (datetime-web-csharp-service)
 │ • Stats: http://localhost:8404                                  │
 └─────────────────────────────────────────────────────────────────┘
                           ↓
-┌─────────────────────────────────────────────────────────────────┐
-│ KATMAN 2: NGINX Ingress Controller (L7)                         │
-├─────────────────────────────────────────────────────────────────┤
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ KATMAN 2: NGINX Ingress Controller (L7)                                         │
+├─────────────────────────────────────────────────────────────────────────────────┤
 │ • Ne Yapar: Host-based routing (api-csharp.local → datetime-api-csharp-service) │
-│ • Algoritma: Ingress rules (host matching)                      │
-│ • SSL Termination: Evet (HTTPS → HTTP)                          │
-│ • Lokasyon: Kubernetes pod (her worker'da 1 tane)               │
-│ • Config: k8s/ingress-nginx-deployment.yaml + Ingress YAML      │
-│ • hostNetwork: true (worker container'ın port 80'ini dinler)    │
-└─────────────────────────────────────────────────────────────────┘
+│ • Algoritma: Ingress rules (host matching)                                      │
+│ • SSL Termination: Evet (HTTPS → HTTP)                                          │
+│ • Lokasyon: Kubernetes pod (her worker'da 1 tane)                               │
+│ • Config: k8s/ingress-nginx-deployment.yaml + Ingress YAML                      │
+│ • hostNetwork: true (worker container'ın port 80'ini dinler)                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │ KATMAN 3: Kubernetes Service (kube-proxy) (L4)                  │
