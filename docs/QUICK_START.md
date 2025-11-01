@@ -143,9 +143,10 @@ make setup-haproxy   # HAProxy load balancer kur
 make status          # Genel durum
 make show-nodes      # Node detayları
 make verify          # 20 otomatik test
-make logs-api        # C# API logları
+make logs-api-csharp # C# API logları
 make logs-api-go     # Go API logları
-make logs-web        # Web logları
+make logs-web-csharp # C# Web logları
+make logs-web-go     # Go Web logları
 ```
 
 ### Debug
@@ -532,7 +533,7 @@ make quick-update
 curl http://api-csharp.local/api/datetime
 
 # 4. Logları izle
-make logs-api
+make logs-api-csharp
 ```
 
 ### Tam Yeniden Başlatma
@@ -555,7 +556,7 @@ make verify
 make status
 
 # 2. Logları izle
-make logs-api        # C# API
+make logs-api-csharp # C# API
 make logs-api-go     # Go API
 
 # 3. Pod'a bağlan
@@ -598,7 +599,7 @@ curl http://api-csharp.local/api/datetime
 # Circuit breaker devrede, fallback response
 
 # 3. Logları kontrol et
-make logs-api  # Circuit breaker logs
+make logs-api-csharp  # Circuit breaker logs
 
 # 4. Go API'yi geri getir
 kubectl scale deployment datetime-api-go --replicas=3
@@ -629,24 +630,30 @@ kubectl scale deployment datetime-api-go --replicas=3
 
 ### Debugging
 
-| Komut               | Açıklama                |
-| ------------------- | ----------------------- |
-| `make show-nodes`   | Node detayları          |
-| `make logs-api`     | C# API logları          |
-| `make logs-api-go`  | Go API logları          |
-| `make logs-web`     | Web logları             |
-| `make fix-ingress`  | Ingress düzelt          |
-| `make fix-webhooks` | Webhook'ları temizle    |
+| Komut                 | Açıklama                |
+| --------------------- | ----------------------- |
+| `make show-nodes`     | Node detayları          |
+| `make logs`           | Tüm loglar (C# + Go)    |
+| `make logs-api-csharp`| C# API logları          |
+| `make logs-api-go`    | Go API logları          |
+| `make logs-web-csharp`| C# Web logları          |
+| `make logs-web-go`    | Go Web logları          |
+| `make fix-ingress`    | Ingress düzelt          |
+| `make fix-webhooks`   | Webhook'ları temizle    |
 
 ### Build & Update
 
-| Komut               | Açıklama                  |
-| ------------------- | ------------------------- |
-| `make build-all`    | Tüm images (C# + Go)      |
-| `make build-api`    | C# API build              |
-| `make build-api-go` | Go API build              |
-| `make load-images`  | Images → Kind cluster     |
-| `make quick-update` | Hızlı kod güncelleme      |
+| Komut                 | Açıklama                      |
+| --------------------- | ----------------------------- |
+| `make build-all`      | Tüm images (C# + Go API + Web)|
+| `make build-api`      | Tüm API images (C# + Go)      |
+| `make build-web`      | Tüm Web images (C# + Go)      |
+| `make build-api-csharp` | C# API build                |
+| `make build-api-go`   | Go API build                  |
+| `make build-web-csharp` | C# Web build                |
+| `make build-web-go`   | Go Web build                  |
+| `make load-images`    | Images → Kind cluster         |
+| `make quick-update`   | Hızlı kod güncelleme          |
 
 ### Scaling & Management
 

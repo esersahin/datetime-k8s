@@ -588,7 +588,7 @@ datetime-k8s/
 **Makefile Commands** (full list with make help):
 
 - Deployment: `make deploy`, `make redeploy`, `make clean-all`
-- Monitoring: `make status`, `make show-nodes`, `make logs-api`, `make verify`
+- Monitoring: `make status`, `make show-nodes`, `make logs-api-csharp`, `make verify`
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
 - Scaling: `make scale-api REPLICAS=3`, `make restart-api`
 - Build: `make build-all`, `make quick-update`
@@ -649,24 +649,31 @@ make status
 
 | Command          | Description                        |
 | ---------------- | ---------------------------------- |
-| `make help`      | Lists all commands                 |
-| `make deploy`    | **Full deployment (MAIN CMD)**     |
-| `make verify`    | Verifies deployment                |
-| `make test`      | Tests endpoints                    |
-| `make status`    | Shows cluster status               |
-| `make logs-api`  | Follows API logs                   |
-| `make logs-web`  | Follows Web logs                   |
-| `make clean`     | Deletes K8s resources              |
-| `make clean-all` | Deletes everything (incl. cluster) |
-| `make redeploy`  | Completely redeploys               |
+| `make help`            | Lists all commands                    |
+| `make deploy`          | **Full deployment (MAIN CMD)**        |
+| `make verify`          | Verifies deployment                   |
+| `make test`            | Tests endpoints                       |
+| `make status`          | Shows cluster status                  |
+| `make logs`            | Shows all logs (C# + Go)              |
+| `make logs-api-csharp` | Follows C# API logs                   |
+| `make logs-web-csharp` | Follows C# Web logs                   |
+| `make logs-api-go`     | Follows Go API logs                   |
+| `make logs-web-go`     | Follows Go Web logs                   |
+| `make clean`           | Deletes K8s resources                 |
+| `make clean-all`       | Deletes everything (incl. cluster)    |
+| `make redeploy`        | Completely redeploys                  |
 
 #### Makefile Advanced Commands
 
-| Command                     | Description              |
-| --------------------------- | ------------------------ |
-| `make build-api`            | Builds only API image    |
-| `make build-web`            | Builds only Web image    |
-| `make build-all`            | Builds all images        |
+| Command                     | Description                              |
+| --------------------------- | ---------------------------------------- |
+| `make build-api`            | Builds all API images (C# + Go)          |
+| `make build-web`            | Builds all Web images (C# + Go)          |
+| `make build-api-csharp`     | Builds only C# API image                 |
+| `make build-api-go`         | Builds only Go API image                 |
+| `make build-web-csharp`     | Builds only C# Web image                 |
+| `make build-web-go`         | Builds only Go Web image                 |
+| `make build-all`            | Builds all images                        |
 | `make create-cluster`       | Creates Kind cluster     |
 | `make install-ingress`      | Installs NGINX Ingress   |
 | `make fix-ingress`          | Fixes hostNetwork        |
@@ -703,8 +710,10 @@ make status
 ```bash
 # View logs
 make logs              # All logs (last 50 lines)
-make logs-api          # Follow API logs (real-time)
-make logs-web          # Follow Web logs (real-time)
+make logs-api-csharp   # Follow C# API logs (real-time)
+make logs-web-csharp   # Follow C# Web logs (real-time)
+make logs-api-go       # Follow Go API logs (real-time)
+make logs-web-go       # Follow Go Web logs (real-time)
 
 # Status check
 make status            # General status
@@ -841,8 +850,8 @@ make restart-api
 make restart-web
 
 # Check logs
-make logs-api
-make logs-web
+make logs-api-csharp
+make logs-web-csharp
 
 # Complete redeploy
 make redeploy
@@ -963,10 +972,10 @@ cat /etc/hosts | grep local
 **Usage:**
 
 ```bash
-make deploy                # Initial setup
-make verify                # Check
-make logs-api              # Log monitoring
-make scale-api REPLICAS=3  # Scaling
+make deploy                   # Initial setup
+make verify                   # Check
+make logs-api-csharp          # Log monitoring
+make scale-api REPLICAS=3     # Scaling
 ```
 
 ### Scenarios
@@ -1004,9 +1013,9 @@ kubectl rollout restart deployment datetime-api-csharp
 cd datetime-k8s
 
 # Makefile
-make verify          # Identify problem
-make fix-ingress     # or make fix-webhooks
-make logs-api        # Check logs
+make verify           # Identify problem
+make fix-ingress      # or make fix-webhooks
+make logs-api-csharp  # Check logs
 
 **Scenario 4: Complete Restart**
 

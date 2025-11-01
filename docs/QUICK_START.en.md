@@ -134,7 +134,7 @@ kubectl get endpoints
 | **No endpoint**      | `kubectl apply -f k8s/`                                                        |
 | **No access**        | `echo "127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local" \| sudo tee -a /etc/hosts` |
 | **Pod Pending**      | `kubectl describe pod <pod-name>` for more details                             |
-| **Circuit Breaker test fails** | Check logs: `make logs-api` to see C# API → Go API communication |
+| **Circuit Breaker test fails** | Check logs: `make logs-api-csharp` to see C# API → Go API communication |
 
 ---
 
@@ -154,7 +154,7 @@ make redeploy        # Clean and redeploy (fresh start)
 make status          # General status (nodes, pods, services)
 make show-nodes      # Node details (with IPs)
 make verify          # All tests (20 tests)
-make logs-api        # C# API logs
+make logs-api-csharp        # C# API logs
 make logs-web        # C# Web logs
 make logs-api-go     # Go API logs
 make logs-web-go     # Go Web logs
@@ -558,7 +558,7 @@ kubectl get svc datetime-api-go-service
 kubectl get pods -l app=datetime-api-go
 
 # Check logs
-make logs-api
+make logs-api-csharp
 # Should see: "Go API health check successful"
 ```
 
@@ -599,7 +599,7 @@ make verify
 make status
 
 # 2. Watch logs
-make logs-api        # C# API
+make logs-api-csharp        # C# API
 make logs-api-go     # Go API
 
 # 3. Connect to pod
@@ -643,7 +643,7 @@ curl http://api-csharp.local/api/datetime
 # Expected: {"goApiStatus": "circuit_open", ...}
 
 # 3. Watch logs
-make logs-api
+make logs-api-csharp
 # Should see: "Circuit breaker opened after 50% failure ratio"
 
 # 4. Restore Go API
@@ -672,15 +672,30 @@ curl http://api-csharp.local/api/datetime
 
 ### Debugging
 
-| Command             | Description          |
-| ------------------- | -------------------- |
-| `make show-nodes`   | Node details         |
-| `make logs-api`     | C# API logs (real-time) |
-| `make logs-web`     | C# Web logs (real-time) |
-| `make logs-api-go`  | Go API logs (real-time) |
-| `make logs-web-go`  | Go Web logs (real-time) |
-| `make fix-ingress`  | Fix Ingress          |
-| `make fix-webhooks` | Clean webhooks       |
+| Command                 | Description               |
+| ----------------------- | ------------------------- |
+| `make show-nodes`       | Node details              |
+| `make logs`             | All logs (C# + Go)        |
+| `make logs-api-csharp`  | C# API logs (real-time)   |
+| `make logs-web-csharp`  | C# Web logs (real-time)   |
+| `make logs-api-go`      | Go API logs (real-time)   |
+| `make logs-web-go`      | Go Web logs (real-time)   |
+| `make fix-ingress`      | Fix Ingress               |
+| `make fix-webhooks`     | Clean webhooks            |
+
+### Build & Update
+
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `make build-all`        | All images (C# + Go API + Web)   |
+| `make build-api`        | All API images (C# + Go)         |
+| `make build-web`        | All Web images (C# + Go)         |
+| `make build-api-csharp` | C# API build                     |
+| `make build-api-go`     | Go API build                     |
+| `make build-web-csharp` | C# Web build                     |
+| `make build-web-go`     | Go Web build                     |
+| `make load-images`      | Images → Kind cluster            |
+| `make quick-update`     | Quick code update                |
 
 ### Management
 

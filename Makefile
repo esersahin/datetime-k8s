@@ -26,10 +26,10 @@ help: ## Tüm komutları gösterir
 		awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(YELLOW)Hızlı Başlangıç:$(NC)"
-	@echo "  make deploy        # Tüm sistemi deploy et"
-	@echo "  make verify        # Sistemi doğrula"
-	@echo "  make logs-api      # API loglarını izle"
-	@echo "  make clean-all     # Her şeyi temizle"
+	@echo "  make deploy            # Tüm sistemi deploy et"
+	@echo "  make verify            # Sistemi doğrula"
+	@echo "  make logs-api-csharp   # C# API loglarını izle"
+	@echo "  make clean-all         # Her şeyi temizle"
 
 setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	@echo "$(YELLOW)📁 Proje dizin yapısı kontrol ediliyor...$(NC)"
@@ -65,27 +65,33 @@ setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	@echo ""
 	@echo "$(GREEN)Hazır olduğunuzda 'make deploy' komutunu çalıştırın!$(NC)"
 
-build-api: ## API Docker imajını build eder
-	@echo "$(YELLOW)🔨 API imajı build ediliyor...$(NC)"
+build-api-csharp: ## C# API Docker imajını build eder
+	@echo "$(YELLOW)🔨 C# API imajı build ediliyor...$(NC)"
 	@cd api-csharp && docker build -t $(API_IMAGE) -f Dockerfile.api .
-	@echo "$(GREEN)✓ API imajı oluşturuldu$(NC)"
+	@echo "$(GREEN)✓ C# API imajı oluşturuldu$(NC)"
 
-build-web: ## Web Docker imajını build eder
-	@echo "$(YELLOW)🔨 Web imajı build ediliyor...$(NC)"
-	@cd web-csharp && docker build -t $(WEB_IMAGE) -f Dockerfile.web .
-	@echo "$(GREEN)✓ Web imajı oluşturuldu$(NC)"
-
-build-api-go: ## API-Go Docker imajını build eder
-	@echo "$(YELLOW)🔨 API-Go imajı build ediliyor...$(NC)"
+build-api-go: ## Go API Docker imajını build eder
+	@echo "$(YELLOW)🔨 Go API imajı build ediliyor...$(NC)"
 	@cd api-go && docker build -t $(API_GO_IMAGE) .
-	@echo "$(GREEN)✓ API-Go imajı oluşturuldu$(NC)"
+	@echo "$(GREEN)✓ Go API imajı oluşturuldu$(NC)"
 
-build-web-go: ## Web-Go Docker imajını build eder
-	@echo "$(YELLOW)🔨 Web-Go imajı build ediliyor...$(NC)"
+build-api: build-api-csharp build-api-go ## Tüm API Docker imajlarını build eder (C# + Go)
+	@echo "$(GREEN)✓ Tüm API imajları oluşturuldu$(NC)"
+
+build-web-csharp: ## C# Web Docker imajını build eder
+	@echo "$(YELLOW)🔨 C# Web imajı build ediliyor...$(NC)"
+	@cd web-csharp && docker build -t $(WEB_IMAGE) -f Dockerfile.web .
+	@echo "$(GREEN)✓ C# Web imajı oluşturuldu$(NC)"
+
+build-web-go: ## Go Web Docker imajını build eder
+	@echo "$(YELLOW)🔨 Go Web imajı build ediliyor...$(NC)"
 	@cd web-go && docker build -t $(WEB_GO_IMAGE) .
-	@echo "$(GREEN)✓ Web-Go imajı oluşturuldu$(NC)"
+	@echo "$(GREEN)✓ Go Web imajı oluşturuldu$(NC)"
 
-build-all: build-api build-web build-api-go build-web-go ## Tüm Docker imajlarını build eder
+build-web: build-web-csharp build-web-go ## Tüm Web Docker imajlarını build eder (C# + Go)
+	@echo "$(GREEN)✓ Tüm Web imajları oluşturuldu$(NC)"
+
+build-all: build-api build-web ## Tüm Docker imajlarını build eder
 	@echo "$(GREEN)✓ Tüm imajlar oluşturuldu$(NC)"
 
 load-images: build-all ## İmajları Kind cluster'a yükler
@@ -324,20 +330,34 @@ verify: ## Deployment'ı doğrular ve test eder
 		echo "$(GREEN)🎉 TÜM TESTLER BAŞARILI! 🎉$(NC)"; \
 	fi
 
-logs: ## Tüm pod loglarını gösterir
-	@echo "$(YELLOW)API Logs:$(NC)"
+logs: ## Tüm pod loglarını gösterir (C# + Go)
+	@echo "$(YELLOW)C# API Logs:$(NC)"
 	@kubectl logs -l app=datetime-api-csharp --tail=50 --prefix
 	@echo ""
-	@echo "$(YELLOW)Web Logs:$(NC)"
+	@echo "$(YELLOW)C# Web Logs:$(NC)"
 	@kubectl logs -l app=datetime-web-csharp --tail=50 --prefix
+	@echo ""
+	@echo "$(YELLOW)Go API Logs:$(NC)"
+	@kubectl logs -l app=datetime-api-go --tail=50 --prefix
+	@echo ""
+	@echo "$(YELLOW)Go Web Logs:$(NC)"
+	@kubectl logs -l app=datetime-web-go --tail=50 --prefix
 
-logs-api: ## API loglarını takip eder
-	@echo "$(YELLOW)📋 API logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
+logs-api-csharp: ## C# API loglarını takip eder
+	@echo "$(YELLOW)📋 C# API logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
 	@kubectl logs -l app=datetime-api-csharp -f
 
-logs-web: ## Web loglarını takip eder
-	@echo "$(YELLOW)📋 Web logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
+logs-web-csharp: ## C# Web loglarını takip eder
+	@echo "$(YELLOW)📋 C# Web logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
 	@kubectl logs -l app=datetime-web-csharp -f
+
+logs-api-go: ## Go API loglarını takip eder
+	@echo "$(YELLOW)📋 Go API logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
+	@kubectl logs -l app=datetime-api-go -f
+
+logs-web-go: ## Go Web loglarını takip eder
+	@echo "$(YELLOW)📋 Go Web logları izleniyor... (Ctrl+C ile çıkış)$(NC)"
+	@kubectl logs -l app=datetime-web-go -f
 
 test: ## API ve Web endpoint'lerini test eder
 	@echo "$(BLUE)🧪 Endpoint Testleri$(NC)"

@@ -588,7 +588,7 @@ datetime-k8s/
 **Makefile Komutları** (make help ile tüm liste):
 
 - Deployment: `make deploy`, `make redeploy`, `make clean-all`
-- Monitoring: `make status`, `make show-nodes`, `make logs-api`, `make verify`
+- Monitoring: `make status`, `make show-nodes`, `make logs-api-csharp`, `make verify`
 - Debugging: `make fix-ingress`, `make fix-webhooks`, `make test`
 - Scaling: `make scale-api REPLICAS=3`, `make restart-api`
 - Build: `make build-all`, `make quick-update`
@@ -647,24 +647,31 @@ make status
 
 | Komut            | Açıklama                       |
 | ---------------- | ------------------------------ |
-| `make help`      | Tüm komutları listeler         |
-| `make deploy`    | **Tam deployment (ANA KOMUT)** |
-| `make verify`    | Deployment'ı doğrular          |
-| `make test`      | Endpoint'leri test eder        |
-| `make status`    | Cluster durumunu gösterir      |
-| `make logs-api`  | API loglarını izler            |
-| `make logs-web`  | Web loglarını izler            |
-| `make clean`     | K8s kaynaklarını siler         |
-| `make clean-all` | Her şeyi siler (cluster dahil) |
-| `make redeploy`  | Tamamen yeniden deploy eder    |
+| `make help`            | Tüm komutları listeler              |
+| `make deploy`          | **Tam deployment (ANA KOMUT)**      |
+| `make verify`          | Deployment'ı doğrular               |
+| `make test`            | Endpoint'leri test eder             |
+| `make status`          | Cluster durumunu gösterir           |
+| `make logs`            | Tüm logları gösterir (C# + Go)      |
+| `make logs-api-csharp` | C# API loglarını izler              |
+| `make logs-web-csharp` | C# Web loglarını izler              |
+| `make logs-api-go`     | Go API loglarını izler              |
+| `make logs-web-go`     | Go Web loglarını izler              |
+| `make clean`           | K8s kaynaklarını siler              |
+| `make clean-all`       | Her şeyi siler (cluster dahil)      |
+| `make redeploy`        | Tamamen yeniden deploy eder         |
 
 #### Makefile İleri Seviye Komutlar
 
-| Komut                       | Açıklama                          |
-| --------------------------- | --------------------------------- |
-| `make build-api`            | Sadece API imajını build eder     |
-| `make build-web`            | Sadece Web imajını build eder     |
-| `make build-all`            | Tüm imajları build eder           |
+| Komut                       | Açıklama                                  |
+| --------------------------- | ----------------------------------------- |
+| `make build-api`            | Tüm API imajlarını build eder (C# + Go)   |
+| `make build-web`            | Tüm Web imajlarını build eder (C# + Go)   |
+| `make build-api-csharp`     | Sadece C# API imajını build eder          |
+| `make build-api-go`         | Sadece Go API imajını build eder          |
+| `make build-web-csharp`     | Sadece C# Web imajını build eder          |
+| `make build-web-go`         | Sadece Go Web imajını build eder          |
+| `make build-all`            | Tüm imajları build eder                   |
 | `make create-cluster`       | Kind cluster oluşturur            |
 | `make install-ingress`      | NGINX Ingress kurar               |
 | `make fix-ingress`          | hostNetwork düzeltir              |
@@ -699,8 +706,10 @@ make status
 ```bash
 # Logları görüntüleme
 make logs              # Tüm loglar (son 50 satır)
-make logs-api          # API loglarını izle (real-time)
-make logs-web          # Web loglarını izle (real-time)
+make logs-api-csharp   # C# API loglarını izle (real-time)
+make logs-web-csharp   # C# Web loglarını izle (real-time)
+make logs-api-go       # Go API loglarını izle (real-time)
+make logs-web-go       # Go Web loglarını izle (real-time)
 
 # Durum kontrolü
 make status            # Genel durum
@@ -841,8 +850,8 @@ make restart-api
 make restart-web
 
 # Logları kontrol et
-make logs-api
-make logs-web
+make logs-api-csharp
+make logs-web-csharp
 
 # Tamamen yeniden deploy
 make redeploy
@@ -957,9 +966,9 @@ cat /etc/hosts | grep local
 **Kullanım:**
 
 ```bash
-make deploy      # İlk kurulum
-make verify      # Kontrol
-make logs-api    # Log izleme
+make deploy           # İlk kurulum
+make verify           # Kontrol
+make logs-api-csharp  # Log izleme
 make scale-api REPLICAS=3  # Scaling
 ```
 
@@ -994,9 +1003,9 @@ make quick-update
 cd datetime-k8s
 
 # Makefile
-make verify          # Problemi tespit et
-make fix-ingress     # veya make fix-webhooks
-make logs-api        # Logları kontrol et
+make verify           # Problemi tespit et
+make fix-ingress      # veya make fix-webhooks
+make logs-api-csharp  # Logları kontrol et
 ```
 
 **Senaryo 4: Tamamen Yeniden Başlat**

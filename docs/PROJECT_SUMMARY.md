@@ -116,7 +116,7 @@ curl http://web-go.local
 make verify          # 15+ kontrol
 make fix-ingress     # Ingress düzelt
 make fix-webhooks    # Webhook temizle
-make logs-api        # C# API logs
+make logs-api-csharp # C# API logs
 make logs-api-go     # Go API logs
 ```
 
@@ -510,10 +510,11 @@ make redeploy        # Clean + deploy
 make status          # Genel cluster durumu
 make show-nodes      # Node detayları (labels, taints)
 make verify          # 15+ otomatik test
-make logs            # Tüm pod logları
-make logs-api        # C# API logları (real-time)
+make logs            # Tüm pod logları (C# + Go)
+make logs-api-csharp # C# API logları (real-time)
 make logs-api-go     # Go API logları (real-time)
-make logs-web        # Web logları (real-time)
+make logs-web-csharp # C# Web logları (real-time)
+make logs-web-go     # Go Web logları (real-time)
 ```
 
 ### Debugging & Fix (4 komut)
@@ -525,12 +526,16 @@ make test            # Endpoint testleri (curl)
 make describe-ingress # Ingress detay
 ```
 
-### Build & Update (5 komut)
+### Build & Update (9 komut)
 
 ```bash
-make build-all       # Tüm images (C# + Go + Web)
-make build-api       # Sadece C# API
+make build-all       # Tüm images (C# + Go API + Web)
+make build-api       # Tüm API images (C# + Go)
+make build-web       # Tüm Web images (C# + Go)
+make build-api-csharp # Sadece C# API
 make build-api-go    # Sadece Go API
+make build-web-csharp # Sadece C# Web
+make build-web-go    # Sadece Go Web
 make load-images     # Images → Kind cluster
 make quick-update    # Kod değişince hızlı update
 ```
@@ -721,7 +726,7 @@ kubectl scale deployment datetime-api-go --replicas=0
 curl http://api-csharp.local/api/datetime
 
 # Check logs
-make logs-api  # Circuit breaker logs visible
+make logs-api-csharp  # Circuit breaker logs visible
 
 # Restore Go API
 kubectl scale deployment datetime-api-go --replicas=3

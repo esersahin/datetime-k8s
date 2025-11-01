@@ -527,11 +527,17 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 
 ```bash
 # RECOMMENDED: Live log follow using Makefile
-make logs-api     # Follow API logs (Ctrl+C to exit)
-make logs-web     # Follow Web logs (Ctrl+C to exit)
+make logs             # Show all logs (C# + Go)
+make logs-api-csharp  # Follow C# API logs (Ctrl+C to exit)
+make logs-web-csharp  # Follow C# Web logs (Ctrl+C to exit)
+make logs-api-go      # Follow Go API logs (Ctrl+C to exit)
+make logs-web-go      # Follow Go Web logs (Ctrl+C to exit)
 
-# Follow all API pods logs using label selector
+# Follow all C# API pods logs using label selector
 kubectl logs -l app=datetime-api-csharp -f --prefix
+
+# Follow all Go API pods logs using label selector
+kubectl logs -l app=datetime-api-go -f --prefix
 
 # Show logs of a specific pod
 # First, find the pod name:
