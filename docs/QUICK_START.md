@@ -72,7 +72,7 @@ make deploy
 # Durum kontrolü
 make status
 
-# Doğrulama (20 test)
+# Doğrulama (9 test)
 make verify
 
 # API testleri
@@ -99,7 +99,7 @@ kubectl get nodes
 
 # 2. Pod'lar hazır mı?
 kubectl get pods --all-namespaces
-# Beklenen: Hepsi Running (13 application pods)
+# Beklenen: Hepsi Running (12 application pods + 3 ingress pods)
 
 # 3. Ingress Controller nerede?
 kubectl get pods -n ingress-nginx -o wide
@@ -116,13 +116,13 @@ kubectl get endpoints
 
 ### Yaygın Sorunlar
 
-| Sorun                | Hızlı Çözüm                                                                      |
-| -------------------- | -------------------------------------------------------------------------------- |
-| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make install-ingress`                |
-| **Endpoint yok**     | `kubectl apply -f k8s/`                                                          |
+| Sorun                | Hızlı Çözüm                                                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **ImagePullBackOff** | `kubectl delete namespace ingress-nginx` → `make install-ingress`                                                                         |
+| **Endpoint yok**     | `kubectl apply -f k8s/`                                                                                                                   |
 | **Erişim yok**       | `make update-hosts` veya manuel: `echo "127.0.0.1 api-csharp.local web-csharp.local api-go.local web-go.local" \| sudo tee -a /etc/hosts` |
-| **Pod Pending**      | `kubectl describe pod <pod-name>` ile detaylara bakın                            |
-| **Worker node yok**  | `kind delete cluster` → `make deploy` (kind-config.yaml otomatik oluşturulur)   |
+| **Pod Pending**      | `kubectl describe pod <pod-name>` ile detaylara bakın                                                                                     |
+| **Worker node yok**  | `kind delete cluster` → `make deploy` (kind-config.yaml otomatik oluşturulur)                                                             |
 
 ---
 
@@ -142,7 +142,7 @@ make setup-haproxy   # HAProxy load balancer kur
 ```bash
 make status          # Genel durum
 make show-nodes      # Node detayları
-make verify          # 20 otomatik test
+make verify          # 9 otomatik test
 make logs-api-csharp # C# API logları
 make logs-api-go     # Go API logları
 make logs-web-csharp # C# Web logları
@@ -181,48 +181,40 @@ $ make status
 ==================
 
 Nodes:
-NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
-kind-control-plane    Ready    control-plane   33m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-control-plane2   Ready    control-plane   33m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-control-plane3   Ready    control-plane   32m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker           Ready    <none>          32m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker2          Ready    <none>          32m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
-kind-worker3          Ready    <none>          32m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+NAME                  STATUS   ROLES           AGE     VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
+kind-control-plane    Ready    control-plane   5h11m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane2   Ready    control-plane   5h10m   v1.34.0   172.20.0.6    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-control-plane3   Ready    control-plane   5h10m   v1.34.0   172.20.0.8    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker           Ready    <none>          5h10m   v1.34.0   172.20.0.5    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker2          Ready    <none>          5h10m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
+kind-worker3          Ready    <none>          5h10m   v1.34.0   172.20.0.3    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 
-Ingress Pods (should be on worker nodes):
-NAME                                        READY   STATUS    NODE
-ingress-nginx-controller-7c9f5d4b8f-abc12   1/1     Running   kind-worker    ✅
-ingress-nginx-controller-7c9f5d4b8f-def34   1/1     Running   kind-worker2   ✅
-ingress-nginx-controller-7c9f5d4b8f-ghi56   1/1     Running   kind-worker3   ✅
-
-Application Pods (with Node placement):
-NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE           NOMINATED NODE   READINESS GATES
-datetime-api-csharp-5b755f6575-7cmh9   1/1     Running   0          30m   10.244.5.2   kind-worker3   <none>           <none>
-datetime-api-csharp-5b755f6575-bbxvn   1/1     Running   0          30m   10.244.3.2   kind-worker2   <none>           <none>
-datetime-api-csharp-5b755f6575-qdb5x   1/1     Running   0          30m   10.244.4.2   kind-worker    <none>           <none>
-datetime-api-go-69d7d7c5c-gxfbg        1/1     Running   0          30m   10.244.4.4   kind-worker    <none>           <none>
-datetime-api-go-69d7d7c5c-h4p6c        1/1     Running   0          30m   10.244.3.5   kind-worker2   <none>           <none>
-datetime-api-go-69d7d7c5c-sdm75        1/1     Running   0          30m   10.244.5.4   kind-worker3   <none>           <none>
-datetime-web-csharp-78cb6c4558-4jb4s   1/1     Running   0          30m   10.244.4.3   kind-worker    <none>           <none>
-datetime-web-csharp-78cb6c4558-nllpm   1/1     Running   0          30m   10.244.5.3   kind-worker3   <none>           <none>
-datetime-web-go-5c776fd996-fdlf8       1/1     Running   0          30m   10.244.5.5   kind-worker3   <none>           <none>
-datetime-web-go-5c776fd996-knz8p       1/1     Running   0          30m   10.244.3.4   kind-worker2   <none>           <none>
+Pods (with Node placement):
+NAME                                   READY   STATUS    RESTARTS   AGE    IP           NODE           NOMINATED NODE   READINESS GATES
+datetime-api-csharp-555f77dd8d-98v9f   1/1     Running   0          5h8m   10.244.3.2   kind-worker    <none>           <none>
+datetime-api-csharp-555f77dd8d-ktvjc   1/1     Running   0          5h8m   10.244.4.2   kind-worker2   <none>           <none>
+datetime-api-csharp-555f77dd8d-tvd9c   1/1     Running   0          5h8m   10.244.5.2   kind-worker3   <none>           <none>
+datetime-api-go-69d7d7c5c-cmj8k        1/1     Running   0          5h8m   10.244.3.4   kind-worker    <none>           <none>
+datetime-api-go-69d7d7c5c-m8x9b        1/1     Running   0          5h8m   10.244.4.4   kind-worker2   <none>           <none>
+datetime-api-go-69d7d7c5c-s4w4b        1/1     Running   0          5h8m   10.244.5.4   kind-worker3   <none>           <none>
+datetime-web-csharp-78cb6c4558-lt7mk   1/1     Running   0          5h8m   10.244.3.3   kind-worker    <none>           <none>
+datetime-web-csharp-78cb6c4558-w5gvn   1/1     Running   0          5h8m   10.244.4.3   kind-worker2   <none>           <none>
+datetime-web-csharp-78cb6c4558-xzzkj   1/1     Running   0          5h8m   10.244.5.3   kind-worker3   <none>           <none>
+datetime-web-go-5c776fd996-gzhw5       1/1     Running   0          5h8m   10.244.4.5   kind-worker2   <none>           <none>
+datetime-web-go-5c776fd996-j7s4x       1/1     Running   0          5h8m   10.244.3.5   kind-worker    <none>           <none>
+datetime-web-go-5c776fd996-k854j       1/1     Running   0          5h8m   10.244.5.5   kind-worker3   <none>           <none>
 
 Services:
-NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
-datetime-api-csharp-service   ClusterIP   10.96.199.65   <none>        80/TCP    30m
-datetime-api-go-service       ClusterIP   10.96.130.19   <none>        80/TCP    30m
-datetime-web-csharp-service   ClusterIP   10.96.96.23    <none>        80/TCP    30m
-datetime-web-go-service       ClusterIP   10.96.172.47   <none>        80/TCP    30m
-kubernetes                    ClusterIP   10.96.0.1      <none>        443/TCP   33m
+NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+datetime-api-csharp-service   ClusterIP   10.96.123.175   <none>        80/TCP    5h8m
+datetime-api-go-service       ClusterIP   10.96.244.74    <none>        80/TCP    5h8m
+datetime-web-csharp-service   ClusterIP   10.96.230.141   <none>        80/TCP    5h8m
+datetime-web-go-service       ClusterIP   10.96.105.81    <none>        80/TCP    5h8m
+kubernetes                    ClusterIP   10.96.0.1       <none>        443/TCP   5h11m
 
 Ingress:
 NAME               CLASS   HOSTS                                                        ADDRESS     PORTS   AGE
-datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...   localhost   80      30m
-
-HAProxy Load Balancer:
-CONTAINER ID   IMAGE                 PORTS                                           STATUS
-abc123def456   haproxy:2.9-alpine    0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp,...    Up 30 minutes
+datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 more...   localhost   80      5h8m
 ```
 
 ### Test Sonuçları
@@ -230,68 +222,65 @@ abc123def456   haproxy:2.9-alpine    0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp,..
 ```bash
 $ curl http://api-csharp.local/api/datetime
 {
-  "date": "29.10.2025",
-  "time": "15:45:30",
-  "dayOfWeek": "Çarşamba",
-  "timestamp": "2025-10-29T15:45:30+03:00",
-  "goApiData": {
-    "timezone": "Europe/Istanbul",
-    "offset": "+03:00"
-  }
+  "date": "01.11.2025",
+  "time": "17:03:10",
+  "dayOfWeek": "Cumartesi",
+  "timestamp": "2025-11-01T17:03:10.8991797+00:00",
 }
 
 $ curl http://api-go.local/health
 {
-  "status": "healthy",
-  "timestamp": "2025-10-29T15:45:30Z",
-  "uptime": "30m15s"
+  "status":"healthy",
+  "timestamp":"2025-11-01T20:05:21.108016553+03:00",
+  "service":"datetime-api-go",
+  "pod":"datetime-api-go-69d7d7c5c-s4w4b",
+  "node":"kind-worker3"
 }
 
 $ curl http://web-csharp.local
 <!DOCTYPE html>
-<html>
-  <head><title>Tarih ve Saat Uygulaması</title></head>
-  ...
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tarih ve Saat Uygulaması</title>
+    ...
 </html>
+
+$ curl http://web-go.local
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DateTime API - Go Client</title>
+    ...
+</html>
+
 
 $ make verify
 🔍 Deployment Doğrulama
 ========================
 
 1. Kind Cluster
-✓ Kind cluster mevcut (6 nodes: 3 control-plane + 3 worker)
+✓ Kind cluster mevcut
 
 2. NGINX Ingress Controller
 ✓ Ingress namespace mevcut
-✓ 3 ingress pods running
-✓ All ingress pods on worker nodes ✅
 ✓ hostNetwork: true (Doğru)
 ✓ ValidatingWebhook yok (İdeal)
 
-3. HAProxy Load Balancer
-✓ HAProxy container running
-✓ Health checks configured
-✓ All 3 workers UP
+3. Deployments
+✓ API deployment mevcut
+✓ Web deployment mevcut
 
-4. Deployments
-✓ C# API deployment (3 replicas)
-✓ Go API deployment (3 replicas)
-✓ C# Web deployment (2 replicas)
-✓ Go Web deployment (2 replicas)
-
-5. Services & Endpoints
-✓ 4 ClusterIP services
-✓ All services have endpoints
-
-6. Endpoint Testleri
-✓ C# API health endpoint
-✓ C# API datetime endpoint
-✓ Go API health endpoint
-✓ C# Web accessible
-✓ Go Web accessible
+4. Endpoint Testleri
+✓ API health endpoint erişilebilir
+✓ API datetime endpoint erişilebilir
+✓ Web uygulaması erişilebilir
 
 ÖZET
-Toplam: 20 | Başarılı: 20 | Başarısız: 0 | Oran: 100%
+Toplam: 9 | Başarılı: 9  | Başarısız: 0  | Oran: 100%
 
 🎉 TÜM TESTLER BAŞARILI! 🎉
 ```
@@ -391,6 +380,7 @@ kubectl get pods -n ingress-nginx -o wide
 ```
 
 **NEDEN?**
+
 - ✅ HA (High Availability) - 3 replika
 - ✅ Load balancing - HAProxy distributes
 - ✅ Optimal performance - Separation of concerns
@@ -426,23 +416,27 @@ cat /etc/hosts | grep local
 ### 6. Docker Image Optimization
 
 **C# API**: 277 MB → **32.6 MB** (-%88.2)
+
 - Alpine Linux base
 - Self-contained + trimmed
 - Invariant globalization
 
 **Go API**: ~**15 MB**
+
 - Statically compiled
 - No CGO dependencies
 
 ### 7. Polyglot Microservices
 
 **4 Applications**:
+
 1. **C# API** - .NET 9, datetime service, calls Go API
 2. **Go API** - High-performance, timezone/calculator
 3. **C# Web** - Turkish UI, consumes C# API
 4. **Go Web** - English UI, consumes Go API
 
 **Service-to-Service**:
+
 - C# API → Go API (Circuit Breaker, Retry, Rate Limiting)
 
 ### 8. Webhook'lar Devre Dışı
@@ -615,64 +609,64 @@ kubectl scale deployment datetime-api-go --replicas=3
 | ------------- | ---------------------------- |
 | `make help`   | Tüm komutları listele        |
 | `make deploy` | **Full deployment (3+3 HA)** |
-| `make verify` | 20 doğrulama testi           |
+| `make verify` | 9 doğrulama testi            |
 | `make status` | Genel durum                  |
 | `make test`   | Endpoint testleri            |
 
 ### Cluster Yönetimi
 
-| Komut                  | Açıklama                     |
-| ---------------------- | ---------------------------- |
-| `make create-cluster`  | Kind cluster oluştur         |
-| `make install-ingress` | NGINX Ingress kur            |
-| `make setup-haproxy`   | HAProxy load balancer kur    |
-| `make clean-cluster`   | Cluster sil                  |
+| Komut                  | Açıklama                  |
+| ---------------------- | ------------------------- |
+| `make create-cluster`  | Kind cluster oluştur      |
+| `make install-ingress` | NGINX Ingress kur         |
+| `make setup-haproxy`   | HAProxy load balancer kur |
+| `make clean-cluster`   | Cluster sil               |
 
 ### Debugging
 
-| Komut                 | Açıklama                |
-| --------------------- | ----------------------- |
-| `make show-nodes`     | Node detayları          |
-| `make logs`           | Tüm loglar (C# + Go)    |
-| `make logs-api-csharp`| C# API logları          |
-| `make logs-api-go`    | Go API logları          |
-| `make logs-web-csharp`| C# Web logları          |
-| `make logs-web-go`    | Go Web logları          |
-| `make fix-ingress`    | Ingress düzelt          |
-| `make fix-webhooks`   | Webhook'ları temizle    |
+| Komut                  | Açıklama             |
+| ---------------------- | -------------------- |
+| `make show-nodes`      | Node detayları       |
+| `make logs`            | Tüm loglar (C# + Go) |
+| `make logs-api-csharp` | C# API logları       |
+| `make logs-api-go`     | Go API logları       |
+| `make logs-web-csharp` | C# Web logları       |
+| `make logs-web-go`     | Go Web logları       |
+| `make fix-ingress`     | Ingress düzelt       |
+| `make fix-webhooks`    | Webhook'ları temizle |
 
 ### Build & Update
 
-| Komut                 | Açıklama                      |
-| --------------------- | ----------------------------- |
-| `make build-all`      | Tüm images (C# + Go API + Web)|
-| `make build-api`      | Tüm API images (C# + Go)      |
-| `make build-web`      | Tüm Web images (C# + Go)      |
-| `make build-api-csharp` | C# API build                |
-| `make build-api-go`   | Go API build                  |
-| `make build-web-csharp` | C# Web build                |
-| `make build-web-go`   | Go Web build                  |
-| `make load-images`    | Images → Kind cluster         |
-| `make quick-update`   | Hızlı kod güncelleme          |
+| Komut                   | Açıklama                       |
+| ----------------------- | ------------------------------ |
+| `make build-all`        | Tüm images (C# + Go API + Web) |
+| `make build-api`        | Tüm API images (C# + Go)       |
+| `make build-web`        | Tüm Web images (C# + Go)       |
+| `make build-api-csharp` | C# API build                   |
+| `make build-api-go`     | Go API build                   |
+| `make build-web-csharp` | C# Web build                   |
+| `make build-web-go`     | Go Web build                   |
+| `make load-images`      | Images → Kind cluster          |
+| `make quick-update`     | Hızlı kod güncelleme           |
 
 ### Scaling & Management
 
-| Komut                       | Açıklama                |
-| --------------------------- | ----------------------- |
-| `make scale-api REPLICAS=5` | C# API scale            |
-| `make scale-api-go REPLICAS=5` | Go API scale         |
-| `make scale-web REPLICAS=3` | Web scale               |
-| `make restart-api`          | C# API restart          |
-| `make restart-api-go`       | Go API restart          |
-| `make restart-web`          | Web restart             |
+| Komut                          | Açıklama       |
+| ------------------------------ | -------------- |
+| `make scale-api REPLICAS=5`    | C# API scale   |
+| `make scale-api-go REPLICAS=5` | Go API scale   |
+| `make scale-web REPLICAS=3`    | Web scale      |
+| `make restart-api`             | C# API restart |
+| `make restart-api-go`          | Go API restart |
+| `make restart-web`             | Web restart    |
 
 ### Cleanup
 
-| Komut             | Açıklama                |
-| ----------------- | ----------------------- |
-| `make clean`      | K8s kaynakları sil      |
-| `make clean-all`  | Cluster + kaynaklar sil |
-| `make redeploy`   | Tam yeniden deploy      |
+| Komut            | Açıklama                |
+| ---------------- | ----------------------- |
+| `make clean`     | K8s kaynakları sil      |
+| `make clean-all` | Cluster + kaynaklar sil |
+| `make redeploy`  | Tam yeniden deploy      |
 
 ---
 
@@ -686,11 +680,11 @@ Başarılı deployment için:
 - [ ] 6 nodes var (3 control-plane + 3 worker - HA)
 - [ ] **Ingress Controller worker node'larda (3 replika)** ✅
 - [ ] HAProxy container running
-- [ ] 13 application pods Running
+- [ ] 15 application pods Running
   - [ ] 3x datetime-api-csharp
   - [ ] 3x datetime-api-go
-  - [ ] 2x datetime-web-csharp
-  - [ ] 2x datetime-web-go
+  - [ ] 3x datetime-web-csharp
+  - [ ] 3x datetime-web-go
   - [ ] 3x ingress-nginx-controller
 - [ ] 4 ClusterIP services
 - [ ] Endpoint'ler mevcut
@@ -699,7 +693,7 @@ Başarılı deployment için:
 - [ ] `curl http://api-go.local/health` çalışıyor
 - [ ] `curl http://web-csharp.local` çalışıyor
 - [ ] `curl http://web-go.local` çalışıyor
-- [ ] `make verify` başarılı (20/20 test)
+- [ ] `make verify` başarılı (9/9 test)
 
 ---
 
@@ -752,16 +746,16 @@ Eğer bu adımları tamamladıysanız:
 
 ### Elde Ettiğiniz Sistem
 
-| Özellik | Değer |
-|---------|-------|
-| **Nodes** | 6 (3 control-plane + 3 worker) |
-| **Application Pods** | 13 (3 C# API + 3 Go API + 4 Web + 3 Ingress) |
-| **Services** | 4 ClusterIP |
-| **Domains** | 4 (api-csharp.local, api-go.local, web-csharp.local, web-go.local) |
-| **Load Balancer** | HAProxy (health check enabled) |
-| **Image Sizes** | C# API: 32.6 MB, Go API: ~15 MB |
-| **Deployment Time** | 3-5 minutes |
-| **Success Rate** | ~100% |
+| Özellik              | Değer                                                              |
+| -------------------- | ------------------------------------------------------------------ |
+| **Nodes**            | 6 (3 control-plane + 3 worker)                                     |
+| **Application Pods** | 15 (3 C# API + 3 Go API + 6 Web + 3 Ingress)                       |
+| **Services**         | 4 ClusterIP                                                        |
+| **Domains**          | 4 (api-csharp.local, api-go.local, web-csharp.local, web-go.local) |
+| **Load Balancer**    | HAProxy (health check enabled)                                     |
+| **Image Sizes**      | C# API: 32.6 MB, Go API: ~15 MB                                    |
+| **Deployment Time**  | 3-5 minutes                                                        |
+| **Success Rate**     | ~100%                                                              |
 
 ---
 

@@ -3,7 +3,7 @@
 ### 🌐 Read in Other Languages
 
 | 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
-| :--------------------------------------: | :----------------------------------: |
+| :---------------------------------: | :-----------------------------: |
 
 </div>
 
@@ -113,7 +113,7 @@ curl http://web-go.local
 ### Sorun Giderme
 
 ```bash
-make verify          # 15+ kontrol
+make verify          # 9 kontrol
 make fix-ingress     # Ingress düzelt
 make fix-webhooks    # Webhook temizle
 make logs-api-csharp # C# API logs
@@ -133,49 +133,49 @@ make clean-all       # Her şeyi temizle
 
 ### Başlangıç Dokümanları
 
-| Dosya | Ne Zaman | İçerik |
-|-------|----------|--------|
-| **[QUICK_START](QUICK_START.md)** | İlk kurulum | 5 dakikada başlat |
-| **[README](../README.md)** | Genel bakış | Tüm özellikler |
-| **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** | Bu dosya | Proje özeti |
+| Dosya                                     | Ne Zaman    | İçerik            |
+| ----------------------------------------- | ----------- | ----------------- |
+| **[QUICK_START](QUICK_START.md)**         | İlk kurulum | 5 dakikada başlat |
+| **[README](../README.md)**                | Genel bakış | Tüm özellikler    |
+| **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** | Bu dosya    | Proje özeti       |
 
 ### Mimari Dokümanları
 
-| Dosya | Konu | Seviye |
-|-------|------|--------|
-| **[ARCHITECTURE](ARCHITECTURE.md)** | Sistem mimarisi | Orta |
-| **[ARCHITECTURE_C4](ARCHITECTURE_C4.md)** | C4 model diyagramlar | İleri |
-| **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.md)** | C# → Go iletişim | İleri |
+| Dosya                                                                       | Konu                 | Seviye |
+| --------------------------------------------------------------------------- | -------------------- | ------ |
+| **[ARCHITECTURE](ARCHITECTURE.md)**                                         | Sistem mimarisi      | Orta   |
+| **[ARCHITECTURE_C4](ARCHITECTURE_C4.md)**                                   | C4 model diyagramlar | İleri  |
+| **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.md)** | C# → Go iletişim     | İleri  |
 
 ### Deployment Dokümanları
 
-| Dosya | Konu | İçerik |
-|-------|------|--------|
-| **[WORKER_NODES](WORKER_NODES.md)** | Multi-node cluster | 3+3 HA setup |
+| Dosya                                                 | Konu               | İçerik                      |
+| ----------------------------------------------------- | ------------------ | --------------------------- |
+| **[WORKER_NODES](WORKER_NODES.md)**                   | Multi-node cluster | 3+3 HA setup                |
 | **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.md)** | Deployment tipleri | Rolling, Canary, Blue-Green |
-| **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** | Değişiklik geçmişi | Tüm değişiklikler |
+| **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)**             | Değişiklik geçmişi | Tüm değişiklikler           |
 
 ### Optimizasyon Dokümanları
 
-| Dosya | Konu | Kazanç |
-|-------|------|--------|
+| Dosya                                             | Konu               | Kazanç           |
+| ------------------------------------------------- | ------------------ | ---------------- |
 | **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.md)** | Image optimization | 277 MB → 32.6 MB |
-| **[LOAD_BALANCING](LOAD_BALANCING.md)** | Load balancing | HAProxy + K8s |
+| **[LOAD_BALANCING](LOAD_BALANCING.md)**           | Load balancing     | HAProxy + K8s    |
 
 ### Network Dokümanları
 
-| Dosya | Konu | Detay |
-|-------|------|-------|
-| **[INGRESS_SETUP](INGRESS_SETUP.md)** | Ingress kurulumu | Worker nodes |
-| **[INGRESS_ROUTING](INGRESS_ROUTING.md)** | Traffic routing | 4 domain |
-| **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** | HAProxy | HA setup |
+| Dosya                                               | Konu             | Detay        |
+| --------------------------------------------------- | ---------------- | ------------ |
+| **[INGRESS_SETUP](INGRESS_SETUP.md)**               | Ingress kurulumu | Worker nodes |
+| **[INGRESS_ROUTING](INGRESS_ROUTING.md)**           | Traffic routing  | 4 domain     |
+| **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.md)** | HAProxy          | HA setup     |
 
 ### Troubleshooting Dokümanları
 
-| Dosya | Konu | Ne Zaman |
-|-------|------|----------|
+| Dosya                                               | Konu             | Ne Zaman      |
+| --------------------------------------------------- | ---------------- | ------------- |
 | **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** | Kubernetes debug | Pod sorunları |
-| **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** | macOS network | 5s gecikme |
+| **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)**       | macOS network    | 5s gecikme    |
 
 ## 🔑 Kritik Dosyalar
 
@@ -185,11 +185,11 @@ make clean-all       # Her şeyi temizle
 
 ```yaml
 spec:
-  replicas: 3  # 3 worker için 3 replika
+  replicas: 3 # 3 worker için 3 replika
 
   template:
     spec:
-      hostNetwork: true  # localhost:80/443
+      hostNetwork: true # localhost:80/443
 
       # ✅ WORKER NODE'LARDA ÇALIŞ
       nodeSelector:
@@ -213,6 +213,7 @@ spec:
 - ✅ Zero downtime deployment
 
 **Eski Hata**:
+
 - ❌ Control-plane'de çalıştırmaya çalışıyordu
 - ❌ Tek replika vardı
 - ✅ Şimdi: Worker node'larda 3 replika
@@ -255,6 +256,7 @@ nodes:
 ```
 
 **Özellikler**:
+
 - 3 control-plane (etcd quorum, HA)
 - 3 worker (application pods, HA)
 - Her worker'da `ingress-ready=true` label
@@ -286,6 +288,7 @@ builder.Services.AddHttpClient("go-api", client =>
 ```
 
 **Özellikler**:
+
 - Service-to-service communication (C# → Go)
 - Circuit breaker (failure protection)
 - Exponential backoff retry
@@ -300,10 +303,11 @@ deploy:          # Full HA deployment (3+3 cluster)
 build-all:       # C# + Go + Web images
 fix-ingress:     # Otomatik ingress düzeltme
 setup-haproxy:   # HAProxy load balancer
-verify:          # 15+ test
+verify:          # 9 test
 ```
 
 **Özellikler**:
+
 - Tek komut deployment
 - Otomatik sorun giderme
 - Polyglot build desteği
@@ -314,16 +318,22 @@ verify:          # 15+ test
 **Load Balancer yapılandırması**:
 
 ```conf
-backend worker_nodes
+backend workers_http
+    mode http
     balance roundrobin
-    option httpchk GET /healthz
 
-    server worker1 172.18.0.4:80 check
-    server worker2 172.18.0.5:80 check
-    server worker3 172.18.0.6:80 check
+    option httpchk GET /healthz
+    http-check expect status 200-499
+
+    # Worker node'lar - DNS ile otomatik çözümlenir
+    # Kind container isimleri Docker DNS ile erişilebilir
+    server worker1 kind-worker:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker2 kind-worker2:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
 ```
 
 **Özellikler**:
+
 - Round-robin load balancing
 - Health check-based failover
 - Stats dashboard (port 8404)
@@ -337,15 +347,16 @@ backend worker_nodes
 **Neden**: YAML'da `selector` labels pod labels ile eşleşmiyor
 
 **Çözüm**:
+
 ```yaml
 # Service
 selector:
-  app: datetime-api-csharp  # ← Pod label ile aynı
+  app: datetime-api-csharp # ← Pod label ile aynı
 
 # Pod
 metadata:
   labels:
-    app: datetime-api-csharp  # ← Service selector ile aynı
+    app: datetime-api-csharp # ← Service selector ile aynı
 ```
 
 ### Sorun 2: Ingress Controller Yanlış Node'da
@@ -355,10 +366,11 @@ metadata:
 **Neden**: Control-plane yerine worker node'da deployment
 
 **Çözüm**: `k8s/ingress-nginx-deployment.yaml` oluşturuldu
+
 ```yaml
 nodeSelector:
-  ingress-ready: "true"  # Worker node'larda
-hostNetwork: true        # localhost:80/443
+  ingress-ready: "true" # Worker node'larda
+hostNetwork: true # localhost:80/443
 ```
 
 ### Sorun 3: ImagePullBackOff (ARM64)
@@ -368,6 +380,7 @@ hostNetwork: true        # localhost:80/443
 **Neden**: SHA256 digest tek platform için
 
 **Çözüm**: SHA kaldırıldı, tag kullanıldı
+
 ```yaml
 # ❌ Eski
 image: registry.k8s.io/ingress-nginx/controller@sha256:...
@@ -383,6 +396,7 @@ image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 **Neden**: Admission webhook aktif ama cert yok
 
 **Çözüm**: Webhook args kaldırıldı
+
 ```yaml
 args:
   - /nginx-ingress-controller
@@ -397,6 +411,7 @@ args:
 **Neden**: Debian-based .NET runtime
 
 **Çözüm**: Alpine + Invariant mode
+
 ```dockerfile
 FROM alpine:3.19
 RUN apk add --no-cache libstdc++
@@ -411,6 +426,7 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 **Neden**: Single node cluster
 
 **Çözüm**: 3+3 HA cluster
+
 - 3 control-plane (etcd quorum)
 - 3 worker (application HA)
 - HAProxy load balancer
@@ -420,16 +436,17 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 ### 1. Kubernetes Scheduling
 
 **Pod Placement**:
+
 - nodeSelector olmadan → Rastgele node
 - Taint varsa → Toleration gerekir
 - Label'lar kritik → `ingress-ready=true`
 
 **Best Practice**:
+
 ```yaml
 # Worker node'larda çalış
 nodeSelector:
   ingress-ready: "true"
-
 # Control-plane'de ÇALIŞMA
 # tolerations yok (intentionally)
 ```
@@ -437,12 +454,14 @@ nodeSelector:
 ### 2. Kind Network Architecture
 
 **Port Mapping**:
+
 ```yaml
 # ❌ Worker node'da port mapping çalışmaz
 # ✅ HAProxy ile tüm worker'lara load balance
 ```
 
 **Çözüm**:
+
 - HAProxy container (port 80/443)
 - Round-robin to worker nodes
 - Health check-based failover
@@ -450,10 +469,12 @@ nodeSelector:
 ### 3. Docker Multi-Platform Images
 
 **Platform Support**:
+
 - ✅ Tag kullan: `controller:v1.13.3` (multi-platform)
 - ❌ SHA kullanma: `@sha256:...` (single platform)
 
 **BuildKit**:
+
 ```dockerfile
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 ARG TARGETARCH
@@ -463,12 +484,14 @@ RUN dotnet restore -a ${TARGETARCH}
 ### 4. Service-to-Service Resiliency
 
 **Failure Handling**:
+
 - Circuit Breaker → Fast fail
 - Retry Policy → Exponential backoff
 - Rate Limiting → Token bucket
 - Timeout → Request timeout
 
 **Benefits**:
+
 - Cascade failure önlenir
 - Self-healing
 - Better error messages
@@ -478,15 +501,16 @@ RUN dotnet restore -a ${TARGETARCH}
 
 **Comparison**:
 
-| Özellik | Debian | Alpine |
-|---------|--------|--------|
-| Boyut | ~210 MB | ~7 MB |
-| Libc | glibc | musl libc |
-| Package Manager | apt | apk |
-| Security | Good | Better (smaller attack surface) |
-| Compatibility | Best | Good (musl issues possible) |
+| Özellik         | Debian  | Alpine                          |
+| --------------- | ------- | ------------------------------- |
+| Boyut           | ~210 MB | ~7 MB                           |
+| Libc            | glibc   | musl libc                       |
+| Package Manager | apt     | apk                             |
+| Security        | Good    | Better (smaller attack surface) |
+| Compatibility   | Best    | Good (musl issues possible)     |
 
 **Trade-offs**:
+
 - Alpine: Daha küçük ama bazen compat issue
 - Debian: Daha büyük ama her şey çalışır
 - **Seçimimiz**: Alpine (32.6 MB vs 277 MB)
@@ -509,7 +533,7 @@ make redeploy        # Clean + deploy
 ```bash
 make status          # Genel cluster durumu
 make show-nodes      # Node detayları (labels, taints)
-make verify          # 15+ otomatik test
+make verify          # 9 otomatik test
 make logs            # Tüm pod logları (C# + Go)
 make logs-api-csharp # C# API logları (real-time)
 make logs-api-go     # Go API logları (real-time)
@@ -607,8 +631,8 @@ make deploy
     ├─► 7. Deploy K8s Resources
     │      ├─ C# API (3 replicas)
     │      ├─ Go API (3 replicas)
-    │      ├─ C# Web (2 replicas)
-    │      ├─ Go Web (2 replicas)
+    │      ├─ C# Web (3 replicas)
+    │      ├─ Go Web (3 replicas)
     │      └─ Ingress (4 domains)
     │
     ├─► 8. Setup HAProxy
@@ -625,7 +649,7 @@ make deploy
     └─► 10. Verify
            ├─ Cluster health (6 nodes)
            ├─ Ingress pods (3 on workers)
-           ├─ Application pods (13 total)
+           ├─ Application pods (15 total)
            ├─ Services (4 ClusterIP)
            ├─ Endpoints (all have targets)
            ├─ HAProxy (up and healthy)
@@ -650,11 +674,11 @@ make deploy
 
 ### Application Pods
 
-7. ✅ `kubectl get pods` → 13 pods Running
+7. ✅ `kubectl get pods` → 15 pods Running
    - 3x datetime-api-csharp
    - 3x datetime-api-go
-   - 2x datetime-web-csharp
-   - 2x datetime-web-go
+   - 3x datetime-web-csharp
+   - 3x datetime-web-go
    - 3x ingress-nginx-controller
 8. ✅ `kubectl get pods -o wide` → All application pods on workers
 
@@ -736,9 +760,7 @@ kubectl scale deployment datetime-api-go --replicas=3
 
 ```yaml
 # ingress.yaml annotations
-nginx.ingress.kubernetes.io/load-balance: "ip_hash"     # Sticky sessions
-nginx.ingress.kubernetes.io/load-balance: "least_conn"  # Least connections
-nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # URI-based
+nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
 ### Resource Limits Tuning
@@ -747,35 +769,18 @@ nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # URI-based
 # api-csharp-deployment.yaml
 resources:
   requests:
-    memory: "128Mi"  # Guaranteed
-    cpu: "100m"      # 0.1 core
+    memory: "128Mi" # Guaranteed
+    cpu: "100m" # 0.1 core
   limits:
-    memory: "256Mi"  # Max
-    cpu: "200m"      # 0.2 core
+    memory: "256Mi" # Max
+    cpu: "200m" # 0.2 core
 
 # GC Optimization
 env:
   - name: DOTNET_gcServer
-    value: "1"                      # Server GC
+    value: "1" # Server GC
   - name: DOTNET_GCHeapHardLimitPercent
-    value: "60"                     # 60% of container memory
-```
-
-### Blue-Green Deployment
-
-```bash
-# Deploy v2 (green)
-kubectl apply -f k8s/api-csharp-deployment-v2.yaml
-
-# Test v2
-kubectl port-forward svc/datetime-api-csharp-v2 8080:80
-curl http://localhost:8080/api/datetime
-
-# Switch ingress to v2
-kubectl patch ingress datetime-ingress -p '{"spec":{"rules":[...]}}'
-
-# Delete v1 (blue)
-kubectl delete deployment datetime-api-csharp-v1
+    value: "60" # 60% of container memory
 ```
 
 ## 📊 Proje İstatistikleri
@@ -792,35 +797,35 @@ kubectl delete deployment datetime-api-csharp-v1
 
 ### Image Boyutları
 
-| Image | Öncesi | Sonrası | Kazanç |
-|-------|--------|---------|--------|
-| **C# API** | 277 MB | 32.6 MB | **-88.2%** |
-| **Go API** | - | ~15 MB | - |
-| **Web (C#)** | 25 MB | 11 MB | -56% |
-| **Web (Go)** | 25 MB | 11 MB | -56% |
+| Image        | Öncesi | Sonrası | Kazanç     |
+| ------------ | ------ | ------- | ---------- |
+| **C# API**   | 277 MB | 32.6 MB | **-88.2%** |
+| **Go API**   | -      | ~15 MB  | -          |
+| **Web (C#)** | 25 MB  | 11 MB   | -56%       |
+| **Web (Go)** | 25 MB  | 11 MB   | -56%       |
 
 ### Deployment Metrikleri
 
-| Metrik | Değer |
-|--------|-------|
-| **Deployment Süresi** | 3-5 dakika |
-| **Başarı Oranı** | ~100% |
-| **Cluster Nodes** | 6 (3+3 HA) |
-| **Application Pods** | 13 |
-| **Services** | 4 ClusterIP |
-| **Domains** | 4 (Ingress) |
+| Metrik                | Değer       |
+| --------------------- | ----------- |
+| **Deployment Süresi** | 3-5 dakika  |
+| **Başarı Oranı**      | ~100%       |
+| **Cluster Nodes**     | 6 (3+3 HA)  |
+| **Application Pods**  | 13          |
+| **Services**          | 4 ClusterIP |
+| **Domains**           | 4 (Ingress) |
 
 ### Resource Usage (Idle)
 
-| Component | Memory | CPU |
-|-----------|--------|-----|
-| **Control-Plane (each)** | ~500 MB | 0.1 core |
-| **Worker (each)** | ~400 MB | 0.05 core |
-| **C# API Pod** | ~80 MB | 0.01 core |
-| **Go API Pod** | ~15 MB | 0.005 core |
-| **Web Pod** | ~5 MB | 0.001 core |
-| **Ingress Pod** | ~50 MB | 0.02 core |
-| **HAProxy** | ~10 MB | 0.01 core |
+| Component                | Memory  | CPU        |
+| ------------------------ | ------- | ---------- |
+| **Control-Plane (each)** | ~500 MB | 0.1 core   |
+| **Worker (each)**        | ~400 MB | 0.05 core  |
+| **C# API Pod**           | ~80 MB  | 0.01 core  |
+| **Go API Pod**           | ~15 MB  | 0.005 core |
+| **Web Pod**              | ~5 MB   | 0.001 core |
+| **Ingress Pod**          | ~50 MB  | 0.02 core  |
+| **HAProxy**              | ~10 MB  | 0.01 core  |
 
 **Total Cluster**: ~3.5 GB memory, ~0.5 CPU
 
@@ -829,11 +834,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Monitoring & Observability
 
 1. **Prometheus + Grafana**
+
    - Metrics collection
    - Custom dashboards
    - Alerting rules
 
 2. **Centralized Logging**
+
    - ELK Stack (Elasticsearch, Logstash, Kibana)
    - Loki + Promtail
    - Log aggregation
@@ -846,16 +853,19 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Security
 
 4. **HTTPS/TLS**
+
    - Cert-manager
    - Let's Encrypt
    - mTLS
 
 5. **Secret Management**
+
    - Sealed Secrets
    - Vault
    - External Secrets Operator
 
 6. **Network Policies**
+
    - Pod-to-pod restrictions
    - Ingress/egress rules
    - Zero-trust networking
@@ -868,11 +878,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Persistence & Data
 
 8. **Database**
+
    - PostgreSQL StatefulSet
    - Persistent Volumes
    - Backup/restore
 
 9. **Caching**
+
    - Redis cluster
    - In-memory caching
    - Distributed cache
@@ -885,11 +897,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### CI/CD
 
 11. **GitOps**
+
     - ArgoCD
     - Flux
     - Automated sync
 
 12. **CI Pipeline**
+
     - GitHub Actions
     - Build + test + push
     - Security scanning
@@ -902,11 +916,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Advanced Features
 
 14. **Service Mesh**
+
     - Istio
     - Linkerd
     - Traffic management
 
 15. **Auto-scaling**
+
     - HPA (CPU/Memory)
     - VPA (Resource tuning)
     - KEDA (Event-driven)
@@ -921,11 +937,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Sorun Giderme Akışı
 
 1. **İlk Kontrol**
+
    ```bash
-   make verify  # 20 otomatik test
+   make verify  # 9 otomatik test
    ```
 
 2. **Pod Sorunları**
+
    ```bash
    kubectl get pods
    kubectl describe pod <pod-name>
@@ -933,6 +951,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 3. **Service Sorunları**
+
    ```bash
    kubectl get svc
    kubectl get endpoints
@@ -940,6 +959,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 4. **Ingress Sorunları**
+
    ```bash
    make fix-ingress
    kubectl describe ingress datetime-ingress
@@ -947,6 +967,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 5. **Network Sorunları**
+
    ```bash
    # DNS check
    kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup datetime-api-csharp-service
@@ -992,6 +1013,7 @@ make help
 **Platform**: Kubernetes 1.34.0 (Kind)
 
 **Technologies**:
+
 - .NET 9 (Alpine-based, 32.6 MB)
 - Go 1.25 (Alpine-based, ~15 MB)
 - Nginx Alpine

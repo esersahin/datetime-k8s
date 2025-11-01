@@ -3,7 +3,7 @@
 ### 🌐 Read in Other Languages
 
 | 🇬🇧 [English](PROJECT_SUMMARY.en.md) | 🇹🇷 [Türkçe](PROJECT_SUMMARY.md) |
-| :--------------------------------------: | :----------------------------------: |
+| :---------------------------------: | :-----------------------------: |
 
 </div>
 
@@ -113,7 +113,7 @@ curl http://web-go.local
 ### Troubleshooting
 
 ```bash
-make verify          # 15+ checks
+make verify          # 9 checks
 make fix-ingress     # Fix Ingress
 make fix-webhooks    # Clean webhooks
 make logs-api-csharp # C# API logs
@@ -133,49 +133,49 @@ make clean-all       # Clean everything
 
 ### Getting Started Documents
 
-| File | When | Content |
-|------|------|---------|
-| **[QUICK_START](QUICK_START.en.md)** | Initial setup | Start in 5 minutes |
-| **[README](../README.md)** | Overview | All features |
-| **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** | This file | Project summary |
+| File                                         | When          | Content            |
+| -------------------------------------------- | ------------- | ------------------ |
+| **[QUICK_START](QUICK_START.en.md)**         | Initial setup | Start in 5 minutes |
+| **[README](../README.md)**                   | Overview      | All features       |
+| **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** | This file     | Project summary    |
 
 ### Architecture Documents
 
-| File | Topic | Level |
-|------|-------|-------|
-| **[ARCHITECTURE](ARCHITECTURE.en.md)** | System architecture | Medium |
-| **[ARCHITECTURE_C4](ARCHITECTURE_C4.en.md)** | C4 model diagrams | Advanced |
+| File                                                                           | Topic                 | Level    |
+| ------------------------------------------------------------------------------ | --------------------- | -------- |
+| **[ARCHITECTURE](ARCHITECTURE.en.md)**                                         | System architecture   | Medium   |
+| **[ARCHITECTURE_C4](ARCHITECTURE_C4.en.md)**                                   | C4 model diagrams     | Advanced |
 | **[SERVICE_TO_SERVICE_COMMUNICATION](SERVICE_TO_SERVICE_COMMUNICATION.en.md)** | C# → Go communication | Advanced |
 
 ### Deployment Documents
 
-| File | Topic | Content |
-|------|-------|---------|
-| **[WORKER_NODES](WORKER_NODES.en.md)** | Multi-node cluster | 3+3 HA setup |
-| **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.en.md)** | Deployment types | Rolling, Canary, Blue-Green |
-| **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** | Change history | All changes |
+| File                                                     | Topic              | Content                     |
+| -------------------------------------------------------- | ------------------ | --------------------------- |
+| **[WORKER_NODES](WORKER_NODES.en.md)**                   | Multi-node cluster | 3+3 HA setup                |
+| **[DEPLOYMENT_STRATEGIES](DEPLOYMENT_STRATEGIES.en.md)** | Deployment types   | Rolling, Canary, Blue-Green |
+| **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)**             | Change history     | All changes                 |
 
 ### Optimization Documents
 
-| File | Topic | Gain |
-|------|-------|------|
+| File                                                 | Topic              | Gain             |
+| ---------------------------------------------------- | ------------------ | ---------------- |
 | **[DOCKER_OPTIMIZATION](DOCKER_OPTIMIZATION.en.md)** | Image optimization | 277 MB → 32.6 MB |
-| **[LOAD_BALANCING](LOAD_BALANCING.en.md)** | Load balancing | HAProxy + K8s |
+| **[LOAD_BALANCING](LOAD_BALANCING.en.md)**           | Load balancing     | HAProxy + K8s    |
 
 ### Network Documents
 
-| File | Topic | Detail |
-|------|-------|--------|
-| **[INGRESS_SETUP](INGRESS_SETUP.en.md)** | Ingress setup | Worker nodes |
-| **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)** | Traffic routing | 4 domains |
-| **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** | HAProxy | HA setup |
+| File                                                   | Topic           | Detail       |
+| ------------------------------------------------------ | --------------- | ------------ |
+| **[INGRESS_SETUP](INGRESS_SETUP.en.md)**               | Ingress setup   | Worker nodes |
+| **[INGRESS_ROUTING](INGRESS_ROUTING.en.md)**           | Traffic routing | 4 domains    |
+| **[HAPROXY_LOADBALANCER](HAPROXY_LOADBALANCER.en.md)** | HAProxy         | HA setup     |
 
 ### Troubleshooting Documents
 
-| File | Topic | When |
-|------|-------|------|
+| File                                                   | Topic            | When       |
+| ------------------------------------------------------ | ---------------- | ---------- |
 | **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** | Kubernetes debug | Pod issues |
-| **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** | macOS network | 5s delay |
+| **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)**       | macOS network    | 5s delay   |
 
 ## 🔑 Critical Files
 
@@ -185,11 +185,11 @@ make clean-all       # Clean everything
 
 ```yaml
 spec:
-  replicas: 3  # 3 replicas for 3 workers
+  replicas: 3 # 3 replicas for 3 workers
 
   template:
     spec:
-      hostNetwork: true  # localhost:80/443
+      hostNetwork: true # localhost:80/443
 
       # ✅ RUN ON WORKER NODES
       nodeSelector:
@@ -213,6 +213,7 @@ spec:
 - ✅ Zero downtime deployment
 
 **Old Error**:
+
 - ❌ Was trying to run on control-plane
 - ❌ Had single replica
 - ✅ Now: 3 replicas on worker nodes
@@ -255,6 +256,7 @@ nodes:
 ```
 
 **Features**:
+
 - 3 control-plane (etcd quorum, HA)
 - 3 worker (application pods, HA)
 - Each worker has `ingress-ready=true` label
@@ -286,6 +288,7 @@ builder.Services.AddHttpClient("go-api", client =>
 ```
 
 **Features**:
+
 - Service-to-service communication (C# → Go)
 - Circuit breaker (failure protection)
 - Exponential backoff retry
@@ -300,10 +303,11 @@ deploy:          # Full HA deployment (3+3 cluster)
 build-all:       # C# + Go + Web images
 fix-ingress:     # Automatic ingress fix
 setup-haproxy:   # HAProxy load balancer
-verify:          # 15+ tests
+verify:          # 9 tests
 ```
 
 **Features**:
+
 - Single command deployment
 - Automatic troubleshooting
 - Polyglot build support
@@ -314,16 +318,20 @@ verify:          # 15+ tests
 **Load Balancer configuration**:
 
 ```conf
-backend worker_nodes
+backend workers_http
+    mode http
     balance roundrobin
-    option httpchk GET /healthz
 
-    server worker1 172.18.0.4:80 check
-    server worker2 172.18.0.5:80 check
-    server worker3 172.18.0.6:80 check
+    option httpchk GET /healthz
+    http-check expect status 200-499
+
+    server worker1 kind-worker:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker2 kind-worker2:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
 ```
 
 **Features**:
+
 - Round-robin load balancing
 - Health check-based failover
 - Stats dashboard (port 8404)
@@ -337,15 +345,16 @@ backend worker_nodes
 **Cause**: YAML `selector` labels don't match pod labels
 
 **Solution**:
+
 ```yaml
 # Service
 selector:
-  app: datetime-api-csharp  # ← Same as pod label
+  app: datetime-api-csharp # ← Same as pod label
 
 # Pod
 metadata:
   labels:
-    app: datetime-api-csharp  # ← Same as service selector
+    app: datetime-api-csharp # ← Same as service selector
 ```
 
 ### Issue 2: Ingress Controller on Wrong Node
@@ -355,10 +364,11 @@ metadata:
 **Cause**: Deployed on control-plane instead of worker nodes
 
 **Solution**: Created `k8s/ingress-nginx-deployment.yaml`
+
 ```yaml
 nodeSelector:
-  ingress-ready: "true"  # Worker nodes
-hostNetwork: true        # localhost:80/443
+  ingress-ready: "true" # Worker nodes
+hostNetwork: true # localhost:80/443
 ```
 
 ### Issue 3: ImagePullBackOff (ARM64)
@@ -368,6 +378,7 @@ hostNetwork: true        # localhost:80/443
 **Cause**: SHA256 digest for single platform
 
 **Solution**: Removed SHA, used tag
+
 ```yaml
 # ❌ Old
 image: registry.k8s.io/ingress-nginx/controller@sha256:...
@@ -383,6 +394,7 @@ image: registry.k8s.io/ingress-nginx/controller:v1.13.3
 **Cause**: Admission webhook enabled but no cert
 
 **Solution**: Removed webhook args
+
 ```yaml
 args:
   - /nginx-ingress-controller
@@ -397,6 +409,7 @@ args:
 **Cause**: Debian-based .NET runtime
 
 **Solution**: Alpine + Invariant mode
+
 ```dockerfile
 FROM alpine:3.19
 RUN apk add --no-cache libstdc++
@@ -411,6 +424,7 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 **Cause**: Single node cluster
 
 **Solution**: 3+3 HA cluster
+
 - 3 control-plane (etcd quorum)
 - 3 worker (application HA)
 - HAProxy load balancer
@@ -420,16 +434,17 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 ### 1. Kubernetes Scheduling
 
 **Pod Placement**:
+
 - No nodeSelector → Random node
 - If taint exists → Toleration needed
 - Labels are critical → `ingress-ready=true`
 
 **Best Practice**:
+
 ```yaml
 # Run on worker nodes
 nodeSelector:
   ingress-ready: "true"
-
 # DON'T RUN on control-plane
 # no tolerations (intentionally)
 ```
@@ -437,12 +452,14 @@ nodeSelector:
 ### 2. Kind Network Architecture
 
 **Port Mapping**:
+
 ```yaml
 # ❌ Port mapping doesn't work on worker nodes
 # ✅ Load balance to all workers via HAProxy
 ```
 
 **Solution**:
+
 - HAProxy container (port 80/443)
 - Round-robin to worker nodes
 - Health check-based failover
@@ -450,10 +467,12 @@ nodeSelector:
 ### 3. Docker Multi-Platform Images
 
 **Platform Support**:
+
 - ✅ Use tag: `controller:v1.13.3` (multi-platform)
 - ❌ Don't use SHA: `@sha256:...` (single platform)
 
 **BuildKit**:
+
 ```dockerfile
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 ARG TARGETARCH
@@ -463,12 +482,14 @@ RUN dotnet restore -a ${TARGETARCH}
 ### 4. Service-to-Service Resiliency
 
 **Failure Handling**:
+
 - Circuit Breaker → Fast fail
 - Retry Policy → Exponential backoff
 - Rate Limiting → Token bucket
 - Timeout → Request timeout
 
 **Benefits**:
+
 - Prevents cascade failure
 - Self-healing
 - Better error messages
@@ -478,15 +499,16 @@ RUN dotnet restore -a ${TARGETARCH}
 
 **Comparison**:
 
-| Feature | Debian | Alpine |
-|---------|--------|--------|
-| Size | ~210 MB | ~7 MB |
-| Libc | glibc | musl libc |
-| Package Manager | apt | apk |
-| Security | Good | Better (smaller attack surface) |
-| Compatibility | Best | Good (musl issues possible) |
+| Feature         | Debian  | Alpine                          |
+| --------------- | ------- | ------------------------------- |
+| Size            | ~210 MB | ~7 MB                           |
+| Libc            | glibc   | musl libc                       |
+| Package Manager | apt     | apk                             |
+| Security        | Good    | Better (smaller attack surface) |
+| Compatibility   | Best    | Good (musl issues possible)     |
 
 **Trade-offs**:
+
 - Alpine: Smaller but sometimes compat issues
 - Debian: Larger but everything works
 - **Our Choice**: Alpine (32.6 MB vs 277 MB)
@@ -509,7 +531,7 @@ make redeploy        # Clean + deploy
 ```bash
 make status          # General cluster status
 make show-nodes      # Node details (labels, taints)
-make verify          # 15+ automatic tests
+make verify          # 9 automatic tests
 make logs            # All pod logs (C# + Go)
 make logs-api-csharp # C# API logs (real-time)
 make logs-api-go     # Go API logs (real-time)
@@ -607,8 +629,8 @@ make deploy
     ├─► 7. Deploy K8s Resources
     │      ├─ C# API (3 replicas)
     │      ├─ Go API (3 replicas)
-    │      ├─ C# Web (2 replicas)
-    │      ├─ Go Web (2 replicas)
+    │      ├─ C# Web (3 replicas)
+    │      ├─ Go Web (3 replicas)
     │      └─ Ingress (4 domains)
     │
     ├─► 8. Setup HAProxy
@@ -625,7 +647,7 @@ make deploy
     └─► 10. Verify
            ├─ Cluster health (6 nodes)
            ├─ Ingress pods (3 on workers)
-           ├─ Application pods (13 total)
+           ├─ Application pods (15 total)
            ├─ Services (4 ClusterIP)
            ├─ Endpoints (all have targets)
            ├─ HAProxy (up and healthy)
@@ -650,11 +672,11 @@ make deploy
 
 ### Application Pods
 
-7. ✅ `kubectl get pods` → 13 pods Running
+7. ✅ `kubectl get pods` → 15 pods Running
    - 3x datetime-api-csharp
    - 3x datetime-api-go
-   - 2x datetime-web-csharp
-   - 2x datetime-web-go
+   - 3x datetime-web-csharp
+   - 3x datetime-web-go
    - 3x ingress-nginx-controller
 8. ✅ `kubectl get pods -o wide` → All application pods on workers
 
@@ -736,9 +758,7 @@ kubectl scale deployment datetime-api-go --replicas=3
 
 ```yaml
 # ingress.yaml annotations
-nginx.ingress.kubernetes.io/load-balance: "ip_hash"     # Sticky sessions
-nginx.ingress.kubernetes.io/load-balance: "least_conn"  # Least connections
-nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # URI-based
+nginx.ingress.kubernetes.io/load-balance: "round_robin"
 ```
 
 ### Resource Limits Tuning
@@ -747,35 +767,18 @@ nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # URI-based
 # api-csharp-deployment.yaml
 resources:
   requests:
-    memory: "128Mi"  # Guaranteed
-    cpu: "100m"      # 0.1 core
+    memory: "128Mi" # Guaranteed
+    cpu: "100m" # 0.1 core
   limits:
-    memory: "256Mi"  # Max
-    cpu: "200m"      # 0.2 core
+    memory: "256Mi" # Max
+    cpu: "200m" # 0.2 core
 
 # GC Optimization
 env:
   - name: DOTNET_gcServer
-    value: "1"                      # Server GC
+    value: "1" # Server GC
   - name: DOTNET_GCHeapHardLimitPercent
-    value: "60"                     # 60% of container memory
-```
-
-### Blue-Green Deployment
-
-```bash
-# Deploy v2 (green)
-kubectl apply -f k8s/api-csharp-deployment-v2.yaml
-
-# Test v2
-kubectl port-forward svc/datetime-api-csharp-v2 8080:80
-curl http://localhost:8080/api/datetime
-
-# Switch ingress to v2
-kubectl patch ingress datetime-ingress -p '{"spec":{"rules":[...]}}'
-
-# Delete v1 (blue)
-kubectl delete deployment datetime-api-csharp-v1
+    value: "60" # 60% of container memory
 ```
 
 ## 📊 Project Statistics
@@ -792,35 +795,35 @@ kubectl delete deployment datetime-api-csharp-v1
 
 ### Image Sizes
 
-| Image | Before | After | Gain |
-|-------|--------|-------|------|
-| **C# API** | 277 MB | 32.6 MB | **-88.2%** |
-| **Go API** | - | ~15 MB | - |
-| **Web (C#)** | 25 MB | 11 MB | -56% |
-| **Web (Go)** | 25 MB | 11 MB | -56% |
+| Image        | Before | After   | Gain       |
+| ------------ | ------ | ------- | ---------- |
+| **C# API**   | 277 MB | 32.6 MB | **-88.2%** |
+| **Go API**   | -      | ~15 MB  | -          |
+| **Web (C#)** | 25 MB  | 11 MB   | -56%       |
+| **Web (Go)** | 25 MB  | 11 MB   | -56%       |
 
 ### Deployment Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Deployment Time** | 3-5 minutes |
-| **Success Rate** | ~100% |
-| **Cluster Nodes** | 6 (3+3 HA) |
-| **Application Pods** | 13 |
-| **Services** | 4 ClusterIP |
-| **Domains** | 4 (Ingress) |
+| Metric               | Value       |
+| -------------------- | ----------- |
+| **Deployment Time**  | 3-5 minutes |
+| **Success Rate**     | ~100%       |
+| **Cluster Nodes**    | 6 (3+3 HA)  |
+| **Application Pods** | 13          |
+| **Services**         | 4 ClusterIP |
+| **Domains**          | 4 (Ingress) |
 
 ### Resource Usage (Idle)
 
-| Component | Memory | CPU |
-|-----------|--------|-----|
-| **Control-Plane (each)** | ~500 MB | 0.1 core |
-| **Worker (each)** | ~400 MB | 0.05 core |
-| **C# API Pod** | ~80 MB | 0.01 core |
-| **Go API Pod** | ~15 MB | 0.005 core |
-| **Web Pod** | ~5 MB | 0.001 core |
-| **Ingress Pod** | ~50 MB | 0.02 core |
-| **HAProxy** | ~10 MB | 0.01 core |
+| Component                | Memory  | CPU        |
+| ------------------------ | ------- | ---------- |
+| **Control-Plane (each)** | ~500 MB | 0.1 core   |
+| **Worker (each)**        | ~400 MB | 0.05 core  |
+| **C# API Pod**           | ~80 MB  | 0.01 core  |
+| **Go API Pod**           | ~15 MB  | 0.005 core |
+| **Web Pod**              | ~5 MB   | 0.001 core |
+| **Ingress Pod**          | ~50 MB  | 0.02 core  |
+| **HAProxy**              | ~10 MB  | 0.01 core  |
 
 **Total Cluster**: ~3.5 GB memory, ~0.5 CPU
 
@@ -829,11 +832,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Monitoring & Observability
 
 1. **Prometheus + Grafana**
+
    - Metrics collection
    - Custom dashboards
    - Alerting rules
 
 2. **Centralized Logging**
+
    - ELK Stack (Elasticsearch, Logstash, Kibana)
    - Loki + Promtail
    - Log aggregation
@@ -846,16 +851,19 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Security
 
 4. **HTTPS/TLS**
+
    - Cert-manager
    - Let's Encrypt
    - mTLS
 
 5. **Secret Management**
+
    - Sealed Secrets
    - Vault
    - External Secrets Operator
 
 6. **Network Policies**
+
    - Pod-to-pod restrictions
    - Ingress/egress rules
    - Zero-trust networking
@@ -868,11 +876,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Persistence & Data
 
 8. **Database**
+
    - PostgreSQL StatefulSet
    - Persistent Volumes
    - Backup/restore
 
 9. **Caching**
+
    - Redis cluster
    - In-memory caching
    - Distributed cache
@@ -885,11 +895,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### CI/CD
 
 11. **GitOps**
+
     - ArgoCD
     - Flux
     - Automated sync
 
 12. **CI Pipeline**
+
     - GitHub Actions
     - Build + test + push
     - Security scanning
@@ -902,11 +914,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Advanced Features
 
 14. **Service Mesh**
+
     - Istio
     - Linkerd
     - Traffic management
 
 15. **Auto-scaling**
+
     - HPA (CPU/Memory)
     - VPA (Resource tuning)
     - KEDA (Event-driven)
@@ -921,11 +935,13 @@ kubectl delete deployment datetime-api-csharp-v1
 ### Troubleshooting Flow
 
 1. **Initial Check**
+
    ```bash
-   make verify  # 20 automatic tests
+   make verify  # 9 automatic tests
    ```
 
 2. **Pod Issues**
+
    ```bash
    kubectl get pods
    kubectl describe pod <pod-name>
@@ -933,6 +949,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 3. **Service Issues**
+
    ```bash
    kubectl get svc
    kubectl get endpoints
@@ -940,6 +957,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 4. **Ingress Issues**
+
    ```bash
    make fix-ingress
    kubectl describe ingress datetime-ingress
@@ -947,6 +965,7 @@ kubectl delete deployment datetime-api-csharp-v1
    ```
 
 5. **Network Issues**
+
    ```bash
    # DNS check
    kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup datetime-api-csharp-service
@@ -992,6 +1011,7 @@ make help
 **Platform**: Kubernetes 1.34.0 (Kind)
 
 **Technologies**:
+
 - .NET 9 (Alpine-based, 32.6 MB)
 - Go 1.25 (Alpine-based, ~15 MB)
 - Nginx Alpine
