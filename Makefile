@@ -38,7 +38,7 @@ setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	@echo ""
 	@echo "$(BLUE)Dosya yerleşimi kontrolü:$(NC)"
 	@echo ""
-	@if [ ! -d "api-csharp" ] || [ -z "$(ls -A api-csharp 2>/dev/null)" ]; then \
+	@if [ ! -d "api-csharp" ] || [ -z "$$(ls -A api-csharp 2>/dev/null)" ]; then \
 		echo "$(YELLOW)⚠ api-csharp/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
 		echo "  - Program.cs"; \
 		echo "  - DateTimeApi.csproj"; \
@@ -46,7 +46,7 @@ setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	else \
 		echo "$(GREEN)✓ api-csharp/ dizini dolu$(NC)"; \
 	fi
-	@if [ ! -d "web-csharp" ] || [ -z "$(ls -A web-csharp 2>/dev/null)" ]; then \
+	@if [ ! -d "web-csharp" ] || [ -z "$$(ls -A web-csharp 2>/dev/null)" ]; then \
 		echo "$(YELLOW)⚠ web-csharp/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
 		echo "  - index.html"; \
 		echo "  - nginx.conf"; \
@@ -54,7 +54,7 @@ setup: ## Proje dizin yapısını kontrol eder ve gerekirse oluşturur
 	else \
 		echo "$(GREEN)✓ web-csharp/ dizini dolu$(NC)"; \
 	fi
-	@if [ ! -d "k8s" ] || [ -z "$(ls -A k8s 2>/dev/null)" ]; then \
+	@if [ ! -d "k8s" ] || [ -z "$$(ls -A k8s 2>/dev/null)" ]; then \
 		echo "$(YELLOW)⚠ k8s/ dizini boş - Şu dosyaları ekleyin:$(NC)"; \
 		echo "  - api-csharp-deployment.yaml"; \
 		echo "  - web-csharp-deployment.yaml"; \
