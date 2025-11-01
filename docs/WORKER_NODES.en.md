@@ -294,12 +294,12 @@ metadata:
   labels:
     app: datetime-api-csharp
 spec:
-  replicas: 3 # 3 replicas for HA
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxUnavailable: 1 # At most 1 pod can be down at the same time
-      maxSurge: 1 # +1 pod can run during update
+      maxSurge: 1 # +1 extra pod can run during update
   selector:
     matchLabels:
       app: datetime-api-csharp
@@ -311,24 +311,25 @@ spec:
       containers:
         - name: api
           image: datetime-api-csharp:latest
-          imagePullPolicy: Never # Local image
+          imagePullPolicy: Never
           ports:
             - containerPort: 5000
               name: http
           env:
+            - name: DOTNET_gcServer
+              value: "1"
+            - name: DOTNET_GCHeapHardLimitPercent
+              value: "60"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: TZ
+              value: "Europe/Istanbul"
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: GO_API_URL
               value: "http://datetime-api-go-service"
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "256Mi"
-              cpu: "200m"
           livenessProbe:
             httpGet:
               path: /health
@@ -341,6 +342,13 @@ spec:
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ```
 
 ### Service Configuration
@@ -350,14 +358,23 @@ apiVersion: v1
 kind: Service
 metadata:
   name: datetime-api-csharp-service
+  labels:
+    app: datetime-api-csharp
+  annotations:
+    description: "C# API Service - Routes traffic to worker nodes"
 spec:
   type: ClusterIP
   ports:
     - port: 80
       targetPort: 5000
+      protocol: TCP
+      name: http
+  # IMPORTANT: selector MUST match pod labels
   selector:
     app: datetime-api-csharp
-  sessionAffinity: None # Round-robin load balancing
+  # Session affinity: None = Round Robin load balancing
+  # Best choice for stateless API
+  sessionAffinity: None
 ```
 
 **Features:**
@@ -470,10 +487,6 @@ make status
 ==================
 
 Nodes:
-📊 Cluster Durumu
-==================
-
-Nodes:
 NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
 kind-control-plane    Ready    control-plane   17m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-control-plane2   Ready    control-plane   16m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
@@ -513,14 +526,24 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 ### Pod Logs
 
 ```bash
-# Show API pod logs
-make logs-api
+# RECOMMENDED: Live log follow using Makefile
+make logs-api     # Follow API logs (Ctrl+C to exit)
+make logs-web     # Follow Web logs (Ctrl+C to exit)
 
-# Show logs of specific pod
-kubectl logs <pod-name>
+# Follow all API pods logs using label selector
+kubectl logs -l app=datetime-api-csharp -f --prefix
 
-# Live log follow
-kubectl logs -f <pod-name>
+# Show logs of a specific pod
+# First, find the pod name:
+kubectl get pods
+# Then show the logs:
+kubectl logs datetime-api-csharp-555f77dd8d-5q9zr
+
+# Live log follow for a specific pod
+kubectl logs -f datetime-api-csharp-555f77dd8d-5q9zr
+
+# Show last 50 lines of logs
+kubectl logs datetime-api-csharp-555f77dd8d-5q9zr --tail=50
 ```
 
 ### Service Endpoints
@@ -540,12 +563,10 @@ datetime-web-csharp-service   10.244.3.3:80,10.244.4.3:80,10.244.5.3:80         
 
 ```bash
 # Pod resource usage
-kubectl top pods
-# (requires metrics-server)
+kubectl top pods # (requires metrics-server)
 
 # Node resource usage
-kubectl top nodes
-#(requires metrics-server)
+kubectl top nodes #(requires metrics-server)
 ```
 
 ---

@@ -294,12 +294,12 @@ metadata:
   labels:
     app: datetime-api-csharp
 spec:
-  replicas: 3 # HA için 3 replica
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı
-      maxSurge: 1 # Update sırasında +1 pod çalışabilir
+      maxUnavailable: 1 # Aynı anda en fazla 1 pod kapalı olabilir
+      maxSurge: 1 # Güncelleme sırasında +1 extra pod çalışabilir
   selector:
     matchLabels:
       app: datetime-api-csharp
@@ -311,24 +311,25 @@ spec:
       containers:
         - name: api
           image: datetime-api-csharp:latest
-          imagePullPolicy: Never # Local image
+          imagePullPolicy: Never
           ports:
             - containerPort: 5000
               name: http
           env:
+            - name: DOTNET_gcServer
+              value: "1"
+            - name: DOTNET_GCHeapHardLimitPercent
+              value: "60"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: TZ
+              value: "Europe/Istanbul"
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: GO_API_URL
               value: "http://datetime-api-go-service"
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "256Mi"
-              cpu: "200m"
           livenessProbe:
             httpGet:
               path: /health
@@ -341,6 +342,13 @@ spec:
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ```
 
 ### Service Yapılandırması
@@ -350,14 +358,23 @@ apiVersion: v1
 kind: Service
 metadata:
   name: datetime-api-csharp-service
+  labels:
+    app: datetime-api-csharp
+  annotations:
+    description: "C# API Service - Routes traffic to worker nodes"
 spec:
   type: ClusterIP
   ports:
     - port: 80
       targetPort: 5000
+      protocol: TCP
+      name: http
+  # IMPORTANT: selector MUST match pod labels
   selector:
     app: datetime-api-csharp
-  sessionAffinity: None # Round-robin load balancing
+  # Session affinity: None = Round Robin load balancing
+  # Stateless API için en iyi seçenek
+  sessionAffinity: None
 ```
 
 **Özellikler:**
@@ -470,10 +487,6 @@ make status
 ==================
 
 Nodes:
-📊 Cluster Durumu
-==================
-
-Nodes:
 NAME                  STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION     CONTAINER-RUNTIME
 kind-control-plane    Ready    control-plane   17m   v1.34.0   172.20.0.4    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
 kind-control-plane2   Ready    control-plane   16m   v1.34.0   172.20.0.7    <none>        Debian GNU/Linux 12 (bookworm)   6.10.14-linuxkit   containerd://2.1.3
@@ -513,14 +526,24 @@ datetime-ingress   nginx   api-csharp.local,api-go.local,web-csharp.local + 1 mo
 ### Pod Logları
 
 ```bash
-# API pod loglarını göster
-make logs-api
+# ÖNERİLEN: Makefile ile canlı log takibi
+make logs-api     # API loglarını takip et (Ctrl+C ile çık)
+make logs-web     # Web loglarını takip et (Ctrl+C ile çık)
+
+# Label selector ile tüm API pod'larının loglarını takip et
+kubectl logs -l app=datetime-api-csharp -f --prefix
 
 # Belirli bir pod'un loglarını göster
-kubectl logs <pod-name>
+# Önce pod ismini bul:
+kubectl get pods
+# Sonra logları göster:
+kubectl logs datetime-api-csharp-555f77dd8d-5q9zr
 
-# Canlı log takibi
-kubectl logs -f <pod-name>
+# Belirli bir pod'un canlı log takibi
+kubectl logs -f datetime-api-csharp-555f77dd8d-5q9zr
+
+# Son 50 satır log göster
+kubectl logs datetime-api-csharp-555f77dd8d-5q9zr --tail=50
 ```
 
 ### Service Endpoints
@@ -540,12 +563,10 @@ datetime-web-csharp-service   10.244.3.3:80,10.244.4.3:80,10.244.5.3:80         
 
 ```bash
 # Pod resource kullanımı
-kubectl top pods
-# (metrics-server gerekli)
+kubectl top pods # (metrics-server gerekli)
 
 # Node resource kullanımı
-kubectl top nodes
-#(metrics-server gerekli)
+kubectl top nodes #(metrics-server gerekli)
 ```
 
 ---
