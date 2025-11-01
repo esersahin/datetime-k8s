@@ -1,28 +1,4 @@
-﻿# FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-# USER $APP_UID
-# WORKDIR /app
-# ENV ASPNETCORE_URLS=http://+:5000
-# EXPOSE 5000
-
-# FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-# ARG BUILD_CONFIGURATION=Release
-# WORKDIR /src
-# COPY ["api/DateTimeApi.csproj", "api/DateTimeApi/"]
-# RUN dotnet restore "api/DateTimeApi.csproj"
-# COPY . .
-# WORKDIR "/src/api/DateTimeApi"
-# RUN dotnet build "./DateTimeApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-# FROM build AS publish
-# ARG BUILD_CONFIGURATION=Release
-# RUN dotnet publish "./DateTimeApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# FROM base AS final
-# WORKDIR /app
-# COPY --from=publish /app/publish .
-# ENTRYPOINT ["dotnet", "DateTimeApi.dll"]
-
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+﻿FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 ARG TARGETARCH
 WORKDIR /src
 
