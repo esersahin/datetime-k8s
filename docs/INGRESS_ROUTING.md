@@ -25,6 +25,7 @@
 ---
 
 Bu dokümanda High Availability (HA) mimarisinde çok katmanlı yönlendirme mekanizması açıklanmaktadır:
+
 - **Layer 1**: HAProxy → 3 Ingress Controller (worker node'larda)
 - **Layer 2**: Ingress Controller → Kubernetes Services
 - **Layer 3**: Services → Application Pods
@@ -35,7 +36,7 @@ Bu dokümanda High Availability (HA) mimarisinde çok katmanlı yönlendirme mek
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│         3 Control Plane Nodes (HA - Yönetim)           │
+│         3 Control Plane Nodes (HA - Yönetim)            │
 │  • Kubernetes API Server, etcd, Scheduler               │
 │  • Ingress Controller ÇALIŞMAZ                          │
 └─────────────────────────────────────────────────────────┘
@@ -75,7 +76,7 @@ Bu dokümanda High Availability (HA) mimarisinde çok katmanlı yönlendirme mek
 │    - kind-worker2:80    (weight 1)                       │
 │    - kind-worker3:80    (weight 1)                       │
 │  Algorithm: roundrobin                                   │
-└────────┬─────────┬──────────┬──────────────────────────┘
+└────────┬─────────┬──────────┬────────────────────────────┘
          │         │          │
          │         │          │
          ▼         ▼          ▼
@@ -140,15 +141,16 @@ HAProxy, trafik giriş noktasıdır ve 3 worker node'a dağıtım yapar:
 ```yaml
 # haproxy/haproxy.cfg
 backend k8s_workers
-    mode http
-    balance roundrobin
-    option httpchk GET /healthz
-    server worker1 172.18.0.4:80 check weight 1
-    server worker2 172.18.0.5:80 check weight 1
-    server worker3 172.18.0.6:80 check weight 1
+mode http
+balance roundrobin
+option httpchk GET /healthz
+server worker1 172.18.0.4:80 check weight 1
+server worker2 172.18.0.5:80 check weight 1
+server worker3 172.18.0.6:80 check weight 1
 ```
 
 **Özellikler:**
+
 - ✅ Round-robin load balancing
 - ✅ Health check (/healthz endpoint)
 - ✅ Automatic failover (unhealthy node bypass)
@@ -161,12 +163,12 @@ Her worker node'da 1 Ingress Controller replica çalışır:
 ```yaml
 # k8s/ingress-nginx-deployment.yaml
 spec:
-  replicas: 3  # HA için 3 replica
+  replicas: 3 # HA için 3 replica
   template:
     spec:
-      hostNetwork: true  # Worker node'un 80/443 portunu dinler
+      hostNetwork: true # Worker node'un 80/443 portunu dinler
       nodeSelector:
-        ingress-ready: "true"  # Worker node'larda çalış
+        ingress-ready: "true" # Worker node'larda çalış
 ```
 
 ```yaml
@@ -183,6 +185,7 @@ nodes:
 ```
 
 **Neden Worker Node'larda?**
+
 - ✅ Control-plane temiz kalır (sadece yönetim)
 - ✅ HA: 3 replica, fault tolerance
 - ✅ Scalability: Worker node ekle/çıkar
@@ -259,7 +262,7 @@ Sistemde 3 load balancing katmanı vardır:
                      ▼
 ┌─────────────────────────────────────────────────┐
 │ Layer 3: Kubernetes Services (ClusterIP)        │
-│  • Label selector → Pod discovery                │
+│  • Label selector → Pod discovery               │
 │  • kube-proxy → iptables rules                  │
 │  • Round-robin to pods                          │
 └─────────────────────────────────────────────────┘
@@ -357,19 +360,21 @@ Request 5  → Worker2 Ingress → Service → Pod A  # Worker2
 ### Layer 1: HAProxy Load Balancing
 
 ```cfg
-# haproxy/haproxy.cfg
+# k8s/haproxy-lb.cfg
 backend k8s_workers
     mode http
     balance roundrobin  # Round-robin algoritması
-    option httpchk GET /healthz  # Health check
-    http-check expect status 200
 
-    server worker1 172.18.0.4:80 check weight 1  # Eşit ağırlık
-    server worker2 172.18.0.5:80 check weight 1
-    server worker3 172.18.0.6:80 check weight 1
+    option httpchk GET /healthz  # Health check
+    http-check expect status 200-499
+
+    server worker1 kind-worker:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker2 kind-worker2:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
+    server worker3 kind-worker3:80 check inter 2s fall 2 rise 2 resolvers docker resolve-prefer ipv4
 ```
 
 **Özellikler:**
+
 - ✅ Round-robin: Her worker eşit trafik alır
 - ✅ Health check: Unhealthy worker bypass edilir
 - ✅ Automatic failover: Worker down olursa diğerleri devam eder
@@ -381,10 +386,11 @@ backend k8s_workers
 annotations:
   nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
   nginx.ingress.kubernetes.io/load-balance: "round_robin"
-  nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"  # Optional
+  nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri" # Optional
 ```
 
 **Stratejiler:**
+
 - `round_robin`: Sırayla pod'lara dağıt (varsayılan)
 - `ip_hash`: Client IP'ye göre aynı pod
 - `least_conn`: En az bağlantılı pod
@@ -392,14 +398,12 @@ annotations:
 ### Layer 3: Service Session Affinity
 
 ```yaml
-# k8s/datetime-api-csharp-service.yaml (optional)
-sessionAffinity: ClientIP  # Sticky session
-sessionAffinityConfig:
-  clientIP:
-    timeoutSeconds: 300  # 5 dakika aynı pod
+# k8s/api-csharp-deployment.yaml (optional)
+sessionAffinity: None # Round Robin load balancing
 ```
 
 **Kullanım Senaryoları:**
+
 - ✅ Session affinity gerekli: E-ticaret sepeti, login sessions
 - ❌ Stateless API: Session affinity GEREKMEZ (daha iyi load balancing)
 
@@ -546,18 +550,28 @@ make deploy
 
 ```bash
 # HAProxy çalışıyor mu?
-docker ps | grep haproxy
+docker ps | grep kind-http-lb
 
 # HAProxy log kontrol
-docker logs <haproxy-container-id>
+docker logs kind-http-lb
 
 # Worker node'lar erişilebilir mi?
-docker exec <haproxy-container-id> ping -c 1 kind-worker
+docker exec kind-http-lb ping -c 1 kind-worker
 
-# Çözüm: HAProxy'yi yeniden başlat
-cd haproxy
-docker-compose down
-docker-compose up -d
+# HAProxy stats page kontrol (http://localhost:8404)
+curl http://localhost:8404
+
+# Çözüm 1: HAProxy'yi yeniden başlat
+make remove-haproxy
+make install-haproxy
+
+# Çözüm 2: Manuel yeniden başlatma
+docker stop kind-http-lb
+docker rm kind-http-lb
+make install-haproxy
+
+# Config dosyası kontrol
+cat k8s/haproxy-lb.cfg
 ```
 
 ### Sorun 4: Sadece 1-2 Ingress Replica Çalışıyor
@@ -597,34 +611,38 @@ docker-compose up -d
 
 ### Multi-Layer Architecture
 
-| Layer | Bileşen                   | Lokasyon                  | Görevi                            | Replica |
-| ----- | ------------------------- | ------------------------- | --------------------------------- | ------- |
-| **1** | **HAProxy**               | Docker container          | External LB, failover, localhost  | 1       |
-| **2** | **Ingress Controllers**   | Worker nodes (3)          | Host-based routing, SSL           | 3       |
-| **3** | **Services**              | Virtual IP (cluster-wide) | Pod discovery, load balancing     | N/A     |
-| **4** | **Application Pods**      | Worker nodes              | Application logic                 | 2+      |
-| **-** | **kube-proxy**            | Her node                  | iptables rules, network routing   | 6       |
-| **-** | **Control Plane**         | 3 control-plane nodes     | Kubernetes management (API, etcd) | 3       |
+| Layer | Bileşen                 | Lokasyon                  | Görevi                            | Replica |
+| ----- | ----------------------- | ------------------------- | --------------------------------- | ------- |
+| **1** | **HAProxy**             | Docker container          | External LB, failover, localhost  | 1       |
+| **2** | **Ingress Controllers** | Worker nodes (3)          | Host-based routing, SSL           | 3       |
+| **3** | **Services**            | Virtual IP (cluster-wide) | Pod discovery, load balancing     | N/A     |
+| **4** | **Application Pods**    | Worker nodes              | Application logic                 | 2+      |
+| **-** | **kube-proxy**          | Her node                  | iptables rules, network routing   | 6       |
+| **-** | **Control Plane**       | 3 control-plane nodes     | Kubernetes management (API, etcd) | 3       |
 
 ### Neden Bu Yapı İdeal?
 
 #### HA & Fault Tolerance
+
 - ✅ **3 Control Plane**: etcd quorum, API server HA
 - ✅ **3 Ingress Replica**: Bir worker çökerse diğerleri devam eder
 - ✅ **HAProxy Failover**: Unhealthy worker otomatik bypass edilir
 - ✅ **Multiple App Pods**: Service-level load balancing
 
 #### Separation of Concerns
+
 - ✅ **Control-Plane**: Sadece Kubernetes yönetimi (API, scheduler, etcd)
 - ✅ **Worker Nodes**: Workload (Ingress + application pods)
 - ✅ **HAProxy**: External load balancing (Kubernetes dışı)
 
 #### Scalability & Performance
+
 - ✅ **Horizontal Scaling**: Worker node ekle → otomatik Ingress replica
 - ✅ **Multi-Layer LB**: HAProxy + Ingress + Service = optimal distribution
 - ✅ **Zero Downtime**: RollingUpdate ile kesintisiz deployment
 
 #### Production-Ready
+
 - ✅ **Best Practice**: Industry-standard HA architecture
 - ✅ **Observable**: HAProxy stats, Ingress metrics, pod logs
 - ✅ **Maintainable**: Declarative YAML, version-controlled
