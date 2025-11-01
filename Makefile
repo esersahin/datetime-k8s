@@ -343,14 +343,25 @@ test: ## API ve Web endpoint'lerini test eder
 	@echo "$(BLUE)🧪 Endpoint Testleri$(NC)"
 	@echo "===================="
 	@echo ""
-	@echo "$(YELLOW)API Health:$(NC)"
+	@echo "$(YELLOW)C# Uygulamaları:$(NC)"
+	@echo "----------------"
+	@echo "$(YELLOW)C# API Health:$(NC)"
 	@curl -s http://api-csharp.local/health | jq . 2>/dev/null || curl -s http://api-csharp.local/health
 	@echo ""
-	@echo "$(YELLOW)API DateTime:$(NC)"
+	@echo "$(YELLOW)C# API DateTime:$(NC)"
 	@curl -s http://api-csharp.local/api/datetime | jq . 2>/dev/null || curl -s http://api-csharp.local/api/datetime
 	@echo ""
-	@echo "$(YELLOW)Web (ilk 200 karakter):$(NC)"
+	@echo "$(YELLOW)C# Web (ilk 200 karakter):$(NC)"
 	@curl -s http://web-csharp.local | head -c 200
+	@echo "..."
+	@echo ""
+	@echo "$(YELLOW)Go Uygulamaları:$(NC)"
+	@echo "----------------"
+	@echo "$(YELLOW)Go API Health:$(NC)"
+	@curl -s http://api-go.local/health | jq . 2>/dev/null || curl -s http://api-go.local/health
+	@echo ""
+	@echo "$(YELLOW)Go Web (ilk 200 karakter):$(NC)"
+	@curl -s http://web-go.local | head -c 200
 	@echo "..."
 
 status: ## Cluster durumunu gösterir
