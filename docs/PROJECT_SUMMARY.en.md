@@ -136,7 +136,7 @@ make clean-all       # Clean everything
 | File                                         | When          | Content            |
 | -------------------------------------------- | ------------- | ------------------ |
 | **[QUICK_START](QUICK_START.en.md)**         | Initial setup | Start in 5 minutes |
-| **[README](../README.md)**                   | Overview      | All features       |
+| **[README](../README.en.md)**                | Overview      | All features       |
 | **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** | This file     | Project summary    |
 
 ### Architecture Documents

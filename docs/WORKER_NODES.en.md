@@ -672,9 +672,9 @@ make deploy
 
 ### Project Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture details
-- [HAPROXY_NGINX_ARCHITECTURE.md](HAPROXY_NGINX_ARCHITECTURE.md) - Load balancer structure
-- [INGRESS_ROUTING.md](INGRESS_ROUTING.md) - Ingress routing details
+- [ARCHITECTURE.md](ARCHITECTURE.en.md) - Architecture details
+- [HAPROXY_NGINX_ARCHITECTURE.md](HAPROXY_NGINX_ARCHITECTURE.en.md) - Load balancer structure
+- [INGRESS_ROUTING.md](INGRESS_ROUTING.en.md) - Ingress routing details
 
 ---
 

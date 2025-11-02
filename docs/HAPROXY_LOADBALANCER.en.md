@@ -62,6 +62,7 @@ kubectl get nodes -o wide
 ```
 
 **Output:**
+
 ```
 NAME                  STATUS   ROLES           AGE   VERSION
 kind-control-plane    Ready    control-plane   20m   v1.31.0
@@ -73,6 +74,7 @@ kind-worker3          Ready    <none>          19m   v1.31.0
 ```
 
 **HA Structure:**
+
 - **3 Control-Plane Nodes**: Kubernetes management plane (etcd, API server, etc.)
 - **3 Worker Nodes**: Application workloads and Ingress Controller
 - **3 Ingress Replicas**: 1 NGINX Ingress pod per worker node (hostNetwork: true)
@@ -84,6 +86,7 @@ kubectl get pods -n ingress-nginx -o wide
 ```
 
 **Output:**
+
 ```
 NAME                                        READY   STATUS    NODE
 ingress-nginx-controller-xxx                1/1     Running   kind-worker
@@ -92,6 +95,7 @@ ingress-nginx-controller-zzz                1/1     Running   kind-worker3
 ```
 
 **Important:**
+
 - `hostNetwork: true` → Each Ingress pod listens on worker container's port 80/443
 - `replicas: 3` → 1 replica per worker node for HA
 - `nodeSelector: ingress-ready=true` → Runs only on worker nodes
@@ -101,22 +105,26 @@ ingress-nginx-controller-zzz                1/1     Running   kind-worker3
 ## 🚀 Automatic Installation
 
 ### Full Deployment (Including HAProxy)
+
 ```bash
 make deploy
 ```
 
 This command automatically:
+
 1. ✅ Creates HA Kind cluster (3 control-planes + 3 workers)
 2. ✅ Installs NGINX Ingress controller (3 replicas, hostNetwork: true)
 3. ✅ Deploys applications (C# & Go API/Web)
 4. ✅ **Starts HAProxy load balancer (DNS-based routing)**
 
 ### Sadece HAProxy Kurulumu
+
 ```bash
 make install-haproxy
 ```
 
 ### HAProxy Kaldırma
+
 ```bash
 make remove-haproxy
 ```
@@ -124,6 +132,7 @@ make remove-haproxy
 ## 📁 Dosyalar
 
 ### 1. HAProxy Configuration
+
 **File**: `k8s/haproxy-lb.cfg`
 
 ```haproxy
@@ -144,6 +153,7 @@ backend workers_http
 ```
 
 **Features:**
+
 - ✅ **DNS usage** - Not affected by IP changes (kind-worker, kind-worker2, kind-worker3)
 - ✅ **Health check** - Checks `/healthz` endpoint every 2 seconds
 - ✅ **Fast failover** - Worker marked DOWN after 2 failed checks
@@ -154,6 +164,7 @@ backend workers_http
 ### 2. Makefile Hedefleri
 
 **Yeni Target'lar:**
+
 - `install-haproxy`: HAProxy kurulumu
 - `remove-haproxy`: HAProxy kaldırma
 - `deploy`: Artık HAProxy'yi de kurar
@@ -162,17 +173,19 @@ backend workers_http
 ## 🌐 Erişim
 
 ### Standart Port 80 (HAProxy ile HA)
+
 ```bash
 # C# Uygulamaları
 http://api-csharp.local/api/datetime
 http://web-csharp.local
 
-# Go Uygulamaları  
+# Go Uygulamaları
 http://api-go.local/health
 http://web-go.local
 ```
 
 ### HAProxy Stats
+
 ```bash
 http://localhost:8404
 ```
@@ -180,6 +193,7 @@ http://localhost:8404
 ## ⚙️ HAProxy Yapılandırma Detayları
 
 ### Load Balancing
+
 - **Algorithm**: Round-robin
 - **Health Check**: GET /healthz
 - **Check Interval**: 2 saniye
@@ -187,13 +201,15 @@ http://localhost:8404
 - **Recovery Threshold**: 2 başarılı check
 
 ### Port Mapping
-| Port | Protokol  |     Description      |
-|------|-----------|----------------------|
+
+| Port | Protokol  | Description          |
+| ---- | --------- | -------------------- |
 | 80   | HTTP      | Ana web trafiği (HA) |
 | 443  | HTTPS/TCP | SSL trafiği (HA)     |
 | 8404 | HTTP      | HAProxy statistics   |
 
 ### DNS Çözümlemesi
+
 HAProxy, Docker'ın built-in DNS'ini kullanır (`127.0.0.11:53`). Bu sayede worker node IP'leri değişse bile otomatik olarak çözümlenir.
 
 ## 🔍 HA Testing
@@ -252,6 +268,7 @@ curl http://api-csharp.local/api/datetime
 ```
 
 ### HAProxy Stats Kontrolü
+
 ```bash
 # Browser'da aç
 open http://localhost:8404
@@ -261,6 +278,7 @@ curl http://localhost:8404
 ```
 
 ### Worker Node Başlatma
+
 ```bash
 # Worker1'i başlat
 docker start kind-worker
@@ -272,22 +290,26 @@ docker start kind-worker
 ## 🎯 Avantajlar
 
 ### IP Değişikliği Sorunu Çözüldü
+
 - ✅ DNS kullanımı ile worker IP'leri sabit olmak zorunda değil
 - ✅ Her `make deploy`'da aynı yapılandırma çalışır
 - ✅ Manuel IP güncellemesi gerektirmez
 
 ### Otomatizasyon
+
 - ✅ `make deploy` ile tek komutda her şey hazır
 - ✅ Yapılandırma dosyası proje içinde (`k8s/haproxy-lb.cfg`)
 - ✅ Makefile ile kolay yönetim
 
 ### HA ve Performans
+
 - ✅ Herhangi bir worker düşse sistem çalışmaya devam eder
 - ✅ Round-robin ile load balancing
 - ✅ 2 saniye içinde failover
 - ✅ Otomatik recovery
 
 ### Standart Port Kullanımı
+
 - ✅ Port 80 - Standart HTTP
 - ✅ Port 443 - Standart HTTPS
 - ✅ `:80` yazmaya gerek yok - `http://api-csharp.local` yeterli
@@ -295,22 +317,26 @@ docker start kind-worker
 ## 🛠️ Sorun Giderme
 
 ### HAProxy Logları
+
 ```bash
 docker logs kind-http-lb
 ```
 
 ### HAProxy Durumu
+
 ```bash
 docker ps | grep kind-http-lb
 ```
 
 ### HAProxy Yeniden Başlatma
+
 ```bash
 make remove-haproxy
 make install-haproxy
 ```
 
 ### Worker Node'ları Kontrol
+
 ```bash
 kubectl get nodes
 kubectl get pods -n ingress-nginx -o wide
@@ -319,6 +345,7 @@ kubectl get pods -n ingress-nginx -o wide
 ## 📊 HAProxy Stats Sayfası
 
 Stats sayfasında görülen bilgiler:
+
 - ✅ Backend sunucu durumları (UP/DOWN)
 - ✅ Request sayıları
 - ✅ Response time'ları
@@ -329,6 +356,7 @@ Stats sayfasında görülen bilgiler:
 ## 🎓 İleri Düzey Kullanım
 
 ### Manuel HAProxy Başlatma
+
 ```bash
 docker run -d \
   --name kind-http-lb \
@@ -341,6 +369,7 @@ docker run -d \
 ```
 
 ### Yapılandırma Değişikliği Sonrası Reload
+
 ```bash
 # Container'ı yeniden başlat
 docker restart kind-http-lb
@@ -353,6 +382,7 @@ make install-haproxy
 ## ✅ Checklist
 
 Başarılı kurulum için:
+
 - [ ] `k8s/haproxy-lb.cfg` dosyası mevcut
 - [ ] Kind cluster çalışıyor (`kubectl get nodes`)
 - [ ] HAProxy container çalışıyor (`docker ps | grep kind-http-lb`)
@@ -364,8 +394,8 @@ Başarılı kurulum için:
 
 ## 🔗 İlgili Dökümanlar
 
-- [QUICK_START.md](QUICK_START.md) - Hızlı başlangıç
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Mimari detayları
+- [QUICK_START.md](QUICK_START.en.md) - Hızlı başlangıç
+- [ARCHITECTURE.md](ARCHITECTURE.en.md) - Mimari detayları
 
 ---
 
