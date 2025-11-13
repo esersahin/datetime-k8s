@@ -1077,10 +1077,14 @@ Deployment sonrası doğrulama:
 15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)** - Kubernetes debugging ve troubleshooting
 16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.md)** - macOS network sorunları (5s gecikme çözümü)
 
+### Secret Management
+
+17. **[VAULT](VAULT.md)** - HashiCorp Vault entegrasyonu ve güvenli secret yönetimi
+
 ### Proje Özeti
 
-17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
-18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
+18. **[PROJECT_SUMMARY](PROJECT_SUMMARY.md)** - Proje bileşenleri ve önemli noktalar
+19. **[CHANGES_SUMMARY](CHANGES_SUMMARY.md)** - Bu dosya (değişiklikler özeti)
 
 ---
 

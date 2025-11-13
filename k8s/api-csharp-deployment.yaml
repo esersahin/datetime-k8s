@@ -19,6 +19,7 @@ spec:
       labels:
         app: datetime-api-csharp
     spec:
+      serviceAccountName: datetime-app  # Vault auth için gerekli
       containers:
         - name: api
           image: datetime-api-csharp:latest
@@ -27,20 +28,54 @@ spec:
             - containerPort: 5000
               name: http
           env:
+            # Static configuration
+            - name: ENVIRONMENT
+              value: "development"  # development | staging | production
             - name: DOTNET_gcServer
               value: "1"
             - name: DOTNET_GCHeapHardLimitPercent
               value: "60"
             - name: ASPNETCORE_ENVIRONMENT
-              value: "Production"
-            - name: TZ
-              value: "Europe/Istanbul"
+              value: "Development"  # Development | Staging | Production
+            - name: GO_API_URL
+              value: "http://datetime-api-go-service"
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: GO_API_URL
-              value: "http://datetime-api-go-service"
+
+            # Secrets from Vault (via External Secrets Operator)
+            # C# API kendi bağımsız secret'larını kullanır
+            - name: TZ
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: TIMEZONE
+            - name: LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: LOG_LEVEL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: DATABASE_URL
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: API_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: JWT_SECRET
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: datetime-api-csharp-secrets
+                  key: REDIS_URL
           livenessProbe:
             httpGet:
               path: /health

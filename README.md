@@ -1045,6 +1045,7 @@ make redeploy
 ### Sorun Giderme & Yapılandırma
 
 - **🔍 Kubernetes Debugging**: [DEBUGGING_KUBERNETES](docs/DEBUGGING_KUBERNETES.md) - Kubernetes sorun giderme ve debugging rehberi (CrashLoopBackOff, JSON serialization, globalization hataları)
+- **🔐 Secret Management**: [VAULT](docs/VAULT.md) - HashiCorp Vault entegrasyonu ile güvenli secret yönetimi
 - **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.md) - Ingress routing açıklaması ve yapılandırması
 - **📦 Ingress Kurulumu**: [INGRESS_SETUP](docs/INGRESS_SETUP.md) - NGINX Ingress Controller kurulum rehberi
 - **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.md) - 5 saniye gecikme sorunu çözümü

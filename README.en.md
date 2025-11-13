@@ -1054,6 +1054,7 @@ make redeploy
 ### Troubleshooting & Configuration
 
 - **🔍 Kubernetes Debugging**: [DEBUGGING_KUBERNETES](docs/DEBUGGING_KUBERNETES.en.md) - Kubernetes troubleshooting and debugging guide (CrashLoopBackOff, JSON serialization, globalization errors)
+- **🔐 Secret Management**: [VAULT](docs/VAULT.en.md) - Secure secret management with HashiCorp Vault integration
 - **🌐 Ingress Routing**: [INGRESS_ROUTING](docs/INGRESS_ROUTING.en.md) - Ingress routing explanation and configuration
 - **📦 Ingress Setup**: [INGRESS_SETUP](docs/INGRESS_SETUP.en.md) - NGINX Ingress Controller setup guide
 - **⚡ macOS Network Fix**: [MACOS_NETWORK_FIX](docs/MACOS_NETWORK_FIX.en.md) - 5 second delay issue fix

@@ -23,3 +23,13 @@ api-go/api-go
 # OS
 .DS_Store
 Thumbs.db
+
+# Vault - Sensitive data (DO NOT COMMIT!)
+vault-keys.json
+*.vault-token
+vault-audit.log
+
+# Environment variables (DO NOT COMMIT!)
+.env
+.env.local
+.env.*.local

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 
 ThreadPool.SetMinThreads(100, 100);
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 // CORS yapılandırması
 builder.Services.AddCors(options =>

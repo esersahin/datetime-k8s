@@ -1001,6 +1001,7 @@ make help
 - **Getting Started**: [QUICK_START](QUICK_START.en.md)
 - **Architecture**: [ARCHITECTURE](ARCHITECTURE.en.md)
 - **Network**: [INGRESS_ROUTING](INGRESS_ROUTING.en.md)
+- **Secret Management**: [VAULT](VAULT.en.md)
 - **Troubleshooting**: [DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)
 - **Changes**: [CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)
 
@@ -1019,7 +1020,7 @@ make help
 
 **Architecture**: Polyglot Microservices + HA Cluster
 
-**Test Status**: ✅ 20/20 tests passing
+**Test Status**: ✅ 9/9 tests passing
 
 **Documentation**: ✅ 20+ comprehensive docs
 

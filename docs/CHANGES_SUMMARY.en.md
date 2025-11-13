@@ -1077,10 +1077,14 @@ Post-deployment verification:
 15. **[DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.en.md)** - Kubernetes debugging and troubleshooting
 16. **[MACOS_NETWORK_FIX](MACOS_NETWORK_FIX.en.md)** - macOS network issues (5s delay fix)
 
+### Secret Management
+
+17. **[VAULT](VAULT.en.md)** - HashiCorp Vault integration and secure secret management
+
 ### Project Summary
 
-17. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
-18. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
+18. **[PROJECT_SUMMARY](PROJECT_SUMMARY.en.md)** - Project components and key points
+19. **[CHANGES_SUMMARY](CHANGES_SUMMARY.en.md)** - This file (changes summary)
 
 ---
 

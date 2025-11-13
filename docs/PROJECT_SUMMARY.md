@@ -1003,6 +1003,7 @@ make help
 - **Başlangıç**: [QUICK_START](QUICK_START.md)
 - **Mimari**: [ARCHITECTURE](ARCHITECTURE.md)
 - **Network**: [INGRESS_ROUTING](INGRESS_ROUTING.md)
+- **Secret Management**: [VAULT](VAULT.md)
 - **Troubleshooting**: [DEBUGGING_KUBERNETES](DEBUGGING_KUBERNETES.md)
 - **Changes**: [CHANGES_SUMMARY](CHANGES_SUMMARY.md)
 
@@ -1021,7 +1022,7 @@ make help
 
 **Architecture**: Polyglot Microservices + HA Cluster
 
-**Test Durumu**: ✅ 20/20 tests passing
+**Test Durumu**: ✅ 9/9 tests passing
 
 **Dokümantasyon**: ✅ 20+ comprehensive docs
 
