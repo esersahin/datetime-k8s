@@ -3,6 +3,10 @@
         clean-cluster clean-all logs logs-api logs-web test status show-nodes \
         scale-api scale-web restart-api restart-web redeploy quick-update update-hosts
 
+# Load environment variables from .env file
+-include .env
+export
+
 # Renkler
 RED := \033[0;31m
 GREEN := \033[0;32m
@@ -17,6 +21,8 @@ API_GO_IMAGE := datetime-api-go:latest
 WEB_GO_IMAGE := datetime-web-go:latest
 CLUSTER_NAME := kind
 NAMESPACE := default
+VAULT_NAMESPACE := vault
+VAULT_KEYS_FILE := vault-keys.json
 
 help: ## Tüm komutları gösterir
 	@echo "$(BLUE)DateTime Kubernetes Makefile$(NC)"
@@ -213,7 +219,7 @@ update-hosts: ## /etc/hosts dosyasını günceller
 deploy: ## Tüm deployment sürecini çalıştırır (ANA KOMUT)
 	@echo "$(BLUE)⏱️  Deployment başlatılıyor...$(NC)"
 	@START_TIME=$$(date +%s); \
-	$(MAKE) create-cluster install-ingress fix-ingress fix-webhooks load-images deploy-k8s install-haproxy update-hosts; \
+	$(MAKE) create-cluster install-ingress fix-ingress fix-webhooks load-images setup-vault deploy-k8s install-haproxy update-hosts; \
 	END_TIME=$$(date +%s); \
 	DURATION=$$((END_TIME - START_TIME)); \
 	MINUTES=$$((DURATION / 60)); \
@@ -447,7 +453,7 @@ clean-cluster: ## Kind cluster'ı siler
 	@kind delete cluster --name $(CLUSTER_NAME)
 	@echo "$(GREEN)✓ Cluster silindi$(NC)"
 
-clean-all: clean clean-cluster remove-haproxy ## Her şeyi temizler (cluster + kaynaklar + HAProxy)
+clean-all: clean clean-cluster remove-haproxy clean-vault ## Her şeyi temizler (cluster + kaynaklar + HAProxy + Vault)
 	@echo "$(GREEN)✓ Tüm kaynaklar temizlendi$(NC)"
 	@echo ""
 	@echo "$(YELLOW)⚠️  /etc/hosts dosyasını manuel temizlemeyi unutmayın:$(NC)"
@@ -498,3 +504,223 @@ remove-haproxy: ## HAProxy load balancer'ı kaldırır
 	@echo "$(YELLOW)🗑️  HAProxy load balancer kaldırılıyor...$(NC)"
 	@docker rm -f kind-http-lb 2>/dev/null || true
 	@echo "$(GREEN)✓ HAProxy kaldırıldı$(NC)"
+
+# ============================================
+# VAULT COMMANDS
+# ============================================
+
+install-vault: ## HashiCorp Vault'u cluster'a deploy eder
+	@echo "$(YELLOW)🔐 HashiCorp Vault kuruluyor...$(NC)"
+	@if kubectl get namespace $(VAULT_NAMESPACE) &> /dev/null; then \
+		echo "$(GREEN)✓ Vault namespace zaten mevcut$(NC)"; \
+	else \
+		kubectl apply -f k8s/vault-deployment.yaml; \
+		echo "$(GREEN)✓ Vault deployment uygulandı$(NC)"; \
+	fi
+	@echo "$(YELLOW)⏳ Vault pod'unun hazır olması bekleniyor...$(NC)"
+	@kubectl wait --for=condition=ready pod -l app=vault -n $(VAULT_NAMESPACE) --timeout=120s
+	@echo "$(GREEN)✓ Vault hazır$(NC)"
+
+vault-init: ## Vault'u initialize eder ve unseal keys oluşturur
+	@echo "$(YELLOW)🔐 Vault initialize ediliyor...$(NC)"
+	@VAULT_POD=$$(kubectl get pod -n $(VAULT_NAMESPACE) -l app=vault -o jsonpath='{.items[0].metadata.name}'); \
+	INIT_STATUS=$$(kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault status -format=json 2>/dev/null | jq -r '.initialized' || echo "false"); \
+	if [ "$$INIT_STATUS" == "true" ]; then \
+		echo "$(GREEN)✓ Vault zaten initialize edilmiş$(NC)"; \
+	else \
+		echo "$(YELLOW)Vault initialize ediliyor...$(NC)"; \
+		kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault operator init -format=json -key-shares=5 -key-threshold=3 > $(VAULT_KEYS_FILE); \
+		chmod 600 $(VAULT_KEYS_FILE); \
+		echo "$(GREEN)✓ Vault initialize edildi$(NC)"; \
+		echo "$(GREEN)✓ Keys ve root token kaydedildi: $(VAULT_KEYS_FILE)$(NC)"; \
+		echo "$(RED)⚠️  UYARI: Bu dosyayı güvenli bir yerde saklayın ve GIT'e commit ETMEYİN!$(NC)"; \
+	fi
+
+vault-unseal: ## Vault'u unseal eder
+	@echo "$(YELLOW)🔓 Vault unsealing...$(NC)"
+	@if [ ! -f "$(VAULT_KEYS_FILE)" ]; then \
+		echo "$(RED)❌ HATA: $(VAULT_KEYS_FILE) bulunamadı!$(NC)"; \
+		echo "$(YELLOW)Önce 'make vault-init' komutunu çalıştırın.$(NC)"; \
+		exit 1; \
+	fi
+	@VAULT_POD=$$(kubectl get pod -n $(VAULT_NAMESPACE) -l app=vault -o jsonpath='{.items[0].metadata.name}'); \
+	SEALED_STATUS=$$(kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault status -format=json 2>/dev/null | jq -r '.sealed' || echo "true"); \
+	if [ "$$SEALED_STATUS" == "false" ]; then \
+		echo "$(GREEN)✓ Vault zaten unsealed durumda$(NC)"; \
+	else \
+		for i in 0 1 2; do \
+			UNSEAL_KEY=$$(jq -r ".unseal_keys_b64[$$i]" $(VAULT_KEYS_FILE)); \
+			kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault operator unseal $$UNSEAL_KEY > /dev/null; \
+			echo "$(GREEN)✓ Unseal key $$((i+1))/3 uygulandı$(NC)"; \
+		done; \
+		echo "$(GREEN)✓ Vault unsealed$(NC)"; \
+	fi
+
+vault-setup: vault-unseal ## Vault'u yapılandırır (auth, policy, secrets)
+	@echo "$(YELLOW)⚙️  Vault yapılandırılıyor...$(NC)"
+	@VAULT_POD=$$(kubectl get pod -n $(VAULT_NAMESPACE) -l app=vault -o jsonpath='{.items[0].metadata.name}'); \
+	ROOT_TOKEN=$$(jq -r '.root_token' $(VAULT_KEYS_FILE)); \
+	\
+	echo "$(YELLOW)1. Vault'a login olunuyor...$(NC)"; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault login $$ROOT_TOKEN > /dev/null; \
+	echo "$(GREEN)✓ Login başarılı$(NC)"; \
+	echo ""; \
+	\
+	echo "$(YELLOW)2. Kubernetes auth method enable ediliyor...$(NC)"; \
+	AUTH_ENABLED=$$(kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault auth list -format=json 2>/dev/null | jq -r '."kubernetes/"' || echo "null"); \
+	if [ "$$AUTH_ENABLED" == "null" ]; then \
+		kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault auth enable kubernetes; \
+		echo "$(GREEN)✓ Kubernetes auth enabled$(NC)"; \
+	else \
+		echo "$(GREEN)✓ Kubernetes auth zaten enabled$(NC)"; \
+	fi; \
+	echo ""; \
+	\
+	echo "$(YELLOW)3. Kubernetes auth yapılandırılıyor...$(NC)"; \
+	SA_JWT_TOKEN=$$(kubectl get secret -n $(VAULT_NAMESPACE) -o jsonpath='{.items[?(@.metadata.annotations.kubernetes\.io/service-account\.name=="vault")].data.token}' | base64 --decode); \
+	SA_CA_CRT=$$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 --decode); \
+	K8S_HOST=$$(kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[0].cluster.server}'); \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault write auth/kubernetes/config \
+		token_reviewer_jwt="$$SA_JWT_TOKEN" \
+		kubernetes_host="$$K8S_HOST" \
+		kubernetes_ca_cert="$$SA_CA_CRT" \
+		disable_iss_validation=true > /dev/null; \
+	echo "$(GREEN)✓ Kubernetes auth yapılandırıldı$(NC)"; \
+	echo ""; \
+	\
+	echo "$(YELLOW)4. KV secrets engine enable ediliyor...$(NC)"; \
+	KV_ENABLED=$$(kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault secrets list -format=json 2>/dev/null | jq -r '."secret/"' || echo "null"); \
+	if [ "$$KV_ENABLED" == "null" ]; then \
+		kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault secrets enable -path=secret kv-v2; \
+		echo "$(GREEN)✓ KV secrets engine enabled$(NC)"; \
+	else \
+		echo "$(GREEN)✓ KV secrets engine zaten enabled$(NC)"; \
+	fi; \
+	echo ""; \
+	\
+	echo "$(YELLOW)5. Vault policy oluşturuluyor...$(NC)"; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- sh -c 'echo "path \"secret/data/datetime/*\" { capabilities = [\"read\", \"list\"] }" | vault policy write datetime-app -' > /dev/null; \
+	echo "$(GREEN)✓ Policy 'datetime-app' oluşturuldu$(NC)"; \
+	echo ""; \
+	\
+	echo "$(YELLOW)6. Service account oluşturuluyor...$(NC)"; \
+	kubectl create serviceaccount datetime-app -n default --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1; \
+	echo "$(GREEN)✓ Service account 'datetime-app' oluşturuldu$(NC)"; \
+	echo ""; \
+	\
+	echo "$(YELLOW)7. Kubernetes auth role oluşturuluyor...$(NC)"; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault write auth/kubernetes/role/datetime-app \
+		bound_service_account_names=datetime-app \
+		bound_service_account_namespaces=default \
+		policies=datetime-app \
+		ttl=24h > /dev/null; \
+	echo "$(GREEN)✓ Kubernetes role 'datetime-app' oluşturuldu$(NC)"; \
+	echo ""; \
+	\
+	echo "$(YELLOW)8. Secret'lar .env dosyasından okunuyor ve Vault'a yazılıyor...$(NC)"; \
+	if [ ! -f ".env" ]; then \
+		echo "$(RED)❌ HATA: .env dosyası bulunamadı!$(NC)"; \
+		echo "$(YELLOW)Lütfen .env.example'ı kopyalayın ve düzenleyin:$(NC)"; \
+		echo "  cp .env.example .env"; \
+		exit 1; \
+	fi; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault kv put secret/datetime/api-csharp \
+		timezone="$${CSHARP_TIMEZONE}" \
+		log_level="$${CSHARP_LOG_LEVEL}" \
+		database_url="$${CSHARP_DB_URL}" \
+		api_key="$${CSHARP_API_KEY}" \
+		jwt_secret="$${CSHARP_JWT_SECRET}" \
+		redis_url="$${CSHARP_REDIS_URL}" > /dev/null; \
+	echo "$(GREEN)✓ C# API secrets oluşturuldu (secret/datetime/api-csharp)$(NC)"; \
+	\
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault kv put secret/datetime/api-go \
+		timezone="$${GO_TIMEZONE}" \
+		log_level="$${GO_LOG_LEVEL}" \
+		database_url="$${GO_DB_URL}" \
+		api_key="$${GO_API_KEY}" \
+		jwt_secret="$${GO_JWT_SECRET}" \
+		redis_url="$${GO_REDIS_URL}" > /dev/null; \
+	echo "$(GREEN)✓ Go API secrets oluşturuldu (secret/datetime/api-go)$(NC)"; \
+	echo ""; \
+	\
+	echo "$(GREEN)======================================$(NC)"; \
+	echo "$(GREEN)🎉 Vault kurulumu tamamlandı! 🎉$(NC)"; \
+	echo "$(GREEN)======================================$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)📋 Önemli Bilgiler:$(NC)"; \
+	echo "  Root Token: $(YELLOW)$$ROOT_TOKEN$(NC)"; \
+	echo "  Vault Keys: $(YELLOW)$(VAULT_KEYS_FILE)$(NC)"; \
+	echo ""; \
+	echo "$(BLUE)🔧 Vault Erişim:$(NC)"; \
+	echo "  Port-forward: $(YELLOW)make vault-ui$(NC)"; \
+	echo "  UI: $(YELLOW)http://localhost:8200/ui$(NC)"
+
+vault-status: ## Vault durumunu gösterir
+	@echo "$(BLUE)🔐 Vault Durumu$(NC)"
+	@echo "================"
+	@VAULT_POD=$$(kubectl get pod -n $(VAULT_NAMESPACE) -l app=vault -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
+	if [ -z "$$VAULT_POD" ]; then \
+		echo "$(RED)✗ Vault pod bulunamadı$(NC)"; \
+		echo "$(YELLOW)Vault'u kurmak için: make install-vault$(NC)"; \
+	else \
+		echo "$(YELLOW)Pod: $$VAULT_POD$(NC)"; \
+		echo ""; \
+		kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault status || true; \
+	fi
+
+vault-ui: ## Vault UI için port-forward açar
+	@echo "$(BLUE)🌐 Vault UI açılıyor...$(NC)"
+	@echo "$(YELLOW)URL: http://localhost:8200/ui$(NC)"
+	@echo "$(YELLOW)Token için: jq -r '.root_token' $(VAULT_KEYS_FILE)$(NC)"
+	@echo "$(YELLOW)Çıkmak için: Ctrl+C$(NC)"
+	@echo ""
+	@kubectl port-forward -n $(VAULT_NAMESPACE) svc/vault 8200:8200
+
+vault-secrets: ## Vault'taki secret'ları listeler
+	@echo "$(BLUE)🔑 Vault Secret'ları$(NC)"
+	@echo "===================="
+	@VAULT_POD=$$(kubectl get pod -n $(VAULT_NAMESPACE) -l app=vault -o jsonpath='{.items[0].metadata.name}'); \
+	ROOT_TOKEN=$$(jq -r '.root_token' $(VAULT_KEYS_FILE) 2>/dev/null); \
+	if [ -z "$$ROOT_TOKEN" ]; then \
+		echo "$(RED)❌ Root token bulunamadı. Önce 'make vault-init' çalıştırın.$(NC)"; \
+		exit 1; \
+	fi; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault login $$ROOT_TOKEN > /dev/null 2>&1; \
+	echo "$(YELLOW)C# API Secrets:$(NC)"; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault kv get secret/datetime/api-csharp 2>/dev/null || echo "$(RED)Secret bulunamadı$(NC)"; \
+	echo ""; \
+	echo "$(YELLOW)Go API Secrets:$(NC)"; \
+	kubectl exec -n $(VAULT_NAMESPACE) $$VAULT_POD -- vault kv get secret/datetime/api-go 2>/dev/null || echo "$(RED)Secret bulunamadı$(NC)"
+
+install-external-secrets: ## External Secrets Operator'ı kurar
+	@echo "$(YELLOW)🔧 External Secrets Operator kuruluyor...$(NC)"
+	@if kubectl get namespace external-secrets &> /dev/null; then \
+		echo "$(GREEN)✓ External Secrets Operator zaten mevcut$(NC)"; \
+	else \
+		helm repo add external-secrets https://charts.external-secrets.io 2>/dev/null || true; \
+		helm repo update > /dev/null 2>&1; \
+		helm install external-secrets external-secrets/external-secrets \
+			-n external-secrets --create-namespace \
+			--set installCRDs=true \
+			--wait; \
+		echo "$(GREEN)✓ External Secrets Operator kuruldu$(NC)"; \
+	fi
+
+setup-vault: install-vault vault-init vault-setup install-external-secrets ## Vault'u tamamen kurar ve yapılandırır (ANA KOMUT)
+	@echo ""
+	@echo "$(GREEN)======================================$(NC)"
+	@echo "$(GREEN)🎉 Vault setup tamamlandı! 🎉$(NC)"
+	@echo "$(GREEN)======================================$(NC)"
+	@echo ""
+	@echo "$(BLUE)Sonraki Adımlar:$(NC)"
+	@echo "  1. SecretStore ve ExternalSecret'ları deploy edin: $(YELLOW)kubectl apply -f k8s/external-secrets.yaml$(NC)"
+	@echo "  2. Deployment'ları güncelleyin: $(YELLOW)make deploy-k8s$(NC)"
+	@echo "  3. Vault UI'a erişin: $(YELLOW)make vault-ui$(NC)"
+
+clean-vault: ## Vault'u tamamen kaldırır
+	@echo "$(YELLOW)🗑️  Vault temizleniyor...$(NC)"
+	@kubectl delete -f k8s/vault-deployment.yaml 2>/dev/null || true
+	@helm uninstall external-secrets -n external-secrets 2>/dev/null || true
+	@kubectl delete namespace external-secrets 2>/dev/null || true
+	@echo "$(GREEN)✓ Vault temizlendi$(NC)"
+	@echo "$(YELLOW)⚠️  vault-keys.json dosyasını manuel olarak silmeniz gerekebilir$(NC)"
